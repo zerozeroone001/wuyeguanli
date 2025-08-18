@@ -11,10 +11,10 @@
       initApp() {
         // 初始化应用配置
         this.initConfig()
-        // 检查用户登录状态
-        //#ifdef H5
-        this.checkLogin()
-        //#endif
+        // 暂时移除登录检查，支持无登录访问
+        // //#ifdef H5
+        // this.checkLogin()
+        // //#endif
       },
       initConfig() {
         this.globalData.config = config

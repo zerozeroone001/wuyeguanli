@@ -1,175 +1,92 @@
 {
-  "pages": [
-    {
-      "path": "pages/index",
-      "style": {
-        "navigationBarTitleText": "首页"
-      }
-    },
-    {
-      "path": "pages/login",
-      "style": {
-        "navigationBarTitleText": "登录"
-      }
-    },
-    {
-      "path": "pages/register",
-      "style": {
-        "navigationBarTitleText": "注册"
-      }
-    },
-    {
-      "path": "pages/mine/index",
-      "style": {
-        "navigationBarTitleText": "我的"
-      }
-    },
-    {
-      "path": "pages/daily-management/index",
-      "style": {
-        "navigationBarTitleText": "日常管理"
-      }
-    },
-    {
-      "path": "pages/daily-management/regulations",
-      "style": {
-        "navigationBarTitleText": "制度查阅"
-      }
-    },
-    {
-      "path": "pages/daily-management/meetings",
-      "style": {
-        "navigationBarTitleText": "业主大会"
-      }
-    },
-    {
-      "path": "pages/daily-management/announcements",
-      "style": {
-        "navigationBarTitleText": "会议公告"
-      }
-    },
-    {
-      "path": "pages/daily-management/resolutions",
-      "style": {
-        "navigationBarTitleText": "会议决议"
-      }
-    },
-    {
-      "path": "pages/daily-management/solicitation",
-      "style": {
-        "navigationBarTitleText": "意见征询"
-      }
-    },
-    {
-      "path": "pages/daily-management/qna",
-      "style": {
-        "navigationBarTitleText": "答业主问"
-      }
-    },
-    {
-      "path": "pages/daily-management/voting-history",
-      "style": {
-        "navigationBarTitleText": "我的投票"
-      }
-    },
-    {
-      "path": "pages/daily-management/calendar",
-      "style": {
-        "navigationBarTitleText": "会议日历"
-      }
-    },
-    {
-      "path": "pages/daily-management/voting",
-      "style": {
-        "navigationBarTitleText": "在线投票"
-      }
-    },
-    {
-      "path": "pages/contract-fulfillment/index",
-      "style": {
-        "navigationBarTitleText": "合同履行"
-      }
-    },
-    {
-      "path": "pages/fund-management/index",
-      "style": {
-        "navigationBarTitleText": "资金管理"
-      }
-    },
-    {
-      "path": "pages/fund-management/operating-income",
-      "style": {
-        "navigationBarTitleText": "经营性收益收支明细"
-      }
-    },
-    {
-      "path": "pages/fund-management/maintenance-fund",
-      "style": {
-        "navigationBarTitleText": "专项维修资金收支及使用情况"
-      }
-    },
-    {
-      "path": "pages/legal-consultation/index",
-      "style": {
-        "navigationBarTitleText": "法律咨询"
-      }
-    },
-    {
-      "path": "pages/notary-service/index",
-      "style": {
-        "navigationBarTitleText": "公证服务"
-      }
-    },
-    {
-      "path": "pages/complaints/index",
-      "style": {
-        "navigationBarTitleText": "投诉"
-      }
-    },
-    {
-      "path": "pages/repair/index",
-      "style": {
-        "navigationBarTitleText": "在线报修"
-      }
-    },
-    {
-      "path": "pages/payment/index",
-      "style": {
-        "navigationBarTitleText": "费用缴纳"
-      }
-    },
-    {
-      "path": "pages/visitor/index",
-      "style": {
-        "navigationBarTitleText": "访客邀请"
-      }
-    },
-    {
-      "path": "pages/common/textview/index",
-      "style": {
-        "navigationBarTitleText": "浏览文本"
-      }
+  "pages": [{
+    "path": "pages/login",
+    "style": {
+      "navigationBarTitleText": "登录"
     }
-  ],
+  }, {
+    "path": "pages/register",
+    "style": {
+      "navigationBarTitleText": "注册"
+    }
+  }, {
+    "path": "pages/index",
+    "style": {
+      "navigationBarTitleText": "智慧物业管理",
+      "navigationStyle": "custom"
+    }
+  }, {
+    "path": "pages/work/index",
+    "style": {
+      "navigationBarTitleText": "办事处"
+    }
+  }, {
+    "path": "pages/mine/index",
+    "style": {
+      "navigationBarTitleText": "我的"
+    }
+  }, {
+    "path": "pages/mine/avatar/index",
+    "style": {
+      "navigationBarTitleText": "修改头像"
+    }
+  }, {
+    "path": "pages/mine/info/index",
+    "style": {
+      "navigationBarTitleText": "个人信息"
+    }
+  }, {
+    "path": "pages/mine/info/edit",
+    "style": {
+      "navigationBarTitleText": "编辑资料"
+    }
+  }, {
+    "path": "pages/mine/pwd/index",
+    "style": {
+      "navigationBarTitleText": "修改密码"
+    }
+  }, {
+    "path": "pages/mine/setting/index",
+    "style": {
+      "navigationBarTitleText": "应用设置"
+    }
+  }, {
+    "path": "pages/mine/help/index",
+    "style": {
+      "navigationBarTitleText": "常见问题"
+    }
+  }, {
+    "path": "pages/mine/about/index",
+    "style": {
+      "navigationBarTitleText": "关于我们"
+    }
+  }, {
+    "path": "pages/common/webview/index",
+    "style": {
+      "navigationBarTitleText": "浏览网页"
+    }
+  }, {
+    "path": "pages/common/textview/index",
+    "style": {
+      "navigationBarTitleText": "浏览文本"
+    }
+  }],
   "tabBar": {
-    "color": "#000000",
-    "selectedColor": "#007AFF",
+    "color": "#8C8C8C",
+    "selectedColor": "#1890FF",
     "borderStyle": "white",
     "backgroundColor": "#ffffff",
-    "list": [
-      {
+    "list": [{
         "pagePath": "pages/index",
         "iconPath": "static/images/tabbar/home.png",
         "selectedIconPath": "static/images/tabbar/home_.png",
         "text": "首页"
-      },
-      {
-        "pagePath": "pages/daily-management/index",
+      }, {
+        "pagePath": "pages/work/index",
         "iconPath": "static/images/tabbar/work.png",
         "selectedIconPath": "static/images/tabbar/work_.png",
-        "text": "日常管理"
-      },
-      {
+        "text": "办事处"
+      }, {
         "pagePath": "pages/mine/index",
         "iconPath": "static/images/tabbar/mine.png",
         "selectedIconPath": "static/images/tabbar/mine_.png",
@@ -179,7 +96,7 @@
   },
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "智慧业委会",
+    "navigationBarTitleText": "RuoYi",
     "navigationBarBackgroundColor": "#FFFFFF"
   }
 }

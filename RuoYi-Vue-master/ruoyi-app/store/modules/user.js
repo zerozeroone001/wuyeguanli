@@ -15,7 +15,15 @@ const user = {
     name: storage.get(constant.name),
     avatar: storage.get(constant.avatar),
     roles: storage.get(constant.roles),
-    permissions: storage.get(constant.permissions)
+    permissions: storage.get(constant.permissions),
+    // 物业系统扩展字段
+    nickName: storage.get(constant.nickName) || '张先生',
+    authStatus: storage.get(constant.authStatus) || false,
+    phone: storage.get(constant.phone),
+    building: storage.get(constant.building),
+    unit: storage.get(constant.unit),
+    room: storage.get(constant.room),
+    ownerType: storage.get(constant.ownerType) || '1' // 1-业主,2-租户,3-其他
   },
 
   mutations: {
@@ -41,6 +49,31 @@ const user = {
     SET_PERMISSIONS: (state, permissions) => {
       state.permissions = permissions
       storage.set(constant.permissions, permissions)
+    },
+    // 物业系统扩展mutations
+    SET_NICKNAME: (state, nickName) => {
+      state.nickName = nickName
+      storage.set(constant.nickName, nickName)
+    },
+    SET_AUTH_STATUS: (state, authStatus) => {
+      state.authStatus = authStatus
+      storage.set(constant.authStatus, authStatus)
+    },
+    SET_PHONE: (state, phone) => {
+      state.phone = phone
+      storage.set(constant.phone, phone)
+    },
+    SET_PROPERTY_INFO: (state, propertyInfo) => {
+      state.building = propertyInfo.building
+      state.unit = propertyInfo.unit
+      state.room = propertyInfo.room
+      storage.set(constant.building, propertyInfo.building)
+      storage.set(constant.unit, propertyInfo.unit)
+      storage.set(constant.room, propertyInfo.room)
+    },
+    SET_OWNER_TYPE: (state, ownerType) => {
+      state.ownerType = ownerType
+      storage.set(constant.ownerType, ownerType)
     }
   },
 

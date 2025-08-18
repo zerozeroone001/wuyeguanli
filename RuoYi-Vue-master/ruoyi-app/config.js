@@ -1,13 +1,14 @@
 // 应用全局配置
 module.exports = {
-  baseUrl: 'https://vue.ruoyi.vip/prod-api',
-  // baseUrl: 'http://localhost:8080',
+  // baseUrl: 'http://localhost:8080/prod-api',
+  baseUrl: 'http://localhost:8080',
+  
   // 应用信息
   appInfo: {
     // 应用名称
-    name: "ruoyi-app",
+    name: "智慧物业管理",
     // 应用版本
-    version: "1.2.0",
+    version: "2.0.0",
     // 应用logo
     logo: "/static/logo.png",
     // 官方网站
@@ -22,5 +23,37 @@ module.exports = {
         url: "https://ruoyi.vip/protocol.html"
       }
     ]
+  },
+  
+  // 物业系统特有配置
+  property: {
+    // 小区信息
+    communityInfo: {
+      name: "智慧花园小区",
+      address: "北京市朝阳区科技路88号",
+      totalHouseholds: 1256,
+      totalBuildings: 12,
+      phone: "010-88888888"
+    },
+    
+    // 功能开关
+    features: {
+      voting: true,        // 投票功能
+      complaint: true,     // 投诉功能
+      fundQuery: true,     // 资金查询
+      regulation: true,    // 制度查阅
+      notary: true,        // 公证服务
+      consultation: true   // 法律咨询
+    },
+    
+    // 主题色彩配置
+    theme: {
+      primaryColor: '#1890FF',      // 主色调
+      successColor: '#52C41A',      // 成功色
+      warningColor: '#FAAD14',      // 警告色
+      errorColor: '#F5222D',        // 错误色
+      textColor: '#262626',         // 主要文字色
+      textColorSecondary: '#8C8C8C' // 次要文字色
+    }
   }
 }

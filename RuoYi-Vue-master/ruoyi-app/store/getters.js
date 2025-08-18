@@ -4,6 +4,30 @@ const getters = {
   id: state => state.user.id,
   name: state => state.user.name,
   roles: state => state.user.roles,
-  permissions: state => state.user.permissions
+  permissions: state => state.user.permissions,
+  // 物业系统扩展getters
+  userInfo: state => ({
+    id: state.user.id,
+    name: state.user.name,
+    nickName: state.user.nickName,
+    avatar: state.user.avatar,
+    phone: state.user.phone,
+    authStatus: state.user.authStatus,
+    building: state.user.building,
+    unit: state.user.unit,
+    room: state.user.room,
+    ownerType: state.user.ownerType,
+    roles: state.user.roles,
+    permissions: state.user.permissions
+  }),
+  nickName: state => state.user.nickName,
+  authStatus: state => state.user.authStatus,
+  phone: state => state.user.phone,
+  propertyInfo: state => ({
+    building: state.user.building,
+    unit: state.user.unit,
+    room: state.user.room
+  }),
+  ownerType: state => state.user.ownerType
 }
 export default getters
