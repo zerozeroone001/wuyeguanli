@@ -25,3 +25,5 @@ export function downloadRegulation(regulationId) {
     responseType: 'blob'
   })
 }
+ 
+ 

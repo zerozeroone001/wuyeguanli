@@ -70,6 +70,106 @@
     "style": {
       "navigationBarTitleText": "浏览文本"
     }
+  }, {
+    "path": "pages/property/meeting/index",
+    "style": {
+      "navigationBarTitleText": "业主大会",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    },
+    "usingComponents": {
+      "uni-calendar": "/uni_modules/uni-calendar/components/uni-calendar/uni-calendar"
+    }
+  }, {
+    "path": "pages/property/meeting/detail",
+    "style": {
+      "navigationBarTitleText": "会议详情"
+    }
+  }, {
+    "path": "pages/property/meeting/vote",
+    "style": {
+      "navigationBarTitleText": "参与投票"
+    }
+  }, {
+    "path": "pages/property/meeting/result",
+    "style": {
+      "navigationBarTitleText": "投票结果"
+    }
+  }, {
+    "path": "pages/property/complaint/index",
+    "style": {
+      "navigationBarTitleText": "意见征询",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/property/complaint/add",
+    "style": {
+      "navigationBarTitleText": "提交投诉"
+    }
+  }, {
+    "path": "pages/property/complaint/detail",
+    "style": {
+      "navigationBarTitleText": "投诉详情"
+    }
+  }, {
+    "path": "pages/contract-fulfillment/index",
+    "style": {
+      "navigationBarTitleText": "合同查阅",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/contract-fulfillment/detail",
+    "style": {
+      "navigationBarTitleText": "合同详情"
+    }
+  }, {
+    "path": "pages/fund-management/index",
+    "style": {
+      "navigationBarTitleText": "资金公示",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/fund-management/detail",
+    "style": {
+      "navigationBarTitleText": "资金明细"
+    }
+  }, {
+    "path": "pages/fund-management/report",
+    "style": {
+      "navigationBarTitleText": "财务报表"
+    }
+  }, {
+    "path": "pages/legal-consultation/index",
+    "style": {
+      "navigationBarTitleText": "法律咨询",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/legal-consultation/add",
+    "style": {
+      "navigationBarTitleText": "提交咨询"
+    }
+  }, {
+    "path": "pages/legal-consultation/detail",
+    "style": {
+      "navigationBarTitleText": "咨询详情"
+    }
+  }, {
+    "path": "pages/work/regulation",
+    "style": {
+      "navigationBarTitleText": "制度查阅",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/work/regulation-detail",
+    "style": {
+      "navigationBarTitleText": "制度详情"
+    }
   }],
   "tabBar": {
     "color": "#8C8C8C",

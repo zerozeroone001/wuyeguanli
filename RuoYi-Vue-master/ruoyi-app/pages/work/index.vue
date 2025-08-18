@@ -2,10 +2,10 @@
   <view class="work-container">
     <!-- 头部搜索区 -->
     <view class="search-header">
-      <view class="search-box">
+     <!-- <view class="search-box">
         <uni-icons type="search" size="18" color="#8C8C8C" />
         <input class="search-input" placeholder="搜索物业服务" placeholder-style="color: #8C8C8C" />
-      </view>
+      </view> -->
       <view class="location-info">
         <uni-icons type="location" size="16" color="#1890FF" />
         <text class="location-text">{{ communityInfo.name }}</text>
@@ -14,16 +14,17 @@
 
     <!-- 服务分类 -->
     <view class="service-categories">
-      <view class="category-title">
+      <!-- <view class="category-title">
         <text class="title-text">物业服务</text>
         <text class="subtitle-text">Property Services</text>
-      </view>
+      </view> -->
       
       <!-- 主要服务 -->
       <view class="main-services">
         <uni-grid :column="3" :showBorder="false" :square="false">
           <uni-grid-item v-for="(service, index) in mainServices" :key="index" @click="handleServiceClick(service)">
             <view class="service-item main-service">
+				111
               <view class="service-icon" :style="{ backgroundColor: service.bgColor }">
                 <uni-icons :type="service.icon" size="28" color="white" />
               </view>
@@ -35,7 +36,7 @@
       </view>
 
       <!-- 生活服务 -->
-      <view class="life-services">
+      <!-- <view class="life-services">
         <view class="section-header">
           <text class="section-title">生活服务</text>
         </view>
@@ -49,7 +50,7 @@
             </view>
           </uni-grid-item>
         </uni-grid>
-      </view>
+      </view> -->
 
       <!-- 便民服务 -->
       <view class="convenience-services">
@@ -120,46 +121,67 @@ export default {
       // 主要服务
       mainServices: [
         {
-          name: '报修服务',
-          desc: '设备维修',
-          icon: 'gear',
-          bgColor: '#FF6B35',
-          path: '/pages/repair/index'
+          name: '业主大会',
+          desc: '会议投票',
+          icon: 'compose',
+          bgColor: '#1890FF',
+          path: '/pages/property/meeting/index'
         },
         {
-          name: '投诉建议',
-          desc: '意见反馈',
+          name: '意见征询',
+          desc: '问题反馈',
           icon: 'chat',
-          bgColor: '#4ECDC4',
-          path: '/pages/complaints/index'
+          bgColor: '#52C41A',
+          path: '/pages/property/complaint/index'
         },
         {
-          name: '访客登记',
-          desc: '来访管理',
-          icon: 'person-add',
-          bgColor: '#45B7D1',
-          path: '/pages/visitor/index'
+          name: '合同查阅',
+          desc: '合同管理',
+          icon: 'paperplane',
+          bgColor: '#FAAD14',
+          path: '/pages/contract-fulfillment/index'
         },
         {
-          name: '缴费服务',
-          desc: '在线缴费',
+          name: '资金公示',
+          desc: '财务透明',
           icon: 'wallet',
-          bgColor: '#96CEB4',
-          path: '/pages/payment/index'
+          bgColor: '#722ED1',
+          path: '/pages/fund-management/index'
         },
         {
-          name: '公告通知',
-          desc: '社区公告',
-          icon: 'sound',
-          bgColor: '#FECA57',
-          path: '/pages/daily-management/announcements'
+          name: '法律咨询',
+          desc: '专业服务',
+          icon: 'help',
+          bgColor: '#F5222D',
+          path: '/pages/legal-consultation/index'
         },
         {
-          name: '活动报名',
-          desc: '社区活动',
-          icon: 'calendar',
-          bgColor: '#FF9FF3',
-          path: '/pages/daily-management/activities'
+          name: '制度查阅',
+          desc: '规章制度',
+          icon: 'list',
+          bgColor: '#13C2C2',
+          path: '/pages/property/regulation/index'
+        },
+        {
+          name: '公证存证',
+          desc: '权威认证',
+          icon: 'checkmarkempty',
+          bgColor: '#EB2F96',
+          path: '/pages/notary-service/index'
+        },
+        {
+          name: '指导监督',
+          desc: '业务指导',
+          icon: 'eye',
+          bgColor: '#FA8C16',
+          path: '/pages/property/supervision/index'
+        },
+        {
+          name: '承接查验',
+          desc: '物业交接',
+          icon: 'flag',
+          bgColor: '#389E0D',
+          path: '/pages/property/handover/index'
         }
       ],
       // 生活服务
@@ -293,31 +315,33 @@ export default {
 @import '@/static/scss/global.scss';
 
 page {
-  background-color: #F5F6FA;
+  background-color: #FAFBFC;
 }
 
 .work-container {
   min-height: 100vh;
-  background-color: #F5F6FA;
+  background-color: #FAFBFC;
 }
 
 .search-header {
-  background: linear-gradient(135deg, #1890FF 0%, #40A9FF 100%);
-  padding: 20rpx 30rpx 40rpx;
+  background: #FFFFFF;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #F0F0F0;
   
   .search-box {
     display: flex;
     align-items: center;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 50rpx;
-    padding: 20rpx 30rpx;
-    margin-bottom: 20rpx;
+    background-color: #F8F9FA;
+    border-radius: 24rpx;
+    padding: 24rpx 30rpx;
+    margin-bottom: 24rpx;
+    border: 1rpx solid #F0F0F0;
     
     .search-input {
       flex: 1;
       margin-left: 20rpx;
       font-size: 28rpx;
-      color: #333;
+      color: #262626;
     }
   }
   
@@ -326,9 +350,10 @@ page {
     align-items: center;
     
     .location-text {
-      margin-left: 10rpx;
-      color: white;
-      font-size: 26rpx;
+      margin-left: 12rpx;
+      color: #262626;
+      font-size: 28rpx;
+      font-weight: 600;
     }
   }
 }
@@ -362,28 +387,30 @@ page {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 30rpx 20rpx;
+    padding: 40rpx 20rpx;
+    background: #FFFFFF;
+    border-radius: 24rpx;
+    border: 1rpx solid #F0F0F0;
     
     .service-icon {
-      width: 100rpx;
-      height: 100rpx;
-      border-radius: 50rpx;
+      width: 88rpx;
+      height: 88rpx;
+      border-radius: 44rpx;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 20rpx;
-      box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1);
+      margin-bottom: 24rpx;
     }
     
     .service-name {
       font-size: 28rpx;
-      font-weight: bold;
+      font-weight: 600;
       color: #262626;
       margin-bottom: 8rpx;
     }
     
     .service-desc {
-      font-size: 22rpx;
+      font-size: 24rpx;
       color: #8C8C8C;
     }
   }
@@ -420,12 +447,15 @@ page {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 30rpx 10rpx;
+    padding: 32rpx 16rpx;
+    background: #FFFFFF;
+    border-radius: 20rpx;
+    border: 1rpx solid #F0F0F0;
     
     .service-icon.small {
-      width: 80rpx;
-      height: 80rpx;
-      border-radius: 40rpx;
+      width: 72rpx;
+      height: 72rpx;
+      border-radius: 36rpx;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -435,6 +465,7 @@ page {
     .service-name.small {
       font-size: 24rpx;
       color: #262626;
+      font-weight: 500;
     }
   }
 }
@@ -443,10 +474,10 @@ page {
   margin-bottom: 50rpx;
   
   .service-list {
-    background-color: white;
-    border-radius: 16rpx;
+    background-color: #FFFFFF;
+    border-radius: 24rpx;
     overflow: hidden;
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+    border: 1rpx solid #F0F0F0;
   }
   
   .service-row {
@@ -513,10 +544,11 @@ page {
 
 .contact-section {
   .contact-card {
-    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-    border-radius: 20rpx;
+    background: #FFFFFF;
+    border-radius: 24rpx;
     padding: 40rpx;
-    color: white;
+    color: #262626;
+    border: 1rpx solid #F0F0F0;
     
     .contact-header {
       display: flex;
@@ -564,13 +596,14 @@ page {
         }
         
         &.primary {
-          background-color: rgba(255, 255, 255, 0.2);
-          border: 1rpx solid rgba(255, 255, 255, 0.3);
+          background-color: #1890FF;
+          color: white;
         }
         
         &.secondary {
-          background-color: white;
+          background-color: #F8F9FA;
           color: #1890FF;
+          border: 1rpx solid #E0E0E0;
         }
       }
     }
@@ -580,4 +613,185 @@ page {
 .safe-area-bottom {
   height: 120rpx;
 }
+</style>
+
+    <!-- 轮播图 -->
+    <uni-swiper-dot class="uni-swiper-dot-box" :info="data" :current="current" field="content">
+      <swiper class="swiper-box" :current="swiperDotIndex" @change="changeSwiper">
+        <swiper-item v-for="(item, index) in data" :key="index">
+          <view class="swiper-item" @click="clickBannerItem(item)">
+            <image :src="item.image" mode="aspectFill" :draggable="false" />
+          </view>
+        </swiper-item>
+      </swiper>
+    </uni-swiper-dot>
+
+    <!-- 宫格组件 -->
+    <uni-section title="系统管理" type="line"></uni-section>
+    <view class="grid-body">
+      <uni-grid :column="4" :showBorder="false" @change="changeGrid">
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="person-filled" size="30"></uni-icons>
+            <text class="text">用户管理</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="staff-filled" size="30"></uni-icons>
+            <text class="text">角色管理</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="color" size="30"></uni-icons>
+            <text class="text">菜单管理</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="settings-filled" size="30"></uni-icons>
+            <text class="text">部门管理</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="heart-filled" size="30"></uni-icons>
+            <text class="text">岗位管理</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="bars" size="30"></uni-icons>
+            <text class="text">字典管理</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="gear-filled" size="30"></uni-icons>
+            <text class="text">参数设置</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="chat-filled" size="30"></uni-icons>
+            <text class="text">通知公告</text>
+          </view>
+        </uni-grid-item>
+        <uni-grid-item>
+          <view class="grid-item-box">
+            <uni-icons type="wallet-filled" size="30"></uni-icons>
+            <text class="text">日志管理</text>
+          </view>
+        </uni-grid-item>
+      </uni-grid>
+    </view>
+  </view>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        current: 0,
+        swiperDotIndex: 0,
+        data: [{
+            image: '/static/images/banner/banner01.jpg'
+          },
+          {
+            image: '/static/images/banner/banner02.jpg'
+          },
+          {
+            image: '/static/images/banner/banner03.jpg'
+          }
+        ]
+      }
+    },
+    methods: {
+      clickBannerItem(item) {
+        console.info(item)
+      },
+      changeSwiper(e) {
+        this.current = e.detail.current
+      },
+      changeGrid(e) {
+        this.$modal.showToast('模块建设中~')
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  /* #ifndef APP-NVUE */
+  page {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    background-color: #fff;
+    min-height: 100%;
+    height: auto;
+  }
+
+  view {
+    font-size: 14px;
+    line-height: inherit;
+  }
+  /* #endif */
+
+  .text {
+    text-align: center;
+    font-size: 26rpx;
+    margin-top: 10rpx;
+  }
+
+  .grid-item-box {
+    flex: 1;
+    /* #ifndef APP-NVUE */
+    display: flex;
+    /* #endif */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 0;
+  }
+
+  .uni-margin-wrap {
+    width: 690rpx;
+    width: 100%;
+    ;
+  }
+
+  .swiper {
+    height: 300rpx;
+  }
+
+  .swiper-box {
+    height: 150px;
+  }
+
+  .swiper-item {
+    /* #ifndef APP-NVUE */
+    display: flex;
+    /* #endif */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    height: 300rpx;
+    line-height: 300rpx;
+  }
+
+  @media screen and (min-width: 500px) {
+    .uni-swiper-dot-box {
+      width: 400px;
+      /* #ifndef APP-NVUE */
+      margin: 0 auto;
+      /* #endif */
+      margin-top: 8px;
+    }
+
+    .image {
+      width: 100%;
+    }
+  }
 </style>

@@ -34,8 +34,16 @@
   export default {
     data() {
       return {
-        windowHeight: uni.getSystemInfoSync().windowHeight
+        windowHeight: 0
       }
+    },
+    onLoad() {
+      // 获取窗口高度
+      uni.getSystemInfo({
+        success: (res) => {
+          this.windowHeight = res.windowHeight
+        }
+      })
     },
     methods: {
       handleToPwd() {

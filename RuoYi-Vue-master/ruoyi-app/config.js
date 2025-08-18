@@ -6,7 +6,7 @@ module.exports = {
   // 应用信息
   appInfo: {
     // 应用名称
-    name: "智慧物业管理",
+    name: "卓特物业管理",
     // 应用版本
     version: "2.0.0",
     // 应用logo
@@ -29,7 +29,7 @@ module.exports = {
   property: {
     // 小区信息
     communityInfo: {
-      name: "智慧花园小区",
+      name: "卓特花园小区",
       address: "北京市朝阳区科技路88号",
       totalHouseholds: 1256,
       totalBuildings: 12,

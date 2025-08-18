@@ -42,11 +42,11 @@
   import { uploadAvatar } from "@/api/system/user"
   
   const baseUrl = config.baseUrl
-	let sysInfo = uni.getSystemInfoSync()
-	let SCREEN_WIDTH = sysInfo.screenWidth
+	let sysInfo = null
+	let SCREEN_WIDTH = 375 // 默认值，将在组件初始化时更新
 	let PAGE_X, // 手按下的x位置
 		PAGE_Y, // 手按下y的位置 
-		PR = sysInfo.pixelRatio, // dpi
+		PR = 2, // dpi 默认值
 		T_PAGE_X, // 手移动的时候x的位置
 		T_PAGE_Y, // 手移动的时候Y的位置
 		CUT_L, // 初始化拖拽元素的left值
@@ -60,7 +60,7 @@
 		IMG_REAL_H, // 图片实际的高度
 		DRAFG_MOVE_RATIO = 1, //移动时候的比例,
 		INIT_DRAG_POSITION = 100, // 初始化屏幕宽度和裁剪区域的宽度之差，用于设置初始化裁剪的宽度
-		DRAW_IMAGE_W = sysInfo.screenWidth // 设置生成的图片宽度
+		DRAW_IMAGE_W = 375 // 设置生成的图片宽度，默认值
 
 	export default {
 		/**
@@ -101,6 +101,24 @@
 		 * 生命周期函数--监听页面初次渲染完成
 		 */
 		onReady: function () {
+			// 初始化系统信息
+			uni.getSystemInfo({
+				success: (res) => {
+					sysInfo = res
+					SCREEN_WIDTH = res.screenWidth
+					PR = res.pixelRatio
+					DRAW_IMAGE_W = res.screenWidth
+					// 重新设置相关数据
+					this.setData({
+						cropperInitW: SCREEN_WIDTH,
+						cropperInitH: SCREEN_WIDTH,
+						cropperW: SCREEN_WIDTH,
+						cropperH: SCREEN_WIDTH,
+						cutB: SCREEN_WIDTH,
+						qualityWidth: DRAW_IMAGE_W
+					})
+				}
+			})
 			this.loadImage()
 		},
 		methods: {

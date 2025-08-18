@@ -48,25 +48,44 @@
 
     <!-- 公告轮播 -->
     <view class="notice-section" v-if="noticeList.length > 0">
+      <view class="notice-header">
+        <view class="notice-title-wrap">
+          <uni-icons type="sound" size="18" color="#1890FF" />
+          <text class="notice-main-title">最新公告</text>
+        </view>
+        <text class="notice-more" @click="goToNoticeList">全部 ></text>
+      </view>
+      
       <swiper 
         class="notice-swiper" 
         indicator-dots 
         circular 
         autoplay 
-        interval="4000"
-        indicator-color="rgba(255,255,255,0.5)"
-        indicator-active-color="#fff"
+        interval="5000"
+        indicator-color="rgba(24, 144, 255, 0.3)"
+        indicator-active-color="#1890FF"
+        indicator-style="bottom: 16rpx;"
       >
         <swiper-item v-for="notice in noticeList" :key="notice.noticeId">
           <view class="notice-item" @click="viewNotice(notice)">
-            <view class="notice-badge">
-              <text class="notice-type">{{ notice.noticeType === '1' ? '公告' : '通知' }}</text>
+            <view class="notice-left">
+              <view class="notice-badge" :class="notice.noticeType === '1' ? 'urgent' : 'normal'">
+                <text class="notice-type">{{ notice.noticeType === '1' ? '重要' : '通知' }}</text>
+              </view>
+              <view class="notice-content">
+                <text class="notice-title">{{ notice.noticeTitle }}</text>
+                <text class="notice-summary">{{ notice.noticeContent }}</text>
+                <view class="notice-meta">
+                  <text class="notice-time">{{ notice.createTime }}</text>
+                  <view class="notice-status" v-if="notice.isNew">
+                    <text class="status-text">NEW</text>
+                  </view>
+                </view>
+              </view>
             </view>
-            <view class="notice-content">
-              <text class="notice-title">{{ notice.noticeTitle }}</text>
-              <text class="notice-summary">{{ notice.noticeContent }}</text>
+            <view class="notice-right">
+              <uni-icons type="right" size="16" color="#8C8C8C" />
             </view>
-            <uni-icons type="right" size="14" color="#fff" />
           </view>
         </swiper-item>
       </swiper>
@@ -98,7 +117,7 @@
     </view>
 
     <!-- 制度文件查阅 -->
-    <view class="regulations-section">
+   <!-- <view class="regulations-section">
       <view class="section-header">
         <text class="section-title">制度文件</text>
         <text class="more-link" @click="goRegulations">更多 ></text>
@@ -120,7 +139,7 @@
           <uni-icons type="right" size="14" color="#8C8C8C" />
         </view>
       </view>
-    </view>
+    </view> -->
 
     <!-- 最新动态 -->
     <view class="latest-news">
@@ -178,22 +197,33 @@ export default {
           noticeId: 1,
           noticeType: '1',
           noticeTitle: '关于召开2024年度业主大会的通知',
-          noticeContent: '定于2024年2月15日下午2点在小区会议室召开业主大会，请各位业主准时参加...',
-          createTime: '2024-01-15'
+          noticeContent: '定于2024年2月15日下午2点在小区会议室召开业主大会，请各位业主准时参加，共同讨论小区重要事务',
+          createTime: '01-15',
+          isNew: true
         },
         {
           noticeId: 2,
           noticeType: '2',
           noticeTitle: '物业费缴费通知',
-          noticeContent: '2024年第一季度物业费开始缴纳，请业主们及时缴费...',
-          createTime: '2024-01-10'
+          noticeContent: '2024年第一季度物业费开始缴纳，请业主们及时缴费，可通过线上线下多种方式缴纳',
+          createTime: '01-10',
+          isNew: false
         },
         {
           noticeId: 3,
           noticeType: '1',
           noticeTitle: '小区电梯维保公告',
-          noticeContent: '为保障电梯安全运行，将于本周末进行电梯维保工作...',
-          createTime: '2024-01-08'
+          noticeContent: '为保障电梯安全运行，将于本周末进行电梯维保工作，期间请业主们合理安排出行',
+          createTime: '01-08',
+          isNew: true
+        },
+        {
+          noticeId: 4,
+          noticeType: '2',
+          noticeTitle: '春节期间物业服务安排',
+          noticeContent: '春节期间物业服务时间调整，紧急情况请拨打24小时值班电话，祝大家新年快乐',
+          createTime: '01-05',
+          isNew: false
         }
       ],
       // 快捷功能数据
@@ -307,8 +337,11 @@ export default {
   methods: {
     initPage() {
       // 获取状态栏高度
-      const systemInfo = uni.getSystemInfoSync()
-      this.statusBarHeight = systemInfo.statusBarHeight
+      uni.getSystemInfo({
+        success: (systemInfo) => {
+          this.statusBarHeight = systemInfo.statusBarHeight
+        }
+      })
       
       // 加载页面数据
       this.loadData()
@@ -403,6 +436,10 @@ export default {
       uni.navigateTo({ url: '/pages/common/news/index' })
     },
     
+    goToNoticeList() {
+      uni.navigateTo({ url: '/pages/common/notice/list' })
+    },
+    
     // 查看详情方法
     viewNotice(notice) {
       uni.navigateTo({
@@ -430,7 +467,7 @@ export default {
 
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #1890FF 0%, #40A9FF 100%);
+  background: #FFFFFF;
 }
 
 /* 自定义导航栏 */
@@ -438,31 +475,33 @@ export default {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: transparent;
+  background: #FFFFFF;
   
   .navbar-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 44px;
-    padding: 0 20rpx;
+    padding: 0 30rpx;
     
     .location-info {
       display: flex;
       align-items: center;
       
       .location-text {
-        margin-left: 8rpx;
+        margin-left: 12rpx;
         font-size: 32rpx;
-        font-weight: 500;
-        color: #fff;
+        font-weight: 600;
+        color: #262626;
       }
     }
     
     .navbar-right {
       .message-icon {
         position: relative;
-        padding: 10rpx;
+        padding: 12rpx;
+        border-radius: 50%;
+        background: #F8F9FA;
       }
     }
   }
@@ -470,24 +509,25 @@ export default {
 
 /* 用户信息区 */
 .user-info-section {
-  padding: 0 30rpx 40rpx;
+  padding: 30rpx;
   
   .user-card {
     display: flex;
     align-items: center;
-    padding: 30rpx;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 20rpx;
-    backdrop-filter: blur(10px);
+    padding: 40rpx;
+    background: #FFFFFF;
+    border-radius: 24rpx;
+    box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
+    border: 1rpx solid #F0F0F0;
     
     .user-avatar-wrap {
-      margin-right: 24rpx;
+      margin-right: 32rpx;
       
       .user-avatar {
-        width: 100rpx;
-        height: 100rpx;
-        border-radius: 50rpx;
-        border: 4rpx solid rgba(255, 255, 255, 0.3);
+        width: 120rpx;
+        height: 120rpx;
+        border-radius: 60rpx;
+        border: 3rpx solid #F0F0F0;
       }
     }
     
@@ -497,23 +537,26 @@ export default {
       .greeting-wrap {
         display: flex;
         align-items: center;
-        margin-bottom: 12rpx;
+        margin-bottom: 16rpx;
         
         .greeting {
-          font-size: 36rpx;
+          font-size: 40rpx;
           font-weight: 600;
-          color: #fff;
-          margin-right: 20rpx;
+          color: #262626;
+          margin-right: 24rpx;
         }
         
         .weather-info {
           display: flex;
           align-items: center;
+          padding: 8rpx 16rpx;
+          background: #F8F9FA;
+          border-radius: 20rpx;
           
           .weather-text {
             margin-left: 8rpx;
             font-size: 24rpx;
-            color: rgba(255, 255, 255, 0.8);
+            color: #8C8C8C;
           }
         }
       }
@@ -524,13 +567,13 @@ export default {
         
         .status-text {
           font-size: 28rpx;
-          color: rgba(255, 255, 255, 0.9);
+          color: #8C8C8C;
           margin-right: 12rpx;
         }
         
         .auth-link {
           font-size: 28rpx;
-          color: #FAAD14;
+          color: #1890FF;
           font-weight: 500;
         }
         
@@ -551,52 +594,146 @@ export default {
 .notice-section {
   margin: 0 30rpx 40rpx;
   
+  .notice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20rpx;
+    
+    .notice-title-wrap {
+      display: flex;
+      align-items: center;
+      
+      .notice-main-title {
+        margin-left: 12rpx;
+        font-size: 32rpx;
+        font-weight: 600;
+        color: #262626;
+      }
+    }
+    
+    .notice-more {
+      font-size: 26rpx;
+      color: #1890FF;
+      font-weight: 500;
+    }
+  }
+  
   .notice-swiper {
-    height: 160rpx;
-    border-radius: 16rpx;
+    height: 180rpx;
+    border-radius: 24rpx;
     overflow: hidden;
+    position: relative;
     
     .notice-item {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       height: 100%;
-      padding: 30rpx;
-      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+      padding: 32rpx;
+      background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
+      border: 1rpx solid #F0F0F0;
+      position: relative;
       
-      .notice-badge {
-        margin-right: 20rpx;
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 6rpx;
+        background: linear-gradient(to bottom, #1890FF, #40A9FF);
+        border-radius: 0 6rpx 6rpx 0;
+      }
+      
+      .notice-left {
+        display: flex;
+        align-items: flex-start;
+        flex: 1;
         
-        .notice-type {
-          padding: 8rpx 16rpx;
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 20rpx;
-          font-size: 24rpx;
-          color: #fff;
-          font-weight: 500;
+        .notice-badge {
+          margin-right: 20rpx;
+          margin-top: 4rpx;
+          
+          .notice-type {
+            padding: 6rpx 12rpx;
+            border-radius: 12rpx;
+            font-size: 22rpx;
+            font-weight: 600;
+            line-height: 1;
+          }
+          
+          &.urgent {
+            .notice-type {
+              background: linear-gradient(135deg, #FF4D4F, #FF7875);
+              color: #fff;
+            }
+          }
+          
+          &.normal {
+            .notice-type {
+              background: #E6F7FF;
+              color: #1890FF;
+            }
+          }
+        }
+        
+        .notice-content {
+          flex: 1;
+          
+          .notice-title {
+            display: block;
+            font-size: 30rpx;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 12rpx;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .notice-summary {
+            font-size: 24rpx;
+            color: #8C8C8C;
+            line-height: 1.5;
+            margin-bottom: 12rpx;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          
+          .notice-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            
+            .notice-time {
+              font-size: 22rpx;
+              color: #BFBFBF;
+            }
+            
+            .notice-status {
+              .status-text {
+                padding: 4rpx 8rpx;
+                background: linear-gradient(135deg, #52C41A, #73D13D);
+                color: #fff;
+                font-size: 20rpx;
+                font-weight: 600;
+                border-radius: 8rpx;
+                line-height: 1;
+              }
+            }
+          }
         }
       }
       
-      .notice-content {
-        flex: 1;
-        
-        .notice-title {
-          display: block;
-          font-size: 30rpx;
-          font-weight: 600;
-          color: #fff;
-          margin-bottom: 8rpx;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        
-        .notice-summary {
-          font-size: 24rpx;
-          color: rgba(255, 255, 255, 0.8);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+      .notice-right {
+        display: flex;
+        align-items: center;
+        margin-left: 16rpx;
       }
     }
   }
@@ -607,10 +744,10 @@ export default {
 .regulations-section,
 .latest-news {
   margin: 0 30rpx 40rpx;
-  padding: 30rpx;
-  background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  padding: 40rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  border: 1rpx solid #F0F0F0;
 }
 
 .section-header {
@@ -635,33 +772,33 @@ export default {
 .function-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 30rpx;
+  gap: 24rpx;
   
   .grid-item {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40rpx 30rpx;
-    border-radius: 20rpx;
-    background: #fff;
-    box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    padding: 48rpx 32rpx;
+    border-radius: 24rpx;
+    background: #FAFBFC;
+    border: 1rpx solid #F0F0F0;
+    transition: all 0.2s ease;
     
     &:active {
-      transform: scale(0.95);
-      background: #F0F0F0;
+      transform: translateY(2rpx);
+      background: #F5F6F7;
+      border-color: #E0E0E0;
     }
     
     .grid-icon {
-      width: 100rpx;
-      height: 100rpx;
-      border-radius: 50rpx;
+      width: 88rpx;
+      height: 88rpx;
+      border-radius: 44rpx;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20rpx;
-      box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.15);
+    align-items: center;
+    justify-content: center;
+      margin-bottom: 24rpx;
     }
     
     .grid-text {

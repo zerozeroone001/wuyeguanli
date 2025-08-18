@@ -56,9 +56,9 @@
 
     <!-- 快捷功能 -->
     <view class="quick-actions">
-      <view class="section-title">
+      <!-- <view class="section-title">
         <text>快捷功能</text>
-      </view>
+      </view> -->
       <view class="action-grid">
         <view class="action-item" v-for="(action, index) in quickActions" :key="index" @click="handleActionClick(action)">
           <view class="action-icon" :style="{ backgroundColor: action.bgColor }">
@@ -70,7 +70,7 @@
     </view>
 
     <!-- 服务菜单 -->
-    <view class="service-menu">
+   <!-- <view class="service-menu">
       <view class="section-title">
         <text>服务中心</text>
       </view>
@@ -88,13 +88,13 @@
           </view>
         </view>
       </view>
-    </view>
+    </view> -->
 
     <!-- 设置菜单 -->
     <view class="settings-menu">
-      <view class="section-title">
+      <!-- <view class="section-title">
         <text>设置</text>
-      </view>
+      </view> -->
       <view class="menu-list">
         <view class="menu-item" v-for="(item, index) in settingsMenus" :key="index" @click="handleMenuClick(item)">
           <view class="menu-left">
@@ -311,17 +311,18 @@ export default {
 @import '@/static/scss/global.scss';
 
 page {
-  background-color: #F5F6FA;
+  background-color: #FAFBFC;
 }
 
 .mine-container {
   min-height: 100vh;
-  background-color: #F5F6FA;
+  background-color: #FAFBFC;
 }
 
 .header-section {
-  background: linear-gradient(135deg, #1890FF 0%, #40A9FF 100%);
-  padding: 40rpx 30rpx 80rpx;
+  background: #FFFFFF;
+  padding: 40rpx 30rpx 60rpx;
+  border-bottom: 1rpx solid #F0F0F0;
   
   .user-card {
     display: flex;
@@ -358,9 +359,9 @@ page {
       
       .user-name {
         display: block;
-        color: white;
+        color: #262626;
         font-size: 36rpx;
-        font-weight: bold;
+        font-weight: 600;
         margin-bottom: 16rpx;
       }
       
@@ -371,7 +372,7 @@ page {
         
         .status-text {
           font-size: 26rpx;
-          color: rgba(255, 255, 255, 0.8);
+          color: #8C8C8C;
           margin-right: 8rpx;
           
           &.verified {
@@ -383,7 +384,7 @@ page {
       .property-info {
         .property-text {
           font-size: 24rpx;
-          color: rgba(255, 255, 255, 0.7);
+          color: #8C8C8C;
         }
       }
     }
@@ -391,25 +392,25 @@ page {
     .qr-code {
       width: 80rpx;
       height: 80rpx;
-      background-color: rgba(255, 255, 255, 0.2);
+      background-color: #F8F9FA;
       border-radius: 40rpx;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1rpx solid rgba(255, 255, 255, 0.3);
+      border: 1rpx solid #E0E0E0;
     }
   }
 }
 
 .stats-section {
-  margin: -50rpx 30rpx 40rpx;
+  margin: -30rpx 30rpx 40rpx;
   
   .stats-card {
-    background-color: white;
-    border-radius: 20rpx;
+    background-color: #FFFFFF;
+    border-radius: 24rpx;
     padding: 40rpx 0;
     display: flex;
-    box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+    border: 1rpx solid #F0F0F0;
     
     .stat-item {
       flex: 1;
@@ -459,17 +460,17 @@ page {
   .action-grid {
     display: flex;
     padding: 0 30rpx;
-    gap: 30rpx;
+    gap: 24rpx;
     
     .action-item {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30rpx 20rpx;
-      background-color: white;
-      border-radius: 16rpx;
-      box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+      padding: 32rpx 20rpx;
+      background-color: #FFFFFF;
+      border-radius: 20rpx;
+      border: 1rpx solid #F0F0F0;
       
       .action-icon {
         width: 80rpx;
@@ -493,11 +494,11 @@ page {
   margin-bottom: 40rpx;
   
   .menu-list {
-    background-color: white;
+    background-color: #FFFFFF;
     margin: 0 30rpx;
-    border-radius: 16rpx;
+    border-radius: 24rpx;
     overflow: hidden;
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+    border: 1rpx solid #F0F0F0;
     
     .menu-item {
       display: flex;

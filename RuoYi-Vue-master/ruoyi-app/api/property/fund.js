@@ -33,3 +33,5 @@ export function getFundStatistics(query) {
     params: query
   })
 }
+ 
+ 
