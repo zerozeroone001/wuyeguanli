@@ -170,6 +170,57 @@
     "style": {
       "navigationBarTitleText": "制度详情"
     }
+  }, {
+    "path": "pages/notary-service/index",
+    "style": {
+      "navigationBarTitleText": "公证存证",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/notary-service/apply",
+    "style": {
+      "navigationBarTitleText": "申请公证"
+    }
+  }, {
+    "path": "pages/notary-service/detail",
+    "style": {
+      "navigationBarTitleText": "公证详情"
+    }
+  }, {
+    "path": "pages/supervision/index",
+    "style": {
+      "navigationBarTitleText": "指导监督",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/supervision/detail",
+    "style": {
+      "navigationBarTitleText": "监督详情"
+    }
+  }, {
+    "path": "pages/supervision/report",
+    "style": {
+      "navigationBarTitleText": "监督报告"
+    }
+  }, {
+    "path": "pages/handover/index",
+    "style": {
+      "navigationBarTitleText": "承接查验",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/handover/detail",
+    "style": {
+      "navigationBarTitleText": "查验详情"
+    }
+  }, {
+    "path": "pages/handover/report",
+    "style": {
+      "navigationBarTitleText": "查验报告"
+    }
   }],
   "tabBar": {
     "color": "#8C8C8C",

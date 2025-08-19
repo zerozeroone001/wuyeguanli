@@ -22,8 +22,8 @@
       <!-- 主要服务 -->
       <view class="main-services">
         <uni-grid :column="3" :showBorder="false" :square="false">
-          <uni-grid-item v-for="(service, index) in mainServices" :key="index" @click="handleServiceClick(service)">
-            <view class="service-item main-service">
+          <uni-grid-item v-for="(service, index) in mainServices" :key="index">
+            <view class="service-item main-service" @click="handleServiceClick(service)">
               <view class="service-icon" :style="{ backgroundColor: service.bgColor }">
                 <uni-icons :type="service.icon" size="28" color="white" />
               </view>
@@ -142,7 +142,7 @@ export default {
           desc: '规章制度',
           icon: 'list',
           bgColor: '#13C2C2',
-          path: '/pages/property/regulation/index'
+          path: '/pages/work/regulation'
         },
         {
           name: '公证存证',
@@ -156,14 +156,14 @@ export default {
           desc: '业务指导',
           icon: 'eye',
           bgColor: '#FA8C16',
-          path: '/pages/property/supervision/index'
+          path: '/pages/supervision/index'
         },
         {
           name: '承接查验',
           desc: '物业交接',
           icon: 'flag',
           bgColor: '#389E0D',
-          path: '/pages/property/handover/index'
+          path: '/pages/handover/index'
         }
       ],
       // 生活服务
@@ -256,8 +256,19 @@ export default {
   },
   methods: {
     handleServiceClick(service) {
+      console.log('点击了服务:', service.name, service.path)
       if (service.path) {
-        uni.navigateTo({ url: service.path })
+        uni.navigateTo({ 
+          url: service.path,
+          fail: (err) => {
+            console.error('导航失败:', err)
+            uni.showToast({
+              title: '页面跳转失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        })
       } else {
         uni.showToast({
           title: `${service.name}功能开发中`,
