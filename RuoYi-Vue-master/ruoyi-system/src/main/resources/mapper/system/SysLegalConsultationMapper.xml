@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysLegalConsultationMapper">
+    
+    <resultMap type="SysLegalConsultation" id="SysLegalConsultationResult">
+        <result property="consultationId"    column="consultation_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="formDataId"    column="form_data_id"    />
+        <result property="status"    column="status"    />
+        <result property="replyContent"    column="reply_content"    />
+        <result property="replyTime"    column="reply_time"    />
+        <result property="assignee"    column="assignee"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysLegalConsultationVo">
+        select consultation_id, user_id, title, content, form_data_id, status, reply_content, reply_time, assignee, del_flag, create_by, create_time, update_by, update_time, remark from sys_legal_consultation
+    </sql>
+
+    <select id="selectSysLegalConsultationList" parameterType="SysLegalConsultation" resultMap="SysLegalConsultationResult">
+        <include refid="selectSysLegalConsultationVo"/>
+        <where>  
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="title != null  and title != ''"> and title = #{title}</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+            <if test="formDataId != null "> and form_data_id = #{formDataId}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="replyContent != null  and replyContent != ''"> and reply_content = #{replyContent}</if>
+            <if test="replyTime != null "> and reply_time = #{replyTime}</if>
+            <if test="assignee != null  and assignee != ''"> and assignee = #{assignee}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysLegalConsultationByConsultationId" parameterType="Long" resultMap="SysLegalConsultationResult">
+        <include refid="selectSysLegalConsultationVo"/>
+        where consultation_id = #{consultationId}
+    </select>
+
+    <insert id="insertSysLegalConsultation" parameterType="SysLegalConsultation" useGeneratedKeys="true" keyProperty="consultationId">
+        insert into sys_legal_consultation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="formDataId != null">form_data_id,</if>
+            <if test="status != null">status,</if>
+            <if test="replyContent != null">reply_content,</if>
+            <if test="replyTime != null">reply_time,</if>
+            <if test="assignee != null">assignee,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="formDataId != null">#{formDataId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="replyContent != null">#{replyContent},</if>
+            <if test="replyTime != null">#{replyTime},</if>
+            <if test="assignee != null">#{assignee},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysLegalConsultation" parameterType="SysLegalConsultation">
+        update sys_legal_consultation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="formDataId != null">form_data_id = #{formDataId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="replyContent != null">reply_content = #{replyContent},</if>
+            <if test="replyTime != null">reply_time = #{replyTime},</if>
+            <if test="assignee != null">assignee = #{assignee},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where consultation_id = #{consultationId}
+    </update>
+
+    <delete id="deleteSysLegalConsultationByConsultationId" parameterType="Long">
+        delete from sys_legal_consultation where consultation_id = #{consultationId}
+    </delete>
+
+    <delete id="deleteSysLegalConsultationByConsultationIds" parameterType="String">
+        delete from sys_legal_consultation where consultation_id in 
+        <foreach item="consultationId" collection="array" open="(" separator="," close=")">
+            #{consultationId}
+        </foreach>
+    </delete>
+</mapper>

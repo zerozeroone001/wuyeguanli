@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPropertyContractMapper">
+    
+    <resultMap type="SysPropertyContract" id="SysPropertyContractResult">
+        <result property="contractId"    column="contract_id"    />
+        <result property="contractName"    column="contract_name"    />
+        <result property="contractVersion"    column="contract_version"    />
+        <result property="fileUrl"    column="file_url"    />
+        <result property="effectiveDate"    column="effective_date"    />
+        <result property="expiryDate"    column="expiry_date"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysPropertyContractVo">
+        select contract_id, contract_name, contract_version, file_url, effective_date, expiry_date, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
+    </sql>
+
+    <select id="selectSysPropertyContractList" parameterType="SysPropertyContract" resultMap="SysPropertyContractResult">
+        <include refid="selectSysPropertyContractVo"/>
+        <where>  
+            <if test="contractName != null  and contractName != ''"> and contract_name like concat('%', #{contractName}, '%')</if>
+            <if test="contractVersion != null  and contractVersion != ''"> and contract_version = #{contractVersion}</if>
+            <if test="fileUrl != null  and fileUrl != ''"> and file_url = #{fileUrl}</if>
+            <if test="effectiveDate != null "> and effective_date = #{effectiveDate}</if>
+            <if test="expiryDate != null "> and expiry_date = #{expiryDate}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysPropertyContractByContractId" parameterType="Long" resultMap="SysPropertyContractResult">
+        <include refid="selectSysPropertyContractVo"/>
+        where contract_id = #{contractId}
+    </select>
+
+    <insert id="insertSysPropertyContract" parameterType="SysPropertyContract" useGeneratedKeys="true" keyProperty="contractId">
+        insert into sys_property_contract
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractName != null and contractName != ''">contract_name,</if>
+            <if test="contractVersion != null">contract_version,</if>
+            <if test="fileUrl != null and fileUrl != ''">file_url,</if>
+            <if test="effectiveDate != null">effective_date,</if>
+            <if test="expiryDate != null">expiry_date,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractName != null and contractName != ''">#{contractName},</if>
+            <if test="contractVersion != null">#{contractVersion},</if>
+            <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
+            <if test="effectiveDate != null">#{effectiveDate},</if>
+            <if test="expiryDate != null">#{expiryDate},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysPropertyContract" parameterType="SysPropertyContract">
+        update sys_property_contract
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contractName != null and contractName != ''">contract_name = #{contractName},</if>
+            <if test="contractVersion != null">contract_version = #{contractVersion},</if>
+            <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>
+            <if test="effectiveDate != null">effective_date = #{effectiveDate},</if>
+            <if test="expiryDate != null">expiry_date = #{expiryDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where contract_id = #{contractId}
+    </update>
+
+    <delete id="deleteSysPropertyContractByContractId" parameterType="Long">
+        delete from sys_property_contract where contract_id = #{contractId}
+    </delete>
+
+    <delete id="deleteSysPropertyContractByContractIds" parameterType="String">
+        delete from sys_property_contract where contract_id in 
+        <foreach item="contractId" collection="array" open="(" separator="," close=")">
+            #{contractId}
+        </foreach>
+    </delete>
+</mapper>

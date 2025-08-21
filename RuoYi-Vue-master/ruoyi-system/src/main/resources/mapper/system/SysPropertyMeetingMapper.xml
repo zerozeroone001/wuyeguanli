@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPropertyMeetingMapper">
+    
+    <resultMap type="SysPropertyMeeting" id="SysPropertyMeetingResult">
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="meetingTitle"    column="meeting_title"    />
+        <result property="meetingType"    column="meeting_type"    />
+        <result property="meetingContent"    column="meeting_content"    />
+        <result property="meetingTime"    column="meeting_time"    />
+        <result property="meetingLocation"    column="meeting_location"    />
+        <result property="meetingStatus"    column="meeting_status"    />
+        <result property="voteStartTime"    column="vote_start_time"    />
+        <result property="voteEndTime"    column="vote_end_time"    />
+        <result property="totalVoters"    column="total_voters"    />
+        <result property="actualVoters"    column="actual_voters"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectSysPropertyMeetingVo">
+        select meeting_id, meeting_title, meeting_type, meeting_content, meeting_time, meeting_location, meeting_status, vote_start_time, vote_end_time, total_voters, actual_voters, create_by, create_time, update_by, update_time from sys_property_meeting
+    </sql>
+
+    <select id="selectSysPropertyMeetingList" parameterType="SysPropertyMeeting" resultMap="SysPropertyMeetingResult">
+        <include refid="selectSysPropertyMeetingVo"/>
+        <where>  
+            <if test="meetingTitle != null  and meetingTitle != ''"> and meeting_title = #{meetingTitle}</if>
+            <if test="meetingType != null  and meetingType != ''"> and meeting_type = #{meetingType}</if>
+            <if test="meetingContent != null  and meetingContent != ''"> and meeting_content = #{meetingContent}</if>
+            <if test="meetingTime != null "> and meeting_time = #{meetingTime}</if>
+            <if test="meetingLocation != null  and meetingLocation != ''"> and meeting_location = #{meetingLocation}</if>
+            <if test="meetingStatus != null  and meetingStatus != ''"> and meeting_status = #{meetingStatus}</if>
+            <if test="voteStartTime != null "> and vote_start_time = #{voteStartTime}</if>
+            <if test="voteEndTime != null "> and vote_end_time = #{voteEndTime}</if>
+            <if test="totalVoters != null "> and total_voters = #{totalVoters}</if>
+            <if test="actualVoters != null "> and actual_voters = #{actualVoters}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysPropertyMeetingByMeetingId" parameterType="Long" resultMap="SysPropertyMeetingResult">
+        <include refid="selectSysPropertyMeetingVo"/>
+        where meeting_id = #{meetingId}
+    </select>
+
+    <insert id="insertSysPropertyMeeting" parameterType="SysPropertyMeeting" useGeneratedKeys="true" keyProperty="meetingId">
+        insert into sys_property_meeting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetingTitle != null and meetingTitle != ''">meeting_title,</if>
+            <if test="meetingType != null and meetingType != ''">meeting_type,</if>
+            <if test="meetingContent != null">meeting_content,</if>
+            <if test="meetingTime != null">meeting_time,</if>
+            <if test="meetingLocation != null">meeting_location,</if>
+            <if test="meetingStatus != null">meeting_status,</if>
+            <if test="voteStartTime != null">vote_start_time,</if>
+            <if test="voteEndTime != null">vote_end_time,</if>
+            <if test="totalVoters != null">total_voters,</if>
+            <if test="actualVoters != null">actual_voters,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetingTitle != null and meetingTitle != ''">#{meetingTitle},</if>
+            <if test="meetingType != null and meetingType != ''">#{meetingType},</if>
+            <if test="meetingContent != null">#{meetingContent},</if>
+            <if test="meetingTime != null">#{meetingTime},</if>
+            <if test="meetingLocation != null">#{meetingLocation},</if>
+            <if test="meetingStatus != null">#{meetingStatus},</if>
+            <if test="voteStartTime != null">#{voteStartTime},</if>
+            <if test="voteEndTime != null">#{voteEndTime},</if>
+            <if test="totalVoters != null">#{totalVoters},</if>
+            <if test="actualVoters != null">#{actualVoters},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysPropertyMeeting" parameterType="SysPropertyMeeting">
+        update sys_property_meeting
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="meetingTitle != null and meetingTitle != ''">meeting_title = #{meetingTitle},</if>
+            <if test="meetingType != null and meetingType != ''">meeting_type = #{meetingType},</if>
+            <if test="meetingContent != null">meeting_content = #{meetingContent},</if>
+            <if test="meetingTime != null">meeting_time = #{meetingTime},</if>
+            <if test="meetingLocation != null">meeting_location = #{meetingLocation},</if>
+            <if test="meetingStatus != null">meeting_status = #{meetingStatus},</if>
+            <if test="voteStartTime != null">vote_start_time = #{voteStartTime},</if>
+            <if test="voteEndTime != null">vote_end_time = #{voteEndTime},</if>
+            <if test="totalVoters != null">total_voters = #{totalVoters},</if>
+            <if test="actualVoters != null">actual_voters = #{actualVoters},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where meeting_id = #{meetingId}
+    </update>
+
+    <delete id="deleteSysPropertyMeetingByMeetingId" parameterType="Long">
+        delete from sys_property_meeting where meeting_id = #{meetingId}
+    </delete>
+
+    <delete id="deleteSysPropertyMeetingByMeetingIds" parameterType="String">
+        delete from sys_property_meeting where meeting_id in 
+        <foreach item="meetingId" collection="array" open="(" separator="," close=")">
+            #{meetingId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,61 @@
+package com.ruoyi.system.service;
+
+import java.util.List;
+import com.ruoyi.system.domain.SysPropertyRegulation;
+
+/**
+ * 物业制度管理Service接口
+ * 
+ * @author ruoyi
+ * @date 2025-08-21
+ */
+public interface ISysPropertyRegulationService 
+{
+    /**
+     * 查询物业制度管理
+     * 
+     * @param regulationId 物业制度管理主键
+     * @return 物业制度管理
+     */
+    public SysPropertyRegulation selectSysPropertyRegulationByRegulationId(Long regulationId);
+
+    /**
+     * 查询物业制度管理列表
+     * 
+     * @param sysPropertyRegulation 物业制度管理
+     * @return 物业制度管理集合
+     */
+    public List<SysPropertyRegulation> selectSysPropertyRegulationList(SysPropertyRegulation sysPropertyRegulation);
+
+    /**
+     * 新增物业制度管理
+     * 
+     * @param sysPropertyRegulation 物业制度管理
+     * @return 结果
+     */
+    public int insertSysPropertyRegulation(SysPropertyRegulation sysPropertyRegulation);
+
+    /**
+     * 修改物业制度管理
+     * 
+     * @param sysPropertyRegulation 物业制度管理
+     * @return 结果
+     */
+    public int updateSysPropertyRegulation(SysPropertyRegulation sysPropertyRegulation);
+
+    /**
+     * 批量删除物业制度管理
+     * 
+     * @param regulationIds 需要删除的物业制度管理主键集合
+     * @return 结果
+     */
+    public int deleteSysPropertyRegulationByRegulationIds(Long[] regulationIds);
+
+    /**
+     * 删除物业制度管理信息
+     * 
+     * @param regulationId 物业制度管理主键
+     * @return 结果
+     */
+    public int deleteSysPropertyRegulationByRegulationId(Long regulationId);
+}

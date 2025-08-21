@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysMeetingVoteMapper">
+    
+    <resultMap type="SysMeetingVote" id="SysMeetingVoteResult">
+        <result property="voteId"    column="vote_id"    />
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="voteTicketNo"    column="vote_ticket_no"    />
+        <result property="voteOption"    column="vote_option"    />
+        <result property="voteSource"    column="vote_source"    />
+        <result property="voteTime"    column="vote_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysMeetingVoteVo">
+        select vote_id, meeting_id, user_id, vote_ticket_no, vote_option, vote_source, vote_time, del_flag, create_by, create_time, update_by, update_time, remark from sys_meeting_vote
+    </sql>
+
+    <select id="selectSysMeetingVoteList" parameterType="SysMeetingVote" resultMap="SysMeetingVoteResult">
+        <include refid="selectSysMeetingVoteVo"/>
+        <where>  
+            <if test="meetingId != null "> and meeting_id = #{meetingId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="voteTicketNo != null  and voteTicketNo != ''"> and vote_ticket_no = #{voteTicketNo}</if>
+            <if test="voteOption != null  and voteOption != ''"> and vote_option = #{voteOption}</if>
+            <if test="voteSource != null  and voteSource != ''"> and vote_source = #{voteSource}</if>
+            <if test="voteTime != null "> and vote_time = #{voteTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysMeetingVoteByVoteId" parameterType="Long" resultMap="SysMeetingVoteResult">
+        <include refid="selectSysMeetingVoteVo"/>
+        where vote_id = #{voteId}
+    </select>
+
+    <insert id="insertSysMeetingVote" parameterType="SysMeetingVote" useGeneratedKeys="true" keyProperty="voteId">
+        insert into sys_meeting_vote
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="voteTicketNo != null and voteTicketNo != ''">vote_ticket_no,</if>
+            <if test="voteOption != null and voteOption != ''">vote_option,</if>
+            <if test="voteSource != null">vote_source,</if>
+            <if test="voteTime != null">vote_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="voteTicketNo != null and voteTicketNo != ''">#{voteTicketNo},</if>
+            <if test="voteOption != null and voteOption != ''">#{voteOption},</if>
+            <if test="voteSource != null">#{voteSource},</if>
+            <if test="voteTime != null">#{voteTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysMeetingVote" parameterType="SysMeetingVote">
+        update sys_meeting_vote
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="voteTicketNo != null and voteTicketNo != ''">vote_ticket_no = #{voteTicketNo},</if>
+            <if test="voteOption != null and voteOption != ''">vote_option = #{voteOption},</if>
+            <if test="voteSource != null">vote_source = #{voteSource},</if>
+            <if test="voteTime != null">vote_time = #{voteTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where vote_id = #{voteId}
+    </update>
+
+    <delete id="deleteSysMeetingVoteByVoteId" parameterType="Long">
+        delete from sys_meeting_vote where vote_id = #{voteId}
+    </delete>
+
+    <delete id="deleteSysMeetingVoteByVoteIds" parameterType="String">
+        delete from sys_meeting_vote where vote_id in 
+        <foreach item="voteId" collection="array" open="(" separator="," close=")">
+            #{voteId}
+        </foreach>
+    </delete>
+</mapper>
