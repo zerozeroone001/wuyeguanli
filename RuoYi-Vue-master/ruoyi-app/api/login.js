@@ -9,7 +9,24 @@ export function login(username, password, code, uuid) {
     uuid
   }
   return request({
-    'url': '/login',
+    'url': '/app/login',
+    headers: {
+      isToken: false
+    },
+    'method': 'post',
+    'data': data
+  })
+}
+
+// 微信小程序登录
+export function wxLogin(code, encryptedData, iv) {
+  const data = {
+    code,
+    encryptedData,
+    iv
+  }
+  return request({
+    'url': '/app/wxLogin',
     headers: {
       isToken: false
     },
@@ -33,7 +50,7 @@ export function register(data) {
 // 获取用户详细信息
 export function getInfo() {
   return request({
-    'url': '/getInfo',
+    'url': '/app/getInfo',
     'method': 'get'
   })
 }
@@ -49,7 +66,7 @@ export function logout() {
 // 获取验证码
 export function getCodeImg() {
   return request({
-    'url': '/captchaImage',
+    'url': '/app/captcha',
     headers: {
       isToken: false
     },

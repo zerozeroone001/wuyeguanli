@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import java.util.Map;
 import com.ruoyi.system.domain.SysPropertyMeeting;
 
 /**
@@ -58,4 +59,47 @@ public interface ISysPropertyMeetingService
      * @return 结果
      */
     public int deleteSysPropertyMeetingByMeetingId(Long meetingId);
+
+    /**
+     * 统计进行中的会议数量
+     * 
+     * @return 进行中的会议数量
+     */
+    public Long countOngoingMeetings();
+
+    /**
+     * 获取平均参与率
+     * 
+     * @return 平均参与率
+     */
+    public Double getAverageParticipationRate();
+
+    /**
+     * 统计即将开始的会议数量
+     * 
+     * @return 即将开始的会议数量
+     */
+    public Long countUpcomingMeetings();
+
+    /**
+     * 获取投票参与率趋势
+     * 
+     * @return 投票参与率趋势数据
+     */
+    public List<Map<String, Object>> getVoteParticipationTrend();
+
+    /**
+     * 获取会议活动统计
+     * 
+     * @return 会议活动统计数据
+     */
+    public List<Map<String, Object>> getMeetingActivityStats();
+
+    /**
+     * 获取最近投票记录
+     * 
+     * @param limit 限制数量
+     * @return 最近投票记录
+     */
+    public List<Map<String, Object>> getRecentVotes(int limit);
 }

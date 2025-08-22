@@ -203,4 +203,18 @@ public interface ISysUserService
      * @return 结果
      */
     public String importUser(List<SysUser> userList, Boolean isUpdateSupport, String operName);
+
+    /**
+     * 统计业主总数
+     * 
+     * @return 业主总数
+     */
+    public Long countOwners();
+
+    /**
+     * 统计本月新增业主数
+     * 
+     * @return 本月新增业主数
+     */
+    public Long countMonthNewOwners();
 }

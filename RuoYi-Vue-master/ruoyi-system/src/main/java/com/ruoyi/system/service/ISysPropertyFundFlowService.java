@@ -1,6 +1,8 @@
 package com.ruoyi.system.service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import com.ruoyi.system.domain.SysPropertyFundFlow;
 
 /**
@@ -58,4 +60,40 @@ public interface ISysPropertyFundFlowService
      * @return 结果
      */
     public int deleteSysPropertyFundFlowByFlowId(Long flowId);
+
+    /**
+     * 获取资金总额
+     * 
+     * @return 资金总额
+     */
+    public BigDecimal getTotalFunds();
+
+    /**
+     * 获取资金增长率
+     * 
+     * @return 资金增长率
+     */
+    public Double getFundGrowthRate();
+
+    /**
+     * 统计待审批申请数量
+     * 
+     * @return 待审批申请数量
+     */
+    public Long countPendingApprovals();
+
+    /**
+     * 获取本月资金分析
+     * 
+     * @return 本月资金分析数据
+     */
+    public Map<String, Object> getMonthFundAnalysis();
+
+    /**
+     * 获取最近资金流水记录
+     * 
+     * @param limit 限制数量
+     * @return 最近资金流水记录
+     */
+    public List<Map<String, Object>> getRecentFunds(int limit);
 }

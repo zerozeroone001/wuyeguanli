@@ -93,10 +93,10 @@
 
     <!-- 快捷功能网格 -->
     <view class="quick-functions">
-      <view class="section-header">
+     <!-- <view class="section-header">
         <text class="section-title">便民服务</text>
         <text class="more-link" @click="uni.switchTab({ url: '/pages/work/index' })">更多 ></text>
-      </view>
+      </view> -->
       <view class="function-grid">
         <view 
           class="grid-item" 
@@ -105,7 +105,7 @@
           @click="navigateTo(item.path)"
         >
           <view class="grid-icon" :style="{ backgroundColor: item.bgColor }">
-            <uni-icons :type="item.iconType" size="28" color="white" />
+            <uni-icons :type="item.iconType" size="20" color="white" />
           </view>
           <text class="grid-text">{{ item.name }}</text>
           <text class="grid-desc">{{ item.desc }}</text>
@@ -228,39 +228,40 @@ export default {
       ],
       // 快捷功能数据
       quickFunctions: [
-        {
-          id: 1,
-          name: '投票',
-          desc: '业主大会',
-          iconType: 'compose',
-          path: '/pages/property/meeting/index',
-          bgColor: '#1890FF',
-          badge: '2'
-        },
+		  {
+		    id: 1,
+		    name: '来访登记',
+		    desc: '',
+		    iconType: 'wallet',
+		    path: '/pages/payment/index',
+		    bgColor: '#F5222D'
+		  },
+        
         {
           id: 2,
-          name: '投诉',
-          desc: '意见反馈',
+          name: '意见投诉',
+          desc: '',
           iconType: 'chat',
           path: '/pages/property/complaint/add',
           bgColor: '#52C41A'
         },
         {
           id: 3,
-          name: '报修',
-          desc: '设备维修',
+          name: '设备报修',
+          desc: '',
           iconType: 'gear',
           path: '/pages/repair/index',
           bgColor: '#FAAD14'
         },
         {
           id: 4,
-          name: '缴费',
-          desc: '在线支付',
-          iconType: 'wallet',
-          path: '/pages/payment/index',
-          bgColor: '#F5222D'
-        }
+          name: '会议投票',
+          desc: '',
+          iconType: 'compose',
+          path: '/pages/property/meeting/index',
+          bgColor: '#1890FF',
+          badge: '2'
+        },
       ],
       // 制度文件数据
       regulationList: [
@@ -771,7 +772,7 @@ export default {
 /* 快捷功能网格 */
 .function-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 24rpx;
   
   .grid-item {
@@ -792,8 +793,8 @@ export default {
     }
     
     .grid-icon {
-      width: 88rpx;
-      height: 88rpx;
+      width: 60rpx;
+      height: 60rpx;
       border-radius: 44rpx;
       display: flex;
     align-items: center;
@@ -802,7 +803,7 @@ export default {
     }
     
     .grid-text {
-      font-size: 32rpx;
+      font-size: 20rpx;
       color: #262626;
       font-weight: 600;
       margin-bottom: 8rpx;

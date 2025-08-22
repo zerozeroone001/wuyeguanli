@@ -1,7 +1,9 @@
 // 应用全局配置
 module.exports = {
-  // baseUrl: 'http://localhost:8080/prod-api',
+  // 开发环境
   baseUrl: 'http://localhost:8080',
+  // 生产环境
+  // baseUrl: 'https://your-domain.com/prod-api',
   
   // 应用信息
   appInfo: {

@@ -63,6 +63,8 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "实际参与人数")
     private Long actualVoters;
 
+
+
     public void setMeetingId(Long meetingId) 
     {
         this.meetingId = meetingId;
@@ -193,4 +195,5 @@ public class SysPropertyMeeting extends BaseEntity
             .append("updateTime", getUpdateTime())
             .toString();
     }
+
 }

@@ -4,12 +4,19 @@
     "style": {
       "navigationBarTitleText": "登录"
     }
-  }, {
-    "path": "pages/register",
-    "style": {
-      "navigationBarTitleText": "注册"
-    }
-  }, {
+  }, 		{
+			"path": "pages/register",
+			"style": {
+				"navigationBarTitleText": "注册"
+			}
+		},
+		{
+			"path": "pages/test/api-test",
+			"style": {
+				"navigationBarTitleText": "接口测试",
+				"navigationStyle": "custom"
+			}
+		}, {
     "path": "pages/index",
     "style": {
       "navigationBarTitleText": "智慧物业管理",

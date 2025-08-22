@@ -119,7 +119,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -129,7 +129,7 @@
     />
 
     <!-- 添加或修改业主委员会会议管理对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="会议主题" prop="title">
           <el-input v-model="form.title" placeholder="请输入会议主题" />
