@@ -1,7 +1,10 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import java.util.Map;
+
 import com.ruoyi.system.domain.SysPropertyMeeting;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 会议管理Mapper接口
@@ -9,6 +12,7 @@ import com.ruoyi.system.domain.SysPropertyMeeting;
  * @author ruoyi
  * @date 2025-08-21
  */
+@Mapper
 public interface SysPropertyMeetingMapper 
 {
     /**
@@ -44,12 +48,20 @@ public interface SysPropertyMeetingMapper
     public int updateSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting);
 
     /**
-     * 删除会议管理
+     * 删除会议管理信息
      * 
      * @param meetingId 会议管理主键
      * @return 结果
      */
     public int deleteSysPropertyMeetingByMeetingId(Long meetingId);
+
+    /**
+     * 获取会议标记
+     *
+     * @return 结果
+     */
+    public List<Map<String, Object>> getMeetingMarks();
+
 
     /**
      * 批量删除会议管理

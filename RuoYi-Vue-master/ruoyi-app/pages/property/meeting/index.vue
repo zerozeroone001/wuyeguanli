@@ -1,13 +1,13 @@
 <template>
   <view class="meeting-container">
     <!-- 会议日历 -->
-    <view class="calendar-section">
+  <!--  <view class="calendar-section">
       <uni-calendar 
         :selected="selectedDate" 
         @change="onCalendarChange"
         :marks="meetingMarks"
       />
-    </view>
+    </view> -->
 
     <!-- 会议分类 -->
     <view class="meeting-tabs">

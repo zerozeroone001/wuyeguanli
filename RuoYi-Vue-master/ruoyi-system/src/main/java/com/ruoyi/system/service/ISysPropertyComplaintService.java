@@ -61,6 +61,14 @@ public interface ISysPropertyComplaintService
     public int deleteSysPropertyComplaintByComplaintId(Long complaintId);
 
     /**
+     * 获取投诉统计信息
+     *
+     * @return 结果
+     */
+    public Map<String, Object> getComplaintStats();
+
+
+    /**
      * 统计待处理投诉数量
      * 
      * @return 待处理投诉数量

@@ -37,7 +37,7 @@
       <view class="stats-card">
         <view class="stat-item" @click="goToOrders">
           <text class="stat-number">{{ stats.orders }}</text>
-          <text class="stat-label">我的工单</text>
+          <text class="stat-label">我的合同</text>
         </view>
         <view class="stat-item" @click="goToComplaints">
           <text class="stat-number">{{ stats.complaints }}</text>
@@ -139,7 +139,7 @@ export default {
       // 快捷功能
       quickActions: [
         {
-          name: '我的工单',
+          name: '我的合同',
           icon: 'list',
           bgColor: '#1890FF',
           path: '/pages/repair/my-orders'

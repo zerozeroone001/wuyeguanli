@@ -28,7 +28,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * @date 2025-08-21
  */
 @RestController
-@RequestMapping("/system/application")
+@RequestMapping("/system/notary")
 public class SysNotaryApplicationController extends BaseController
 {
     @Autowired
@@ -74,8 +74,8 @@ public class SysNotaryApplicationController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('system:application:add')")
     @Log(title = "公证服务申请", businessType = BusinessType.INSERT)
-    @PostMapping
-    public AjaxResult add(@RequestBody SysNotaryApplication sysNotaryApplication)
+    @PostMapping("/apply")
+    public AjaxResult apply(@RequestBody SysNotaryApplication sysNotaryApplication)
     {
         return toAjax(sysNotaryApplicationService.insertSysNotaryApplication(sysNotaryApplication));
     }

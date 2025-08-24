@@ -119,42 +119,10 @@
       </view>
 
       <!-- 紧急程度 -->
-      <view class="form-section">
-        <view class="section-header">
-          <text class="section-title">紧急程度</text>
-        </view>
-        <view class="urgency-options">
-          <view 
-            class="urgency-item" 
-            :class="{ active: formData.urgency === urgency.value }"
-            v-for="urgency in urgencyLevels" 
-            :key="urgency.value"
-            @click="selectUrgency(urgency.value)"
-          >
-            <view class="urgency-dot" :class="urgency.class"></view>
-            <text>{{ urgency.label }}</text>
-          </view>
-        </view>
-      </view>
+    
 
       <!-- 期望处理时间 -->
-      <view class="form-section">
-        <view class="section-header">
-          <text class="section-title">期望处理时间</text>
-        </view>
-        <view class="time-options">
-          <view 
-            class="time-item" 
-            :class="{ active: formData.expectedTime === time.value }"
-            v-for="time in expectedTimes" 
-            :key="time.value"
-            @click="selectTime(time.value)"
-          >
-            <uni-icons type="clock" size="16" :color="formData.expectedTime === time.value ? '#1890FF' : '#8C8C8C'" />
-            <text>{{ time.label }}</text>
-          </view>
-        </view>
-      </view>
+
     </form>
 
     <!-- 提交按钮 -->

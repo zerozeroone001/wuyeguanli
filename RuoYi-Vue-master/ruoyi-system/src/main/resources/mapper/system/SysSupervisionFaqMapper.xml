@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysSupervisionFaqMapper">
+    
+    <resultMap type="SysSupervisionFaq" id="SysSupervisionFaqResult">
+        <result property="id"    column="id"    />
+        <result property="question"    column="question"    />
+        <result property="answerPreview"    column="answer_preview"    />
+        <result property="category"    column="category"    />
+    </resultMap>
+
+    <sql id="selectSysSupervisionFaqVo">
+        select id, question, answer_preview, category from sys_supervision_faq
+    </sql>
+
+    <select id="selectSupervisionFaqList" parameterType="SysSupervisionFaq" resultMap="SysSupervisionFaqResult">
+        <include refid="selectSysSupervisionFaqVo"/>
+        <where>
+            <if test="category != null  and category != ''"> and category = #{category}</if>
+        </where>
+    </select>
+
+</mapper>

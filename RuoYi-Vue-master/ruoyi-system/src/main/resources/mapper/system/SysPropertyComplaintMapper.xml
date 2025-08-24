@@ -129,4 +129,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{complaintId}
         </foreach>
     </delete>
+
+    <select id="getComplaintStats" resultType="java.util.Map">
+        select
+            count(*) as total,
+            count(case when status = '0' then 1 end) as pending,
+            count(case when status = '1' then 1 end) as processing,
+            count(case when status = '2' then 1 end) as completed
+        from sys_property_complaint
+    </select>
 </mapper>

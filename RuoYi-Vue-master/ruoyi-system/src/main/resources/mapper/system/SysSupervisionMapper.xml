@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysSupervisionMapper">
+    
+    <resultMap type="SysSupervision" id="SysSupervisionResult">
+        <result property="supervisionId"    column="supervision_id"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="supervisionType"    column="supervision_type"    />
+        <result property="status"    column="status"    />
+        <result property="urgency"    column="urgency"    />
+        <result property="expertName"    column="expert_name"    />
+        <result property="replyCount"    column="reply_count"    />
+        <result property="lastReplyTime"    column="last_reply_time"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectSysSupervisionVo">
+        select supervision_id, title, content, supervision_type, status, urgency, expert_name, reply_count, last_reply_time, create_time from sys_supervision
+    </sql>
+
+    <select id="selectSupervisionList" parameterType="SysSupervision" resultMap="SysSupervisionResult">
+        <include refid="selectSysSupervisionVo"/>
+        <where>
+            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+</mapper>

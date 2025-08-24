@@ -2,6 +2,7 @@ package com.ruoyi.system.service;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysCommitteeMeeting;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 业主委员会会议管理Service接口
@@ -9,6 +10,7 @@ import com.ruoyi.system.domain.SysCommitteeMeeting;
  * @author ruoyi
  * @date 2025-08-21
  */
+
 public interface ISysCommitteeMeetingService 
 {
     /**

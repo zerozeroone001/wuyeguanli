@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysSupervisionExpertMapper">
+    
+    <resultMap type="SysSupervisionExpert" id="SysSupervisionExpertResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="title"    column="title"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="specialties"    column="specialties"    />
+        <result property="supervisionCount"    column="supervision_count"    />
+        <result property="rating"    column="rating"    />
+        <result property="experience"    column="experience"    />
+    </resultMap>
+
+    <sql id="selectSysSupervisionExpertVo">
+        select id, name, title, avatar, specialties, supervision_count, rating, experience from sys_supervision_expert
+    </sql>
+
+    <select id="selectSupervisionExpertList" parameterType="SysSupervisionExpert" resultMap="SysSupervisionExpertResult">
+        <include refid="selectSysSupervisionExpertVo"/>
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+        </where>
+    </select>
+
+</mapper>

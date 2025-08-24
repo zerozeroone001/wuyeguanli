@@ -1,7 +1,10 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import java.util.Map;
+
 import com.ruoyi.system.domain.SysPropertyComplaint;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 投诉管理Mapper接口
@@ -9,6 +12,7 @@ import com.ruoyi.system.domain.SysPropertyComplaint;
  * @author ruoyi
  * @date 2025-08-21
  */
+@Mapper
 public interface SysPropertyComplaintMapper 
 {
     /**
@@ -44,12 +48,20 @@ public interface SysPropertyComplaintMapper
     public int updateSysPropertyComplaint(SysPropertyComplaint sysPropertyComplaint);
 
     /**
-     * 删除投诉管理
+     * 删除投诉管理信息
      * 
      * @param complaintId 投诉管理主键
      * @return 结果
      */
     public int deleteSysPropertyComplaintByComplaintId(Long complaintId);
+
+    /**
+     * 获取投诉统计信息
+     *
+     * @return 结果
+     */
+    public Map<String, Object> getComplaintStats();
+
 
     /**
      * 批量删除投诉管理

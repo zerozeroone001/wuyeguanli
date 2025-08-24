@@ -242,14 +242,6 @@ export default {
           bgColor: '#F5222D',
           status: '暂停',
           statusClass: 'unavailable'
-        },
-        {
-          name: '社区团购',
-          desc: '邻里团购优惠多',
-          icon: 'shop',
-          bgColor: '#722ED1',
-          status: '可用',
-          statusClass: 'available'
         }
       ]
     }

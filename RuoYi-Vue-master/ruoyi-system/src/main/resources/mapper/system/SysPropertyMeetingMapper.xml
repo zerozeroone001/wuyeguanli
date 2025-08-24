@@ -114,4 +114,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{meetingId}
         </foreach>
     </delete>
+
+    <select id="getMeetingMarks" resultType="java.util.Map">
+        select date_format(meeting_time, '%Y-%m-%d') as date, meeting_title as info from sys_property_meeting
+    </select>
 </mapper>
