@@ -174,7 +174,7 @@
 </template>
 
 <script>
-import { getFundFlowList } from '@/api/fund'
+import { getFundFlowList, getFundOverview, getMonthlyStats } from '@/api/fund'
 
 export default {
   data() {
@@ -218,25 +218,15 @@ export default {
     },
     
     loadFundOverview() {
-      // TODO: aihaitao, 接口未实现
-      // 模拟资金概览数据
-      this.balanceInfo = {
-        maintenanceFund: 1250000.00,
-        operatingIncome: 180000.00,
-        maintenanceIncrease: 25000.00,
-        operatingIncrease: 8000.00
-      }
+      getFundOverview().then(res => {
+        this.balanceInfo = res.data
+      })
     },
     
     loadMonthlyStats() {
-      // TODO: aihaitao, 接口未实现
-      // 模拟月度统计数据
-      this.monthlyStats = {
-        income: 85000.00,
-        expense: 52000.00,
-        balance: 33000.00,
-        transactionCount: 28
-      }
+      getMonthlyStats().then(res => {
+        this.monthlyStats = res.data
+      })
     },
     
     loadRecentTransactions() {

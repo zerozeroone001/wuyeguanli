@@ -96,4 +96,18 @@ public interface ISysPropertyFundFlowService
      * @return 最近资金流水记录
      */
     public List<Map<String, Object>> getRecentFunds(int limit);
+
+    /**
+     * 获取资金概览
+     *
+     * @return 资金概览数据
+     */
+    public Map<String, Object> getFundOverview();
+
+    /**
+     * 获取月度收支统计
+     *
+     * @return 月度收支统计数据
+     */
+    public Map<String, Object> getMonthlyStats();
 }

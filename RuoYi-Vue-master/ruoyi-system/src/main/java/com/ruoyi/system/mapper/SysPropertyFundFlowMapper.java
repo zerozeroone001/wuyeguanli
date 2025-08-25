@@ -58,4 +58,18 @@ public interface SysPropertyFundFlowMapper
      * @return 结果
      */
     public int deleteSysPropertyFundFlowByFlowIds(Long[] flowIds);
+
+    /**
+     * 获取资金概览
+     *
+     * @return 资金概览数据
+     */
+    public java.util.Map<String, Object> getFundOverview();
+
+    /**
+     * 获取月度收支统计
+     *
+     * @return 月度收支统计数据
+     */
+    public java.util.Map<String, Object> getMonthlyStats();
 }

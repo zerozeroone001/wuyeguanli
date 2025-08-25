@@ -23,8 +23,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/user/flow")
-public class PropertyFundFlowController extends BaseController
-{
+public class PropertyFundFlowController extends BaseController {
     @Autowired
     private ISysPropertyFundFlowService sysPropertyFundFlowService;
 
@@ -32,8 +31,7 @@ public class PropertyFundFlowController extends BaseController
      * 查询资金流水列表
      */
     @GetMapping("/list")
-    public TableDataInfo list(SysPropertyFundFlow sysPropertyFundFlow)
-    {
+    public TableDataInfo list(SysPropertyFundFlow sysPropertyFundFlow) {
         startPage();
         List<SysPropertyFundFlow> list = sysPropertyFundFlowService.selectSysPropertyFundFlowList(sysPropertyFundFlow);
         return getDataTable(list);
@@ -44,8 +42,7 @@ public class PropertyFundFlowController extends BaseController
      */
     @Log(title = "资金流水", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, SysPropertyFundFlow sysPropertyFundFlow)
-    {
+    public void export(HttpServletResponse response, SysPropertyFundFlow sysPropertyFundFlow) {
         List<SysPropertyFundFlow> list = sysPropertyFundFlowService.selectSysPropertyFundFlowList(sysPropertyFundFlow);
         ExcelUtil<SysPropertyFundFlow> util = new ExcelUtil<SysPropertyFundFlow>(SysPropertyFundFlow.class);
         util.exportExcel(response, list, "资金流水数据");
@@ -55,8 +52,7 @@ public class PropertyFundFlowController extends BaseController
      * 获取资金流水详细信息
      */
     @GetMapping(value = "/{flowId}")
-    public AjaxResult getInfo(@PathVariable("flowId") Long flowId)
-    {
+    public AjaxResult getInfo(@PathVariable("flowId") Long flowId) {
         return success(sysPropertyFundFlowService.selectSysPropertyFundFlowByFlowId(flowId));
     }
 
@@ -65,8 +61,7 @@ public class PropertyFundFlowController extends BaseController
      */
     @Log(title = "资金流水", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody SysPropertyFundFlow sysPropertyFundFlow)
-    {
+    public AjaxResult add(@RequestBody SysPropertyFundFlow sysPropertyFundFlow) {
         return toAjax(sysPropertyFundFlowService.insertSysPropertyFundFlow(sysPropertyFundFlow));
     }
 
@@ -75,8 +70,7 @@ public class PropertyFundFlowController extends BaseController
      */
     @Log(title = "资金流水", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody SysPropertyFundFlow sysPropertyFundFlow)
-    {
+    public AjaxResult edit(@RequestBody SysPropertyFundFlow sysPropertyFundFlow) {
         return toAjax(sysPropertyFundFlowService.updateSysPropertyFundFlow(sysPropertyFundFlow));
     }
 
@@ -84,33 +78,18 @@ public class PropertyFundFlowController extends BaseController
      * 删除资金流水
      */
     @Log(title = "资金流水", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{flowIds}")
-    public AjaxResult remove(@PathVariable Long[] flowIds)
-    {
+    @DeleteMapping("/{flowIds}")
+    public AjaxResult remove(@PathVariable Long[] flowIds) {
         return toAjax(sysPropertyFundFlowService.deleteSysPropertyFundFlowByFlowIds(flowIds));
     }
 
     @GetMapping("/overview")
     public AjaxResult getFundOverview() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
+        return AjaxResult.success(sysPropertyFundFlowService.getFundOverview());
     }
 
     @GetMapping("/monthly-stats")
     public AjaxResult getMonthlyStats() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
-    }
-
-    @GetMapping("/transactions/recent")
-    public AjaxResult getRecentTransactions() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
-    }
-
-    @GetMapping("/usage-analysis")
-    public AjaxResult getUsageAnalysis() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
+        return AjaxResult.success(sysPropertyFundFlowService.getMonthlyStats());
     }
 }
