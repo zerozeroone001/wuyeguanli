@@ -23,10 +23,17 @@
       "navigationStyle": "custom"
     }
   }, {
-    "path": "pages/work/index",
+    "path": "pages/visitor/add",
     "style": {
-      "navigationBarTitleText": "办事处"
+        "navigationBarTitleText": "来访登记"
     }
+  }, {
+    "path": "pages/repair/index",
+    "style": {
+        "navigationBarTitleText": "设备报修"
+    }
+  }, {
+    "path": "pages/work/index"
   }, {
     "path": "pages/mine/index",
     "style": {

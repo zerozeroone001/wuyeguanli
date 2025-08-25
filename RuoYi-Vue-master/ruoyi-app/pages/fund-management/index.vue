@@ -174,6 +174,8 @@
 </template>
 
 <script>
+import { getFundFlowList } from '@/api/fund'
+
 export default {
   data() {
     return {
@@ -216,6 +218,7 @@ export default {
     },
     
     loadFundOverview() {
+      // TODO: aihaitao, 接口未实现
       // 模拟资金概览数据
       this.balanceInfo = {
         maintenanceFund: 1250000.00,
@@ -226,6 +229,7 @@ export default {
     },
     
     loadMonthlyStats() {
+      // TODO: aihaitao, 接口未实现
       // 模拟月度统计数据
       this.monthlyStats = {
         income: 85000.00,
@@ -236,49 +240,9 @@ export default {
     },
     
     loadRecentTransactions() {
-      // 模拟最近交易数据
-      this.recentTransactions = [
-        {
-          flowId: 1,
-          flowType: '1',
-          title: '物业服务费收入',
-          amount: 35000.00,
-          flowDate: '2024-01-15',
-          description: '1月份物业服务费收缴'
-        },
-        {
-          flowId: 2,
-          flowType: '2',
-          title: '电梯维保费用',
-          amount: 8000.00,
-          flowDate: '2024-01-14',
-          description: '电梯月度维保费用支出'
-        },
-        {
-          flowId: 3,
-          flowType: '1',
-          title: '停车位租赁收入',
-          amount: 12000.00,
-          flowDate: '2024-01-13',
-          description: '地下停车位月租收入'
-        },
-        {
-          flowId: 4,
-          flowType: '2',
-          title: '绿化养护费用',
-          amount: 5000.00,
-          flowDate: '2024-01-12',
-          description: '小区绿化维护费用'
-        },
-        {
-          flowId: 5,
-          flowType: '3',
-          title: '维修资金利息',
-          amount: 3500.00,
-          flowDate: '2024-01-11',
-          description: '维修资金银行存款利息'
-        }
-      ]
+      getFundFlowList({ pageNum: 1, pageSize: 5 }).then(res => {
+        this.recentTransactions = res.rows
+      })
     },
     
     formatAmount(amount) {

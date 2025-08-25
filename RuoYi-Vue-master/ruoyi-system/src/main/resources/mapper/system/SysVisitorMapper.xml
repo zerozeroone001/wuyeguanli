@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysVisitorMapper">
+
+    <resultMap type="SysVisitor" id="SysVisitorResult">
+        <result property="visitorId"    column="visitor_id"    />
+        <result property="visitorName"  column="visitor_name"  />
+        <result property="visitorPhone" column="visitor_phone" />
+        <result property="idCard"       column="id_card"       />
+        <result property="visitDate"    column="visit_date"    />
+        <result property="reason"       column="reason"        />
+        <result property="licensePlate" column="license_plate" />
+        <result property="status"       column="status"        />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"     />
+        <result property="updateTime"   column="update_time"   />
+        <result property="remark"       column="remark"        />
+    </resultMap>
+
+    <sql id="selectVisitorVo">
+        select visitor_id, visitor_name, visitor_phone, id_card, visit_date, reason, license_plate, status, create_by, create_time, update_by, update_time, remark from sys_visitor
+    </sql>
+
+    <select id="selectSysVisitorList" parameterType="SysVisitor" resultMap="SysVisitorResult">
+        <include refid="selectVisitorVo"/>
+        <where>
+            <if test="visitorName != null  and visitorName != ''"> and visitor_name like concat('%', #{visitorName}, '%')</if>
+            <if test="visitorPhone != null  and visitorPhone != ''"> and visitor_phone = #{visitorPhone}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectSysVisitorById" parameterType="Long" resultMap="SysVisitorResult">
+        <include refid="selectVisitorVo"/>
+        where visitor_id = #{visitorId}
+    </select>
+
+    <insert id="insertSysVisitor" parameterType="SysVisitor" useGeneratedKeys="true" keyProperty="visitorId">
+        insert into sys_visitor (
+            <if test="visitorName != null and visitorName != ''">visitor_name,</if>
+            <if test="visitorPhone != null and visitorPhone != ''">visitor_phone,</if>
+            <if test="idCard != null and idCard != ''">id_card,</if>
+            <if test="visitDate != null">visit_date,</if>
+            <if test="reason != null and reason != ''">reason,</if>
+            <if test="licensePlate != null and licensePlate != ''">license_plate,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="visitorName != null and visitorName != ''">#{visitorName},</if>
+            <if test="visitorPhone != null and visitorPhone != ''">#{visitorPhone},</if>
+            <if test="idCard != null and idCard != ''">#{idCard},</if>
+            <if test="visitDate != null">#{visitDate},</if>
+            <if test="reason != null and reason != ''">#{reason},</if>
+            <if test="licensePlate != null and licensePlate != ''">#{licensePlate},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateSysVisitor" parameterType="SysVisitor">
+        update sys_visitor
+        <set>
+            <if test="visitorName != null and visitorName != ''">visitor_name = #{visitorName},</if>
+            <if test="visitorPhone != null and visitorPhone != ''">visitor_phone = #{visitorPhone},</if>
+            <if test="idCard != null and idCard != ''">id_card = #{idCard},</if>
+            <if test="visitDate != null">visit_date = #{visitDate},</if>
+            <if test="reason != null and reason != ''">reason = #{reason},</if>
+            <if test="licensePlate != null and licensePlate != ''">license_plate = #{licensePlate},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where visitor_id = #{visitorId}
+    </update>
+
+    <delete id="deleteSysVisitorById" parameterType="Long">
+        delete from sys_visitor where visitor_id = #{visitorId}
+    </delete>
+
+    <delete id="deleteSysVisitorByIds" parameterType="String">
+        delete from sys_visitor where visitor_id in
+        <foreach item="visitorId" collection="array" open="(" separator="," close=")">
+            #{visitorId}
+        </foreach>
+    </delete>
+
+</mapper>

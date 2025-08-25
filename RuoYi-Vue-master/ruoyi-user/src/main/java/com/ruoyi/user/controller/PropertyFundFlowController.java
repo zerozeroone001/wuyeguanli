@@ -31,7 +31,6 @@ public class PropertyFundFlowController extends BaseController
     /**
      * 查询资金流水列表
      */
-    @PreAuthorize("@ss.hasPermi('system:flow:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyFundFlow sysPropertyFundFlow)
     {
@@ -43,7 +42,6 @@ public class PropertyFundFlowController extends BaseController
     /**
      * 导出资金流水列表
      */
-    @PreAuthorize("@ss.hasPermi('system:flow:export')")
     @Log(title = "资金流水", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyFundFlow sysPropertyFundFlow)
@@ -56,7 +54,6 @@ public class PropertyFundFlowController extends BaseController
     /**
      * 获取资金流水详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:flow:query')")
     @GetMapping(value = "/{flowId}")
     public AjaxResult getInfo(@PathVariable("flowId") Long flowId)
     {
@@ -66,7 +63,6 @@ public class PropertyFundFlowController extends BaseController
     /**
      * 新增资金流水
      */
-    @PreAuthorize("@ss.hasPermi('system:flow:add')")
     @Log(title = "资金流水", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyFundFlow sysPropertyFundFlow)
@@ -77,7 +73,6 @@ public class PropertyFundFlowController extends BaseController
     /**
      * 修改资金流水
      */
-    @PreAuthorize("@ss.hasPermi('system:flow:edit')")
     @Log(title = "资金流水", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyFundFlow sysPropertyFundFlow)
@@ -88,7 +83,6 @@ public class PropertyFundFlowController extends BaseController
     /**
      * 删除资金流水
      */
-    @PreAuthorize("@ss.hasPermi('system:flow:remove')")
     @Log(title = "资金流水", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{flowIds}")
     public AjaxResult remove(@PathVariable Long[] flowIds)

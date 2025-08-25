@@ -233,7 +233,7 @@ export default {
 		    name: '来访登记',
 		    desc: '',
 		    iconType: 'wallet',
-		    path: '/pages/payment/index',
+		              path: '/pages/visitor/add',
 		    bgColor: '#F5222D'
 		  },
         
