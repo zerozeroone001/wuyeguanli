@@ -22,7 +22,7 @@ import java.util.List;
  * @date 2025-08-21
  */
 @RestController
-@RequestMapping("/user/complaint")
+@RequestMapping("/complaint")
 public class PropertyComplaintController extends BaseController
 {
     @Autowired
@@ -31,7 +31,6 @@ public class PropertyComplaintController extends BaseController
     /**
      * 查询投诉管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:complaint:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyComplaint sysPropertyComplaint)
     {
@@ -43,7 +42,6 @@ public class PropertyComplaintController extends BaseController
     /**
      * 导出投诉管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:complaint:export')")
     @Log(title = "投诉管理", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyComplaint sysPropertyComplaint)
@@ -56,7 +54,6 @@ public class PropertyComplaintController extends BaseController
     /**
      * 获取投诉管理详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:complaint:query')")
     @GetMapping(value = "/{complaintId}")
     public AjaxResult getInfo(@PathVariable("complaintId") Long complaintId)
     {
@@ -66,7 +63,6 @@ public class PropertyComplaintController extends BaseController
     /**
      * 新增投诉管理
      */
-    @PreAuthorize("@ss.hasPermi('system:complaint:add')")
     @Log(title = "投诉管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyComplaint sysPropertyComplaint)
@@ -77,7 +73,6 @@ public class PropertyComplaintController extends BaseController
     /**
      * 修改投诉管理
      */
-    @PreAuthorize("@ss.hasPermi('system:complaint:edit')")
     @Log(title = "投诉管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyComplaint sysPropertyComplaint)
@@ -88,7 +83,6 @@ public class PropertyComplaintController extends BaseController
     /**
      * 删除投诉管理
      */
-    @PreAuthorize("@ss.hasPermi('system:complaint:remove')")
     @Log(title = "投诉管理", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{complaintIds}")
     public AjaxResult remove(@PathVariable Long[] complaintIds)

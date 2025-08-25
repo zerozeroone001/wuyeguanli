@@ -90,7 +90,7 @@
             </view>
           </view>
           <view 
-            class="upload-btn" 
+            class="upload-btn"
             @click="chooseImage"
             v-if="imageList.length < 3"
           >
@@ -131,7 +131,7 @@
         <text>提交后将生成投诉编号，请保留以便查询进度</text>
       </view>
       <button 
-        class="submit-btn" 
+        class="submit-btn"
         :class="{ disabled: !canSubmit }"
         :disabled="!canSubmit"
         @click="submitComplaint"
@@ -143,6 +143,8 @@
 </template>
 
 <script>
+import { addComplaint } from '@/api/complaint'
+
 export default {
   data() {
     return {
@@ -180,9 +182,7 @@ export default {
     canSubmit() {
       return this.formData.complaintType && 
              this.formData.complaintTitle.trim() &&
-             this.formData.complaintContent.trim() && 
-             this.formData.contactPhone &&
-             this.validatePhone(this.formData.contactPhone)
+             this.formData.complaintContent.trim()
     }
   },
   methods: {
@@ -260,46 +260,26 @@ export default {
         cancelText: '再想想'
       })
       
-      if (!confirm.confirm) return
+	  console.log(confirm[1].confirm)
+      if (!confirm[1].confirm) return
       
       try {
         uni.showLoading({
           title: '提交中...'
         })
         
-        // 模拟上传图片
-        const uploadedImages = []
-        for (let image of this.imageList) {
-          // 这里应该调用实际的上传API
-          uploadedImages.push('https://example.com/image/' + Date.now() + '.jpg')
-        }
+        // TODO: aihaitao, 图片上传功能
         
-        // 模拟提交投诉
-        const complaintData = {
-          ...this.formData,
-          images: uploadedImages.join(',')
-        }
-        
-        // 模拟API调用
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        uni.hideLoading()
-        
-        // 生成投诉编号
-        const complaintNo = 'TS' + new Date().getFullYear() + 
-                           String(new Date().getMonth() + 1).padStart(2, '0') + 
-                           String(new Date().getDate()).padStart(2, '0') + 
-                           String(Math.floor(Math.random() * 1000)).padStart(3, '0')
-        
-        await uni.showModal({
-          title: '提交成功',
-          content: `投诉已提交成功！\n投诉编号：${complaintNo}\n我们将尽快处理您的投诉`,
-          showCancel: false,
-          confirmText: '知道了'
+        addComplaint(this.formData).then(res => {
+          uni.hideLoading()
+          uni.showModal({
+            title: '提交成功',
+            content: `投诉已提交成功！\n投诉编号：${res.data.complaintNo}\n我们将尽快处理您的投诉`,
+            showCancel: false,
+            confirmText: '知道了'
+          })
+          uni.navigateBack()
         })
-        
-        // 返回上一页
-        uni.navigateBack()
         
       } catch (error) {
         uni.hideLoading()
@@ -428,7 +408,6 @@ page {
   
   .title-input, .phone-input {
     width: 100%;
-    padding: 24rpx;
     border: 2rpx solid #F0F0F0;
     border-radius: 12rpx;
     font-size: 28rpx;
@@ -648,5 +627,3 @@ page {
   }
 }
 </style>
- 
- 
