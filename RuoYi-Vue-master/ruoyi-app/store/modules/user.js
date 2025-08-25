@@ -2,7 +2,7 @@ import config from '@/config'
 import storage from '@/utils/storage'
 import constant from '@/utils/constant'
 import { isHttp, isEmpty } from "@/utils/validate"
-import { login, logout, getInfo } from '@/api/login'
+import { login, logout, getInfo, wechatLogin } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import defAva from '@/static/images/profile.jpg'
 
@@ -86,6 +86,19 @@ const user = {
       const uuid = userInfo.uuid
       return new Promise((resolve, reject) => {
         login(username, password, code, uuid).then(res => {
+          setToken(res.token)
+          commit('SET_TOKEN', res.token)
+          resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+
+    // 微信登录
+    WechatLogin({ commit }, wechatLoginForm) {
+      return new Promise((resolve, reject) => {
+        wechatLogin(wechatLoginForm).then(res => {
           setToken(res.token)
           commit('SET_TOKEN', res.token)
           resolve()

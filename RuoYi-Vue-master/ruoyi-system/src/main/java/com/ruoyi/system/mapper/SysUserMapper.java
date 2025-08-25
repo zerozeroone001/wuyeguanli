@@ -47,6 +47,14 @@ public interface SysUserMapper
     public SysUser selectUserByUserName(String userName);
 
     /**
+     * 通过openid查询用户
+     * 
+     * @param openid openid
+     * @return 用户对象信息
+     */
+    public SysUser selectUserByOpenid(String openid);
+
+    /**
      * 通过用户ID查询用户
      * 
      * @param userId 用户ID

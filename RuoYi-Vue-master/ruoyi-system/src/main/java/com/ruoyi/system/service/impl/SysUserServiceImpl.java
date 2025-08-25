@@ -117,6 +117,18 @@ public class SysUserServiceImpl implements ISysUserService
     }
 
     /**
+     * 通过openid查询用户
+     *
+     * @param openid openid
+     * @return 用户对象信息
+     */
+    @Override
+    public SysUser selectUserByOpenid(String openid)
+    {
+        return userMapper.selectUserByOpenid(openid);
+    }
+
+    /**
      * 通过用户ID查询用户
      *
      * @param userId 用户ID
@@ -266,6 +278,21 @@ public class SysUserServiceImpl implements ISysUserService
         insertUserPost(user);
         // 新增用户与角色管理
         insertUserRole(user);
+        return rows;
+    }
+
+    /**
+     * 新增保存用户信息
+     *
+     * @param user 用户信息
+     * @return 结果
+     */
+    @Override
+    @Transactional
+    public int insertWxUser(SysUser user)
+    {
+        // 新增用户信息
+        int rows = userMapper.insertUser(user);
         return rows;
     }
 

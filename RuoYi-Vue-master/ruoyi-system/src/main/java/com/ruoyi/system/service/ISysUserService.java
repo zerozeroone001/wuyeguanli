@@ -43,6 +43,14 @@ public interface ISysUserService
     public SysUser selectUserByUserName(String userName);
 
     /**
+     * 通过openid查询用户
+     * 
+     * @param openid openid
+     * @return 用户对象信息
+     */
+    public SysUser selectUserByOpenid(String openid);
+
+    /**
      * 通过用户ID查询用户
      * 
      * @param userId 用户ID
@@ -111,6 +119,16 @@ public interface ISysUserService
      * @return 结果
      */
     public int insertUser(SysUser user);
+
+    /**
+     * 新增用户信息
+     *
+     * @param user 用户信息
+     * @return 结果
+     */
+    public int insertWxUser(SysUser user);
+
+
 
     /**
      * 注册用户信息

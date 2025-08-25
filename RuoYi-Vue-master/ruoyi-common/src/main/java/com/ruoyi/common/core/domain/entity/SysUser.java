@@ -92,6 +92,9 @@ public class SysUser extends BaseEntity
     /** 角色ID */
     private Long roleId;
 
+    /** openid */
+    private String openid;
+
     public SysUser()
     {
 
@@ -308,6 +311,14 @@ public class SysUser extends BaseEntity
     public void setRoleId(Long roleId)
     {
         this.roleId = roleId;
+    }
+
+    public String getOpenid() {
+        return openid;
+    }
+
+    public void setOpenid(String openid) {
+        this.openid = openid;
     }
 
     @Override

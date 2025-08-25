@@ -19,7 +19,7 @@ server:
   port: 8081
   servlet:
     # 应用的访问路径
-    context-path: /
+    context-path: /userapi
   tomcat:
     # tomcat的URI编码
     uri-encoding: UTF-8
@@ -111,6 +111,11 @@ pagehelper:
   helperDialect: mysql
   supportMethodsArguments: true
   params: count=countSql
+
+# 微信小程序配置
+wx:
+  appid: wx21ec53782018ccef
+  secret: 3b04e482feee7cd0c4a7de81b72b0cee
 
 
 # 防止XSS攻击

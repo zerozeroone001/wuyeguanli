@@ -17,7 +17,7 @@ export function updateUserPwd(oldPassword, newPassword) {
 // 查询用户个人信息
 export function getUserProfile() {
   return request({
-    url: '/app/getInfo',
+    url: '/user/getInfo',
     method: 'get'
   })
 }
@@ -25,7 +25,7 @@ export function getUserProfile() {
 // 修改用户个人信息
 export function updateUserProfile(data) {
   return request({
-    url: '/app/updateProfile',
+    url: '/user/updateProfile',
     method: 'post',
     data: data
   })
@@ -34,7 +34,7 @@ export function updateUserProfile(data) {
 // 业主认证
 export function ownerAuth(data) {
   return request({
-    url: '/app/ownerAuth',
+    url: '/user/ownerAuth',
     method: 'post',
     data: data
   })
@@ -43,7 +43,7 @@ export function ownerAuth(data) {
 // 获取认证状态
 export function getAuthStatus() {
   return request({
-    url: '/app/authStatus',
+    url: '/user/authStatus',
     method: 'get'
   })
 }

@@ -19,14 +19,9 @@ export function login(username, password, code, uuid) {
 }
 
 // 微信小程序登录
-export function wxLogin(code, encryptedData, iv) {
-  const data = {
-    code,
-    encryptedData,
-    iv
-  }
+export function wechatLogin(data) {
   return request({
-    'url': '/app/wxLogin',
+    'url': '/user/wx-login',
     headers: {
       isToken: false
     },
@@ -50,7 +45,7 @@ export function register(data) {
 // 获取用户详细信息
 export function getInfo() {
   return request({
-    'url': '/app/getInfo',
+    'url': '/user/getInfo',
     'method': 'get'
   })
 }

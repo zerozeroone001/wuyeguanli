@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App'
+import '@/common/main.wxss'
 import store from './store' // store
 import plugins from './plugins' // plugins
 import './permission' // permission

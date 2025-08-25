@@ -6,28 +6,25 @@
       <text class="title">若依移动端登录</text>
     </view>
     <view class="login-form-content">
-      <view class="input-item flex align-center">
-        <view class="iconfont icon-user icon"></view>
-        <input v-model="loginForm.username" class="input" type="text" placeholder="请输入账号" maxlength="30" />
-      </view>
-      <view class="input-item flex align-center">
-        <view class="iconfont icon-password icon"></view>
-        <input v-model="loginForm.password" type="password" class="input" placeholder="请输入密码" maxlength="20" />
-      </view>
-      <view class="input-item flex align-center" style="width: 60%;margin: 0px;" v-if="captchaEnabled">
-        <view class="iconfont icon-code icon"></view>
-        <input v-model="loginForm.code" type="number" class="input" placeholder="请输入验证码" maxlength="4" />
-        <view class="login-code"> 
-          <image :src="codeUrl" @click="getCode" class="login-code-img"></image>
+      
+      <!-- #ifdef MP-WEIXIN -->
+      <view class="weixin-login-container">
+        <view class="avatar-wrapper">
+          <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+            <image :src="avatarUrl" class="avatar-img"></image>
+          </button>
+        </view>
+        <view class="input-item flex align-center">
+          <view class="iconfont icon-user icon"></view>
+          <input type="nickname" class="input" v-model="nickname" @blur="onNicknameBlur" placeholder="请输入昵称" />
         </view>
       </view>
+      <!-- #endif -->
+
       <view class="action-btn">
-        <button @click="handleLogin" class="login-btn cu-btn block bg-blue lg round">登录</button>
+        <button @click="handleWechatLogin" class="login-btn cu-btn block bg-green lg round">微信授权登录</button>
       </view>
-      <view class="reg text-center" v-if="register">
-        <text class="text-grey1">没有账号？</text>
-        <text @click="handleUserRegister" class="text-blue">立即注册</text>
-      </view>
+      
       <view class="xieyi text-center">
         <text class="text-grey1">登录即代表同意</text>
         <text @click="handleUserAgrement" class="text-blue">《用户协议》</text>
@@ -39,40 +36,18 @@
 </template>
 
 <script>
-  import { getCodeImg } from '@/api/login'
-  import { getToken } from '@/utils/auth'
+  import defaultAvatar from '@/static/images/profile.jpg'
+  import upload from '@/utils/upload'
 
   export default {
     data() {
       return {
-        codeUrl: "",
-        captchaEnabled: true,
-        // 用户注册开关
-        register: false,
         globalConfig: getApp().globalData.config,
-        loginForm: {
-          username: "admin",
-          password: "admin123",
-          code: "",
-          uuid: ""
-        }
+        avatarUrl: defaultAvatar,
+        nickname: ''
       }
-    },
-    created() {
-      this.getCode()
-    },
-    onLoad() {
-      //#ifdef H5
-      if (getToken()) {
-        this.$tab.reLaunch('/pages/index')
-      }
-      //#endif
     },
     methods: {
-      // 用户注册
-      handleUserRegister() {
-        this.$tab.redirectTo(`/pages/register`)
-      },
       // 隐私协议
       handlePrivacy() {
         let site = this.globalConfig.appInfo.agreements[0]
@@ -83,45 +58,67 @@
         let site = this.globalConfig.appInfo.agreements[1]
         this.$tab.navigateTo(`/pages/common/webview/index?title=${site.title}&url=${site.url}`)
       },
-      // 获取图形验证码
-      getCode() {
-        getCodeImg().then(res => {
-          this.captchaEnabled = res.captchaEnabled === undefined ? true : res.captchaEnabled
-          if (this.captchaEnabled) {
-            this.codeUrl = 'data:image/gif;base64,' + res.img
-            this.loginForm.uuid = res.uuid
-          }
-        })
-      },
-      // 登录方法
-      async handleLogin() {
-        if (this.loginForm.username === "") {
-          this.$modal.msgError("请输入账号")
-        } else if (this.loginForm.password === "") {
-          this.$modal.msgError("请输入密码")
-        } else if (this.loginForm.code === "" && this.captchaEnabled) {
-          this.$modal.msgError("请输入验证码")
-        } else {
-          this.$modal.loading("登录中，请耐心等待...")
-          this.pwdLogin()
-        }
-      },
-      // 密码登录
-      async pwdLogin() {
-        this.$store.dispatch('Login', this.loginForm).then(() => {
+      // 获取用户头像
+      onChooseAvatar(e) {
+        this.$modal.loading("头像上传中...")
+        upload({ 
+          url: '/common/upload',
+          filePath: e.detail.avatarUrl
+        }).then(res => {
           this.$modal.closeLoading()
-          this.loginSuccess()
-        }).catch(() => {
-          if (this.captchaEnabled) {
-            this.getCode()
-          }
+          this.avatarUrl = res.url
+        }).catch(err => {
+          this.$modal.closeLoading()
+          this.$modal.msgError("头像上传失败")
         })
+      },
+      // 昵称输入框失焦（兼容性处理）
+      onNicknameBlur(e) {
+        this.nickname = e.detail.value
       },
       // 登录成功后，处理函数
       loginSuccess(result) {
         // 设置用户信息
         this.$store.dispatch('GetInfo').then(res => {
           this.$tab.reLaunch('/pages/index')
+        })
+      },
+      // 微信登录
+      handleWechatLogin() {
+        // if (!this.nickname) {
+        //   this.$modal.msgError("请输入昵称")
+        //   return
+        // }
+        // if (this.avatarUrl === defaultAvatar) {
+        //   this.$modal.msgError("请选择头像")
+        //   return
+        // }
+
+        this.$modal.loading("登录中，请耐心等待...")
+
+        uni.login({
+          provider: 'weixin',
+          success: (loginRes) => {
+            const loginData = {
+              code: loginRes.code,
+              userInfo: {
+                nickName: this.nickname,
+                avatarUrl: this.avatarUrl
+              }
+            }
+            this.$store.dispatch('WechatLogin', loginData).then(() => {
+              this.$modal.closeLoading()
+              this.loginSuccess()
+            }).catch((err) => {
+              console.error(err)
+              this.$modal.closeLoading()
+            })
+          },
+          fail: (err) => {
+            console.error('uni.login failed', err);
+            this.$modal.closeLoading()
+            this.$modal.msgError("微信登录授权失败")
+          }
         })
       }
     }
@@ -157,6 +154,23 @@
       margin-top: 15%;
       width: 80%;
 
+      .weixin-login-container {
+        .avatar-wrapper {
+          margin-bottom: 20px;
+          .avatar-btn {
+            width: 180rpx;
+            height: 180rpx;
+            padding: 0;
+            border-radius: 50%;
+            .avatar-img {
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+            }
+          }
+        }
+      }
+
       .input-item {
         margin: 20px auto;
         background-color: #f5f6f7;
@@ -184,25 +198,9 @@
         height: 45px;
       }
       
-      .reg {
-        margin-top: 15px;
-      }
-      
       .xieyi {
         color: #333;
         margin-top: 20px;
-      }
-      
-      .login-code {
-        height: 38px;
-        float: right;
-      
-        .login-code-img {
-          height: 38px;
-          position: absolute;
-          margin-left: 10px;
-          width: 200rpx;
-        }
       }
     }
   }
