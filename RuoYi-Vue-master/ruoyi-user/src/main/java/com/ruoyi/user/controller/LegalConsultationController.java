@@ -31,7 +31,6 @@ public class LegalConsultationController extends BaseController
     /**
      * 查询法律咨询列表
      */
-    @PreAuthorize("@ss.hasPermi('system:consultation:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysLegalConsultation sysLegalConsultation)
     {
@@ -43,7 +42,6 @@ public class LegalConsultationController extends BaseController
     /**
      * 导出法律咨询列表
      */
-    @PreAuthorize("@ss.hasPermi('system:consultation:export')")
     @Log(title = "法律咨询", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysLegalConsultation sysLegalConsultation)
@@ -56,7 +54,6 @@ public class LegalConsultationController extends BaseController
     /**
      * 获取法律咨询详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:consultation:query')")
     @GetMapping(value = "/{consultationId}")
     public AjaxResult getInfo(@PathVariable("consultationId") Long consultationId)
     {
@@ -66,7 +63,6 @@ public class LegalConsultationController extends BaseController
     /**
      * 新增法律咨询
      */
-    @PreAuthorize("@ss.hasPermi('system:consultation:add')")
     @Log(title = "法律咨询", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysLegalConsultation sysLegalConsultation)
@@ -77,7 +73,6 @@ public class LegalConsultationController extends BaseController
     /**
      * 修改法律咨询
      */
-    @PreAuthorize("@ss.hasPermi('system:consultation:edit')")
     @Log(title = "法律咨询", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysLegalConsultation sysLegalConsultation)
@@ -88,7 +83,6 @@ public class LegalConsultationController extends BaseController
     /**
      * 删除法律咨询
      */
-    @PreAuthorize("@ss.hasPermi('system:consultation:remove')")
     @Log(title = "法律咨询", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{consultationIds}")
     public AjaxResult remove(@PathVariable Long[] consultationIds)

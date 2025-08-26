@@ -1,5 +1,7 @@
 package com.ruoyi.system.service.impl;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import com.ruoyi.common.utils.DateUtils;
@@ -57,6 +59,31 @@ public class SysPropertyFundFlowServiceImpl implements ISysPropertyFundFlowServi
     public int deleteSysPropertyFundFlowByFlowId(Long flowId)
     {
         return sysPropertyFundFlowMapper.deleteSysPropertyFundFlowByFlowId(flowId);
+    }
+
+    @Override
+    public BigDecimal getTotalFunds() {
+        return null;
+    }
+
+    @Override
+    public Double getFundGrowthRate() {
+        return 0.0;
+    }
+
+    @Override
+    public Long countPendingApprovals() {
+        return 0L;
+    }
+
+    @Override
+    public Map<String, Object> getMonthFundAnalysis() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public List<Map<String, Object>> getRecentFunds(int limit) {
+        return Collections.emptyList();
     }
 
     @Override

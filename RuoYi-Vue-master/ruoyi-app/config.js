@@ -1,7 +1,7 @@
 // 应用全局配置
 module.exports = {
   // 开发环境
-  baseUrl: 'http://localhost:8081/userapi',
+  baseUrl: 'http://www.zhuote.cloud/userapi',
   // 生产环境
   // baseUrl: 'https://your-domain.com/prod-api',
   
