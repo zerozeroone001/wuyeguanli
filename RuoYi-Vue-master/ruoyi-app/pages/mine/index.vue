@@ -16,7 +16,7 @@
         </view>
         <view class="user-info">
           <text class="user-name">{{ mockUser.nickName }}</text>
-          <view class="user-status" @click="toggleAuthStatus">
+          <view class="user-status" @click="handleAuthStatusClick">
             <text class="status-text" :class="{ verified: mockUser.authStatus }">
               {{ mockUser.authStatus ? '已认证业主' : '未认证业主' }}
             </text>
@@ -56,9 +56,6 @@
 
     <!-- 快捷功能 -->
     <view class="quick-actions">
-      <!-- <view class="section-title">
-        <text>快捷功能</text>
-      </view> -->
       <view class="action-grid">
         <view class="action-item" v-for="(action, index) in quickActions" :key="index" @click="handleActionClick(action)">
           <view class="action-icon" :style="{ backgroundColor: action.bgColor }">
@@ -69,32 +66,8 @@
       </view>
     </view>
 
-    <!-- 服务菜单 -->
-   <!-- <view class="service-menu">
-      <view class="section-title">
-        <text>服务中心</text>
-      </view>
-      <view class="menu-list">
-        <view class="menu-item" v-for="(item, index) in serviceMenus" :key="index" @click="handleMenuClick(item)">
-          <view class="menu-left">
-            <view class="menu-icon" :style="{ backgroundColor: item.bgColor }">
-              <uni-icons :type="item.icon" size="18" color="white" />
-            </view>
-            <text class="menu-name">{{ item.name }}</text>
-          </view>
-          <view class="menu-right">
-            <text class="menu-badge" v-if="item.badge">{{ item.badge }}</text>
-            <uni-icons type="right" size="14" color="#C0C4CC" />
-          </view>
-        </view>
-      </view>
-    </view> -->
-
     <!-- 设置菜单 -->
     <view class="settings-menu">
-      <!-- <view class="section-title">
-        <text>设置</text>
-      </view> -->
       <view class="menu-list">
         <view class="menu-item" v-for="(item, index) in settingsMenus" :key="index" @click="handleMenuClick(item)">
           <view class="menu-left">
@@ -123,7 +96,7 @@ export default {
       mockUser: {
         nickName: '张先生',
         avatar: 'https://img.icons8.com/fluency/96/user-male-circle.png',
-        authStatus: false, // 可切换的认证状态
+        authStatus: false, // 认证状态
         phone: '138****8888',
         building: '3号楼',
         unit: '2单元',
@@ -163,45 +136,6 @@ export default {
           path: '/pages/complaints/my-complaints'
         }
       ],
-      // 服务菜单
-      serviceMenus: [
-        {
-          name: '房屋信息',
-          icon: 'home',
-          bgColor: '#1890FF',
-          path: '/pages/mine/property-info'
-        },
-        {
-          name: '家庭成员',
-          icon: 'person-add',
-          bgColor: '#52C41A',
-          path: '/pages/mine/family-members'
-        },
-        {
-          name: '车位管理',
-          icon: 'car',
-          bgColor: '#722ED1',
-          path: '/pages/mine/parking'
-        },
-        {
-          name: '门禁管理',
-          icon: 'locked',
-          bgColor: '#FAAD14',
-          path: '/pages/mine/access-control'
-        },
-        {
-          name: '邻里社交',
-          icon: 'chat',
-          bgColor: '#13C2C2',
-          path: '/pages/mine/neighbors'
-        },
-        {
-          name: '意见反馈',
-          icon: 'sound',
-          bgColor: '#F5222D',
-          badge: 'NEW'
-        }
-      ],
       // 设置菜单
       settingsMenus: [
         {
@@ -209,6 +143,12 @@ export default {
           icon: 'person',
           bgColor: '#8C8C8C',
           path: '/pages/mine/info/index'
+        },
+        {
+          name: '实名认证',
+          icon: 'shield-filled',
+          bgColor: '#1890FF',
+          path: '/pages/mine/auth'
         },
         {
           name: '消息设置',
@@ -232,14 +172,17 @@ export default {
     }
   },
   methods: {
-    toggleAuthStatus() {
-      // 演示功能：切换认证状态
-      this.mockUser.authStatus = !this.mockUser.authStatus
-      uni.showToast({
-        title: this.mockUser.authStatus ? '已切换为认证状态' : '已切换为未认证状态',
-        icon: 'success',
-        duration: 2000
-      })
+    handleAuthStatusClick() {
+      if (!this.mockUser.authStatus) {
+        uni.navigateTo({
+          url: '/pages/mine/auth'
+        });
+      } else {
+        uni.showToast({
+          title: '您已完成实名认证',
+          icon: 'none'
+        });
+      }
     },
     
     showQRCode() {

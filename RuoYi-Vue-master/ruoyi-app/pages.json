@@ -75,6 +75,11 @@
       "navigationBarTitleText": "关于我们"
     }
   }, {
+    "path": "pages/mine/auth",
+    "style": {
+      "navigationBarTitleText": "实名认证"
+    }
+  }, {
     "path": "pages/common/webview/index",
     "style": {
       "navigationBarTitleText": "浏览网页"

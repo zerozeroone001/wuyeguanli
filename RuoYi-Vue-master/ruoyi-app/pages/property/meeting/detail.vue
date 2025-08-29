@@ -61,6 +61,25 @@
             <text>{{ topic.topicContent }}</text>
           </view>
           
+          <!-- 附件列表 -->
+          <view class="attachment-section" v-if="topic.files && topic.files.length > 0">
+            <scroll-view class="attachment-scroll-view" scroll-x="true">
+              <view class="attachment-list">
+                <view 
+                  class="attachment-item" 
+                  v-for="(file, fileIndex) in topic.files" 
+                  :key="fileIndex"
+                  @click="previewFile(file)"
+                >
+                  <view class="file-icon-wrapper">
+                    <uni-icons :type="getIconByFileName(file.fileName)" size="32" color="#1890FF"></uni-icons>
+                  </view>
+                  <text class="attachment-name">{{ file.fileName }}</text>
+                </view>
+              </view>
+            </scroll-view>
+          </view>
+          
           <!-- 投票结果 -->
           <view class="vote-result" v-if="meetingInfo.meetingStatus === '2'">
             <view class="result-header">
@@ -151,7 +170,10 @@ export default {
           topicContent: '鉴于近年来人工成本、材料成本持续上涨，现有物业费标准已不能满足小区日常管理和维护需要，建议将物业管理费从每平方米2.5元调整至3.0元。调整后的费用将主要用于：1. 提高保洁、保安、绿化人员工资待遇；2. 更新维护小区公共设施；3. 增加小区安全防范措施。',
           agreeCount: 312,
           opposeCount: 156,
-          abstainCount: 99
+          abstainCount: 99,
+          files: [
+            { fileName: '物业费调整详细方案.pdf', fileUrl: '/profile/meeting/topic1_1.pdf' }
+          ]
         },
         {
           topicId: 2,
@@ -159,7 +181,12 @@ export default {
           topicContent: '小区现有监控设备使用年限较长，部分设备老化严重，影响安全监控效果。建议投资80万元更换高清数字监控设备，包括：1. 更换所有老旧摄像头为4K高清设备；2. 升级监控存储系统；3. 增设人脸识别功能；4. 配备夜视功能。费用从公共维修基金中支出。',
           agreeCount: 398,
           opposeCount: 98,
-          abstainCount: 71
+          abstainCount: 71,
+          files: [
+            { fileName: '监控设备更换报价单-A.pdf', fileUrl: '/profile/meeting/topic2_1.pdf' },
+            { fileName: '监控设备更换报价单-B.pdf', fileUrl: '/profile/meeting/topic2_2.pdf' },
+            { fileName: '现有设备状况报告.docx', fileUrl: '/profile/meeting/topic2_3.docx' }
+          ]
         },
         {
           topicId: 3,
@@ -167,7 +194,14 @@ export default {
           topicContent: '为改善小区居住环境，提升生活品质，建议对小区绿化进行升级改造。主要内容包括：1. 重新规划绿化布局；2. 种植四季花卉；3. 增加休闲座椅和健身器材；4. 建设儿童游乐区；5. 完善步道照明。预算费用50万元，从公共维修基金中支出。',
           agreeCount: 423,
           opposeCount: 89,
-          abstainCount: 55
+          abstainCount: 55,
+          files: [
+            { fileName: '绿化改造效果图-1.jpg', fileUrl: '/profile/meeting/topic3_1.jpg' },
+            { fileName: '绿化改造效果图-2.jpg', fileUrl: '/profile/meeting/topic3_2.jpg' },
+            { fileName: '绿化改造工程预算.xlsx', fileUrl: '/profile/meeting/topic3_3.xlsx' },
+            { fileName: '设计公司资质.pdf', fileUrl: '/profile/meeting/topic3_4.pdf' },
+            { fileName: '业主意见征集稿.docx', fileUrl: '/profile/meeting/topic3_5.docx' }
+          ]
         }
       ]
     },
@@ -224,6 +258,71 @@ export default {
       uni.navigateTo({
         url: `/pages/property/meeting/vote?id=${this.meetingId}`
       })
+    },
+
+    getIconByFileName(fileName) {
+      const ext = fileName.split('.').pop().toLowerCase();
+      // 使用一组基础且通用的图标
+      if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+        return 'image';
+      }
+      if (['zip', 'rar', '7z'].includes(ext)) {
+        return 'folder';
+      }
+      if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(ext)) {
+        return 'paperclip';
+      }
+      return 'document'; // 默认图标
+    },
+    
+    previewFile(file) {
+      if (!file || !file.fileUrl) {
+        uni.showToast({
+          title: '无效的文件信息',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      uni.showLoading({
+        title: '文件加载中...'
+      });
+
+      // 注意：这里的 this.config.baseUrl 来自项目根目录的 config.js 文件
+      // 它已在 main.js 中挂载到 Vue.prototype.config
+      const fileUrl = this.config.baseUrl + file.fileUrl;
+
+      uni.downloadFile({
+        url: fileUrl,
+        success: (res) => {
+          if (res.statusCode === 200) {
+            uni.openDocument({
+              filePath: res.tempFilePath,
+              showMenu: true, // 允许用户转发、保存等操作
+              fail: () => {
+                uni.showToast({
+                  title: '不支持预览该文件格式',
+                  icon: 'none'
+                });
+              }
+            });
+          } else {
+            uni.showToast({
+              title: '文件下载失败',
+              icon: 'none'
+            });
+          }
+        },
+        fail: () => {
+          uni.showToast({
+            title: '文件下载失败',
+            icon: 'none'
+          });
+        },
+        complete: () => {
+          uni.hideLoading();
+        }
+      });
     }
   }
 }
@@ -413,6 +512,63 @@ page {
   }
 }
 
+.attachment-section {
+  margin-top: 24rpx;
+  padding-left: 64rpx;
+
+  .attachment-scroll-view {
+    width: 100%;
+    height: 200rpx; /* 明确高度以确保渲染 */
+
+    .attachment-list {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+.attachment-item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 220rpx; /* 增加宽度 */
+  height: 200rpx;
+  background-color: #F8F9FA;
+  border: 1rpx solid #F0F0F0;
+  border-radius: 24rpx;
+  margin-right: 20rpx;
+  padding: 20rpx;
+
+  .file-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90rpx;
+    height: 90rpx;
+    background-color: #E6F7FF;
+    border-radius: 50%;
+    margin-bottom: 16rpx;
+  }
+
+  .attachment-name {
+    font-size: 22rpx;
+    color: #595959;
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  &:active {
+    background-color: #F0F2F5;
+  }
+}
+
 .vote-result {
   padding-left: 64rpx;
   
@@ -524,5 +680,3 @@ page {
   }
 }
 </style>
- 
- 

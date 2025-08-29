@@ -17,22 +17,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="身份证正面照片URL" prop="idCardFrontUrl">
-        <el-input
-          v-model="queryParams.idCardFrontUrl"
-          placeholder="请输入身份证正面照片URL"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="身份证反面照片URL" prop="idCardBackUrl">
-        <el-input
-          v-model="queryParams.idCardBackUrl"
-          placeholder="请输入身份证反面照片URL"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item label="楼栋号" prop="buildingNo">
         <el-input
           v-model="queryParams.buildingNo"
@@ -49,22 +34,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="房号" prop="roomNo">
-        <el-input
-          v-model="queryParams.roomNo"
-          placeholder="请输入房号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="是否为业委会成员" prop="isCommitteeMember">
-        <el-input
-          v-model="queryParams.isCommitteeMember"
-          placeholder="请输入是否为业委会成员"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -149,7 +119,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
