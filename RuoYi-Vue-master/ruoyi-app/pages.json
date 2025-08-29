@@ -127,6 +127,12 @@
       "navigationBarTitleText": "投诉详情"
     }
   }, {
+    "path": "pages/property/contract/index",
+    "style": {
+      "navigationBarTitleText": "我的合同",
+      "enablePullDownRefresh": true
+    }
+  }, {
     "path": "pages/contract-fulfillment/index",
     "style": {
       "navigationBarTitleText": "合同查阅",

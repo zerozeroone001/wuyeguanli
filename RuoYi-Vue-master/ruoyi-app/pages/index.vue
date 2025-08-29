@@ -170,6 +170,7 @@
 
 <script>
 import config from '@/config'
+import { listNotice } from '@/api/notice.js'
 
 export default {
   data() {
@@ -191,41 +192,8 @@ export default {
         unit: '2单元',
         room: '1201'
       },
-      // 模拟公告数据
-      noticeList: [
-        {
-          noticeId: 1,
-          noticeType: '1',
-          noticeTitle: '关于召开2024年度业主大会的通知',
-          noticeContent: '定于2024年2月15日下午2点在小区会议室召开业主大会，请各位业主准时参加，共同讨论小区重要事务',
-          createTime: '01-15',
-          isNew: true
-        },
-        {
-          noticeId: 2,
-          noticeType: '2',
-          noticeTitle: '物业费缴费通知',
-          noticeContent: '2024年第一季度物业费开始缴纳，请业主们及时缴费，可通过线上线下多种方式缴纳',
-          createTime: '01-10',
-          isNew: false
-        },
-        {
-          noticeId: 3,
-          noticeType: '1',
-          noticeTitle: '小区电梯维保公告',
-          noticeContent: '为保障电梯安全运行，将于本周末进行电梯维保工作，期间请业主们合理安排出行',
-          createTime: '01-08',
-          isNew: true
-        },
-        {
-          noticeId: 4,
-          noticeType: '2',
-          noticeTitle: '春节期间物业服务安排',
-          noticeContent: '春节期间物业服务时间调整，紧急情况请拨打24小时值班电话，祝大家新年快乐',
-          createTime: '01-05',
-          isNew: false
-        }
-      ],
+      // 公告数据改为空数组，将从API获取
+      noticeList: [],
       // 快捷功能数据
       quickFunctions: [
 		  {
@@ -349,12 +317,24 @@ export default {
     },
     
     loadData() {
-      // 模拟数据加载，无需接口调用
-      console.log('页面数据加载完成')
-      
-      // 可以在这里添加一些动态数据更新逻辑
-      // 比如更新未读消息数量、天气信息等
+      this.getNoticeList(); // 调用真实API
       this.updateDynamicData()
+    },
+
+    // 获取公告列表
+    getNoticeList() {
+      // 只获取最新的几条，比如5条
+      listNotice({ pageNum: 1, pageSize: 5 }).then(response => {
+        console.log("获取到公告数据", response);
+        this.noticeList = response.rows.map(notice => {
+          // 后端返回的 noticeContent 可能包含HTML标签，这里直接用
+          // createTime 格式化
+          notice.createTime = this.parseTime(notice.createTime, '{y}-{m}-{d}');
+          return notice;
+        });
+      }).catch(error => {
+        console.error("获取公告失败", error);
+      });
     },
     
     updateDynamicData() {
@@ -780,7 +760,7 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 48rpx 32rpx;
+    padding: 24rpx 15rpx;
     border-radius: 24rpx;
     background: #FAFBFC;
     border: 1rpx solid #F0F0F0;
