@@ -1,25 +1,21 @@
 package com.ruoyi.web.controller.system;
 
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.alibaba.druid.util.StringUtils;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SysOwnerProfile;
 import com.ruoyi.system.service.ISysOwnerProfileService;
-import com.ruoyi.common.utils.poi.ExcelUtil;
-import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.system.service.ISysUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * 业主信息扩展Controller
@@ -34,6 +30,9 @@ public class SysOwnerProfileController extends BaseController
     @Autowired
     private ISysOwnerProfileService sysOwnerProfileService;
 
+    @Autowired
+    private ISysUserService userService;
+
     /**
      * 查询业主信息扩展列表
      */
@@ -47,17 +46,43 @@ public class SysOwnerProfileController extends BaseController
     }
 
     /**
+     * 审核认证申请
+     */
+    @PreAuthorize("@ss.hasPermi('system:profile:audit')")
+    @Log(title = "业主认证审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody SysOwnerProfile profile)
+    {
+        // 简单验证，确保状态和备注不为空
+        if (StringUtils.isEmpty(profile.getAuthStatus()) || profile.getUserId() == null)
+        {
+            return error("审核失败，缺少必要参数");
+        }
+        // 审核通过时，将用户信息同步到主表
+        if ("2".equals(profile.getAuthStatus())) {
+            SysOwnerProfile ownerProfile = sysOwnerProfileService.selectSysOwnerProfileByUserId(profile.getUserId());
+            SysUser user = new SysUser();
+            user.setUserId(ownerProfile.getUserId());
+            user.setNickName(ownerProfile.getRealName()); // 可将昵称同步为真实姓名
+            // user.setPhonenumber(ownerProfile.getPhonenumber()); // 如果需要同步手机号
+            userService.updateUserProfile(user);
+        }
+        return toAjax(sysOwnerProfileService.updateSysOwnerProfile(profile));
+    }
+
+
+    /**
      * 导出业主信息扩展列表
      */
-    @PreAuthorize("@ss.hasPermi('system:profile:export')")
-    @Log(title = "业主信息扩展", businessType = BusinessType.EXPORT)
-    @PostMapping("/export")
-    public void export(HttpServletResponse response, SysOwnerProfile sysOwnerProfile)
-    {
-        List<SysOwnerProfile> list = sysOwnerProfileService.selectSysOwnerProfileList(sysOwnerProfile);
-        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
-        util.exportExcel(response, list, "业主信息扩展数据");
-    }
+//    @PreAuthorize("@ss.hasPermi('system:profile:export')")
+//    @Log(title = "业主信息扩展", businessType = BusinessType.EXPORT)
+//    @PostMapping("/export")
+//    public void export(HttpServletResponse response, SysOwnerProfile sysOwnerProfile)
+//    {
+//        List<SysOwnerProfile> list = sysOwnerProfileService.selectSysOwnerProfileList(sysOwnerProfile);
+//        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
+//        util.exportExcel(response, list, "业主信息扩展数据");
+//    }
 
     /**
      * 获取业主信息扩展详细信息

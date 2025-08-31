@@ -168,6 +168,13 @@
         <el-form-item label="会议标题" prop="meetingTitle">
           <el-input v-model="form.meetingTitle" placeholder="请输入会议标题" />
         </el-form-item>
+        <el-form-item label="会议类型" prop="meetingType">
+          <el-select v-model="form.meetingType" placeholder="请选择会议类型" style="width:100%">
+            <!-- TODO: 此处应改为使用字典管理动态获取 -->
+            <el-option label="业主大会" value="1"></el-option>
+            <el-option label="业委会会议" value="2"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="会议内容">
           <editor v-model="form.meetingContent" :min-height="192"/>
         </el-form-item>
@@ -204,12 +211,66 @@
         <el-form-item label="实际参与人数" prop="actualVoters">
           <el-input v-model="form.actualVoters" placeholder="请输入实际参与人数" />
         </el-form-item>
+
+        <el-divider content-position="center">议题管理</el-divider>
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button type="primary" icon="el-icon-plus" size="mini" @click="handleAddTopic">添加议题</el-button>
+          </el-col>
+        </el-row>
+        <el-table :data="form.topics">
+          <el-table-column label="议题标题" align="center" prop="topicTitle" />
+          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+            <template slot-scope="scope">
+              <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdateTopic(scope.row)">修改</el-button>
+              <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDeleteTopic(scope.row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 添加或修改议题对话框 -->
+    <el-dialog :title="topicTitle" :visible.sync="topicOpen" width="1200px" append-to-body>
+      <el-form ref="topicForm" :model="topicForm" :rules="topicRules" label-width="100px">
+        <el-form-item label="议题标题" prop="topicTitle">
+          <el-input v-model="topicForm.topicTitle" placeholder="请输入议题标题" />
+        </el-form-item>
+        <el-form-item label="议题内容">
+          <editor v-model="topicForm.topicContent" :min-height="192"/>
+        </el-form-item>
+        <el-form-item label="附件">
+          <file-upload v-model="topicForm.files"/>
+        </el-form-item>
+        <el-row>
+          <el-col :span="8">
+            <el-form-item label="同意票数" prop="agreeCount">
+              <el-input-number v-model="topicForm.agreeCount" controls-position="right" :min="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="反对票数" prop="opposeCount">
+              <el-input-number v-model="topicForm.opposeCount" controls-position="right" :min="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="弃权票数" prop="abstainCount">
+              <el-input-number v-model="topicForm.abstainCount" controls-position="right" :min="0" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitTopicForm">确 定</el-button>
+        <el-button @click="cancelTopic">取 消</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -266,6 +327,18 @@ export default {
         meetingTime: [
           { required: true, message: "会议时间不能为空", trigger: "blur" }
         ],
+      },
+      // 议题弹出层标题
+      topicTitle: "",
+      // 是否显示议题弹出层
+      topicOpen: false,
+      // 议题表单参数
+      topicForm: {},
+      // 议题表单校验
+      topicRules: {
+        topicTitle: [
+          { required: true, message: "议题标题不能为空", trigger: "blur" }
+        ]
       }
     }
   },
@@ -304,7 +377,8 @@ export default {
         createBy: null,
         createTime: null,
         updateBy: null,
-        updateTime: null
+        updateTime: null,
+        topics: []
       }
       this.resetForm("form")
     },
@@ -375,6 +449,69 @@ export default {
       this.download('system/meeting/export', {
         ...this.queryParams
       }, `meeting_${new Date().getTime()}.xlsx`)
+    },
+    // 议题表单重置
+    resetTopic() {
+      this.topicForm = {
+        topicId: null,
+        topicTitle: null,
+        topicContent: null,
+        files: null,
+        agreeCount: 0,
+        opposeCount: 0,
+        abstainCount: 0
+      };
+      this.resetForm("topicForm");
+    },
+    // 取消议题按钮
+    cancelTopic() {
+      this.topicOpen = false;
+      this.resetTopic();
+    },
+    /** 新增议题按钮操作 */
+    handleAddTopic() {
+      this.resetTopic();
+      this.topicOpen = true;
+      this.topicTitle = "添加议题";
+    },
+    /** 修改议题按钮操作 */
+    handleUpdateTopic(row) {
+      this.resetTopic();
+      // 注意：这里需要深拷贝，以防在表单中修改但未提交时，列表中的数据也跟着变
+      this.topicForm = JSON.parse(JSON.stringify(row));
+      this.topicOpen = true;
+      this.topicTitle = "修改议题";
+    },
+    /** 删除议题按钮操作 */
+    handleDeleteTopic(row) {
+      const topics = this.form.topics;
+      const index = topics.findIndex(t => t.topicId === row.topicId);
+      if (index !== -1) {
+        topics.splice(index, 1);
+      }
+    },
+    /** 提交议题按钮 */
+    submitTopicForm() {
+      this.$refs["topicForm"].validate(valid => {
+        if (valid) {
+          // 克隆一个副本，而不是直接用引用
+          const topicData = { ...this.topicForm };
+          // 如果是修改
+          if (topicData.topicId != null) {
+            const index = this.form.topics.findIndex(t => t.topicId === topicData.topicId);
+            if (index !== -1) {
+              // 使用 $set 确保视图更新
+              this.$set(this.form.topics, index, topicData);
+            }
+          } else {
+            // 如果是新增
+            topicData.topicId = new Date().getTime(); // 分配一个临时的唯一ID
+            this.form.topics.push(topicData);
+          }
+          this.topicOpen = false;
+          this.resetTopic();
+        }
+      });
     }
   }
 }

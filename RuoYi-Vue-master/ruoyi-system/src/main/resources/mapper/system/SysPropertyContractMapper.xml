@@ -3,14 +3,22 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.SysPropertyContractMapper">
-    
+
     <resultMap type="SysPropertyContract" id="SysPropertyContractResult">
         <result property="contractId"    column="contract_id"    />
+        <result property="contractNo"    column="contract_no"    />
         <result property="contractName"    column="contract_name"    />
         <result property="contractVersion"    column="contract_version"    />
         <result property="fileUrl"    column="file_url"    />
         <result property="effectiveDate"    column="effective_date"    />
         <result property="expiryDate"    column="expiry_date"    />
+        <result property="contractAmount"    column="contract_amount"    />
+        <result property="partyA"    column="party_a"    />
+        <result property="partyB"    column="party_b"    />
+        <result property="contractContent"    column="contract_content"    />
+        <result property="importantClauses"    column="important_clauses"    />
+        <result property="managerName"    column="manager_name"    />
+        <result property="managerPhone"    column="manager_phone"    />
         <result property="status"    column="status"    />
         <result property="delFlag"    column="del_flag"    />
         <result property="createBy"    column="create_by"    />
@@ -21,21 +29,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyContractVo">
-        select contract_id, contract_name, contract_version, file_url, effective_date, expiry_date, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
+        select contract_id, contract_no, contract_name, contract_version, file_url, effective_date, expiry_date, contract_amount, party_a, party_b, contract_content, important_clauses, manager_name, manager_phone, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
     </sql>
 
     <select id="selectSysPropertyContractList" parameterType="SysPropertyContract" resultMap="SysPropertyContractResult">
         <include refid="selectSysPropertyContractVo"/>
-        <where>  
+        <where>
             <if test="contractName != null  and contractName != ''"> and contract_name like concat('%', #{contractName}, '%')</if>
             <if test="contractVersion != null  and contractVersion != ''"> and contract_version = #{contractVersion}</if>
-            <if test="fileUrl != null  and fileUrl != ''"> and file_url = #{fileUrl}</if>
             <if test="effectiveDate != null "> and effective_date = #{effectiveDate}</if>
             <if test="expiryDate != null "> and expiry_date = #{expiryDate}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
     </select>
-    
+
     <select id="selectSysPropertyContractByContractId" parameterType="Long" resultMap="SysPropertyContractResult">
         <include refid="selectSysPropertyContractVo"/>
         where contract_id = #{contractId}
@@ -44,11 +51,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertSysPropertyContract" parameterType="SysPropertyContract" useGeneratedKeys="true" keyProperty="contractId">
         insert into sys_property_contract
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractNo != null and contractNo != ''">contract_no,</if>
             <if test="contractName != null and contractName != ''">contract_name,</if>
             <if test="contractVersion != null">contract_version,</if>
             <if test="fileUrl != null and fileUrl != ''">file_url,</if>
             <if test="effectiveDate != null">effective_date,</if>
             <if test="expiryDate != null">expiry_date,</if>
+            <if test="contractAmount != null">contract_amount,</if>
+            <if test="partyA != null and partyA != ''">party_a,</if>
+            <if test="partyB != null and partyB != ''">party_b,</if>
+            <if test="contractContent != null and contractContent != ''">contract_content,</if>
+            <if test="importantClauses != null and importantClauses != ''">important_clauses,</if>
+            <if test="managerName != null and managerName != ''">manager_name,</if>
+            <if test="managerPhone != null and managerPhone != ''">manager_phone,</if>
             <if test="status != null">status,</if>
             <if test="delFlag != null">del_flag,</if>
             <if test="createBy != null">create_by,</if>
@@ -58,11 +73,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractNo != null and contractNo != ''">#{contractNo},</if>
             <if test="contractName != null and contractName != ''">#{contractName},</if>
             <if test="contractVersion != null">#{contractVersion},</if>
             <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
             <if test="effectiveDate != null">#{effectiveDate},</if>
             <if test="expiryDate != null">#{expiryDate},</if>
+            <if test="contractAmount != null">#{contractAmount},</if>
+            <if test="partyA != null and partyA != ''">#{partyA},</if>
+            <if test="partyB != null and partyB != ''">#{partyB},</if>
+            <if test="contractContent != null and contractContent != ''">#{contractContent},</if>
+            <if test="importantClauses != null and importantClauses != ''">#{importantClauses},</if>
+            <if test="managerName != null and managerName != ''">#{managerName},</if>
+            <if test="managerPhone != null and managerPhone != ''">#{managerPhone},</if>
             <if test="status != null">#{status},</if>
             <if test="delFlag != null">#{delFlag},</if>
             <if test="createBy != null">#{createBy},</if>
@@ -76,11 +99,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateSysPropertyContract" parameterType="SysPropertyContract">
         update sys_property_contract
         <trim prefix="SET" suffixOverrides=",">
+            <if test="contractNo != null and contractNo != ''">contract_no = #{contractNo},</if>
             <if test="contractName != null and contractName != ''">contract_name = #{contractName},</if>
             <if test="contractVersion != null">contract_version = #{contractVersion},</if>
             <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>
             <if test="effectiveDate != null">effective_date = #{effectiveDate},</if>
             <if test="expiryDate != null">expiry_date = #{expiryDate},</if>
+            <if test="contractAmount != null">contract_amount = #{contractAmount},</if>
+            <if test="partyA != null and partyA != ''">party_a = #{partyA},</if>
+            <if test="partyB != null and partyB != ''">party_b = #{partyB},</if>
+            <if test="contractContent != null and contractContent != ''">contract_content = #{contractContent},</if>
+            <if test="importantClauses != null">important_clauses = #{importantClauses},</if>
+            <if test="managerName != null and managerName != ''">manager_name = #{managerName},</if>
+            <if test="managerPhone != null and managerPhone != ''">manager_phone = #{managerPhone},</if>
             <if test="status != null">status = #{status},</if>
             <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
@@ -97,7 +128,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteSysPropertyContractByContractIds" parameterType="String">
-        delete from sys_property_contract where contract_id in 
+        delete from sys_property_contract where contract_id in
         <foreach item="contractId" collection="array" open="(" separator="," close=")">
             #{contractId}
         </foreach>

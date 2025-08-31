@@ -135,12 +135,25 @@
 </template>
 
 <script>
+import { listUserContract } from '@/api/contract.js';
+
 export default {
   data() {
     return {
-      searchKeyword: '',
+      // 查询参数
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        contractName: undefined,
+        contractNo: undefined,
+        category: undefined, // 合同分类
+        status: undefined // 合同状态
+      },
+      searchKeyword: '', // 仅用于输入框绑定
       activeCategory: 'all',
       contractList: [],
+      total: 0,
+      loading: false,
       stats: {
         total: 0,
         active: 0,
@@ -149,148 +162,95 @@ export default {
       }
     }
   },
+  // 计算属性现在直接返回从 data 中获取的 contractList
+  // 因为筛选和分页已经由后端完成
   computed: {
     filteredContracts() {
-      let contracts = this.contractList
-      
-      // 按分类筛选
-      if (this.activeCategory !== 'all') {
-        contracts = contracts.filter(contract => contract.category === this.activeCategory)
-      }
-      
-      // 按关键词搜索
-      if (this.searchKeyword.trim()) {
-        const keyword = this.searchKeyword.trim().toLowerCase()
-        contracts = contracts.filter(contract => 
-          contract.contractName.toLowerCase().includes(keyword) ||
-          contract.contractNo.toLowerCase().includes(keyword)
-        )
-      }
-      
-      return contracts
+      return this.contractList;
     }
   },
   onLoad() {
-    this.loadContracts()
-    this.loadStats()
+    this.loadContracts();
+    // 统计数据也应该从接口获取，这里暂时保留前端计算作为示例
+    // this.loadStats(); 
+  },
+  // 页面上拉触底事件的处理函数
+  onReachBottom() {
+    if (this.contractList.length < this.total) {
+      this.queryParams.pageNum++;
+      this.loadContracts(true); // true表示是加载更多
+    }
   },
   onPullDownRefresh() {
-    this.loadContracts()
-    this.loadStats()
-    setTimeout(() => {
-      uni.stopPullDownRefresh()
-    }, 1000)
+    this.queryParams.pageNum = 1;
+    this.loadContracts();
+    // this.loadStats();
+    uni.stopPullDownRefresh();
   },
   methods: {
-    loadContracts() {
-      // 模拟合同数据
-      this.contractList = [
-        {
-          contractId: 1,
-          contractNo: 'HT202401001',
-          contractName: '智慧花园小区物业服务合同',
-          category: 'property',
-          status: 'active',
-          signDate: '2024-01-01',
-          startDate: '2024-01-01',
-          endDate: '2026-12-31',
-          partyA: '智慧花园业主委员会',
-          partyB: '北京优质物业服务有限公司',
-          contractAmount: 2400000.00,
-          description: '为智慧花园小区提供全方位物业管理服务，包括保洁、保安、绿化、设备维护等服务内容。'
-        },
-        {
-          contractId: 2,
-          contractNo: 'HT202401002',
-          contractName: '电梯维保服务合同',
-          category: 'maintenance',
-          status: 'active',
-          signDate: '2024-02-15',
-          startDate: '2024-03-01',
-          endDate: '2025-02-28',
-          partyA: '智慧花园业主委员会',
-          partyB: '奥的斯电梯服务公司',
-          contractAmount: 180000.00,
-          description: '为小区12部电梯提供定期维护保养服务，确保电梯安全运行。'
-        },
-        {
-          contractId: 3,
-          contractNo: 'HT202401003',
-          contractName: '消防设备维护合同',
-          category: 'maintenance',
-          status: 'pending',
-          signDate: '2024-03-10',
-          startDate: '2024-04-01',
-          endDate: '2025-03-31',
-          partyA: '智慧花园业主委员会',
-          partyB: '安全消防技术有限公司',
-          contractAmount: 120000.00,
-          description: '负责小区消防设备的定期检测、维护和更新工作。'
-        },
-        {
-          contractId: 4,
-          contractNo: 'HT202401004',
-          contractName: '绿化养护服务合同',
-          category: 'other',
-          status: 'active',
-          signDate: '2024-01-20',
-          startDate: '2024-02-01',
-          endDate: '2024-12-31',
-          partyA: '智慧花园业主委员会',
-          partyB: '城市绿化工程有限公司',
-          contractAmount: 200000.00,
-          description: '负责小区绿化植物的日常养护、修剪、病虫害防治等工作。'
-        },
-        {
-          contractId: 5,
-          contractNo: 'HT202301005',
-          contractName: '停车场管理合同',
-          category: 'property',
-          status: 'expired',
-          signDate: '2023-01-01',
-          startDate: '2023-01-01',
-          endDate: '2023-12-31',
-          partyA: '智慧花园业主委员会',
-          partyB: '智能停车管理公司',
-          contractAmount: 150000.00,
-          description: '负责小区地下停车场的日常管理和设备维护工作。'
+    /** 查询合同列表 */
+    loadContracts(loadMore = false) {
+      this.loading = true;
+      // 整合搜索关键词到查询参数
+      this.queryParams.contractName = this.searchKeyword;
+
+      listUserContract(this.queryParams).then(response => {
+        console.log('合同列表接口成功返回:', response);
+        const newList = response.rows;
+        if (loadMore) {
+          this.contractList = this.contractList.concat(newList); // 加载更多
+        } else {
+          this.contractList = newList; // 首次加载或刷新
         }
-      ]
+        this.total = response.total;
+        this.loading = false;
+        this.updateStats(); // 根据新数据更新统计
+      }).catch(error => {
+        console.error('合同列表接口请求失败:', error);
+        this.loading = false;
+        uni.showToast({
+          title: '数据加载失败，请稍后重试',
+          icon: 'none'
+        });
+      });
     },
     
-    loadStats() {
-      // 计算统计数据
-      const total = this.contractList.length
-      const active = this.contractList.filter(c => c.status === 'active').length
-      const expired = this.contractList.filter(c => c.status === 'expired').length
-      const pending = this.contractList.filter(c => c.status === 'pending').length
+    // 根据列表数据更新统计信息
+    updateStats() {
+      // 注意：这里的统计只反映了当前已加载的数据，
+      // 准确的全局统计最好由后端单独提供接口。
+      const total = this.total;
+      const active = this.contractList.filter(c => c.status === 'active').length;
+      const expired = this.contractList.filter(c => c.status === 'expired').length;
+      const pending = this.contractList.filter(c => c.status === 'pending').length;
       
-      this.stats = { total, active, expired, pending }
+      this.stats = { total, active, expired, pending };
     },
     
+    /** 切换分类 */
     switchCategory(category) {
-      this.activeCategory = category
+      this.activeCategory = category;
+      this.queryParams.category = category === 'all' ? undefined : category;
+      this.queryParams.pageNum = 1; // 重置页码
+      this.loadContracts();
     },
     
+    /** 搜索 */
     onSearch() {
       // 搜索防抖处理
-      clearTimeout(this.searchTimer)
+      clearTimeout(this.searchTimer);
       this.searchTimer = setTimeout(() => {
-        // 搜索逻辑在computed中处理
-      }, 300)
+        this.queryParams.pageNum = 1; // 重置页码
+        this.loadContracts();
+      }, 300);
     },
     
+    /** 清除搜索 */
     clearSearch() {
-      this.searchKeyword = ''
-    },
-    
-    getStatusClass(status) {
-      const classMap = {
-        'active': 'status-active',
-        'expired': 'status-expired',
-        'pending': 'status-pending'
-      }
-      return classMap[status] || 'status-default'
+      this.searchKeyword = '';
+      this.queryParams.contractName = undefined;
+      this.queryParams.pageNum = 1;
+      this.loadContracts();
     },
     
     getStatusText(status) {
@@ -298,42 +258,47 @@ export default {
         'active': '生效中',
         'expired': '已到期',
         'pending': '待生效'
-      }
-      return textMap[status] || '未知'
+      };
+      return textMap[status] || '未知';
     },
     
     formatAmount(amount) {
-      return new Intl.NumberFormat('zh-CN').format(amount)
+      if (amount === null || amount === undefined) return '0.00';
+      return new Intl.NumberFormat('zh-CN').format(amount);
     },
     
     getEmptyText() {
+      if (this.loading) {
+        return '数据加载中...';
+      }
       if (this.searchKeyword.trim()) {
-        return '未找到相关合同'
+        return '未找到相关合同';
       }
       if (this.activeCategory !== 'all') {
-        return '该分类下暂无合同'
+        return '该分类下暂无合同';
       }
-      return '暂无合同数据'
+      return '暂无合同数据';
     },
     
+    /** 查看合同详情 */
     viewContract(contract) {
       uni.navigateTo({
         url: `/pages/contract-fulfillment/detail?id=${contract.contractId}`
-      })
+      });
     },
     
     downloadContract(contract) {
       uni.showToast({
         title: '下载功能开发中',
         icon: 'none'
-      })
+      });
     },
     
     shareContract(contract) {
       uni.showToast({
         title: '分享功能开发中',
         icon: 'none'
-      })
+      });
     }
   }
 }

@@ -1,26 +1,50 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="制度名称" prop="regulationName">
+      <el-form-item label="所属会议ID" prop="meetingId">
         <el-input
-          v-model="queryParams.regulationName"
-          placeholder="请输入制度名称"
+          v-model="queryParams.meetingId"
+          placeholder="请输入所属会议ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="生效日期" prop="effectiveDate">
-        <el-date-picker clearable
-          v-model="queryParams.effectiveDate"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择生效日期">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item label="版本号" prop="version">
+      <el-form-item label="议题标题" prop="topicTitle">
         <el-input
-          v-model="queryParams.version"
-          placeholder="请输入版本号"
+          v-model="queryParams.topicTitle"
+          placeholder="请输入议题标题"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="同意票数" prop="agreeCount">
+        <el-input
+          v-model="queryParams.agreeCount"
+          placeholder="请输入同意票数"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="反对票数" prop="opposeCount">
+        <el-input
+          v-model="queryParams.opposeCount"
+          placeholder="请输入反对票数"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="弃权票数" prop="abstainCount">
+        <el-input
+          v-model="queryParams.abstainCount"
+          placeholder="请输入弃权票数"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="显示顺序" prop="orderNum">
+        <el-input
+          v-model="queryParams.orderNum"
+          placeholder="请输入显示顺序"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -39,7 +63,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:regulation:add']"
+          v-hasPermi="['system:topic:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -50,7 +74,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:regulation:edit']"
+          v-hasPermi="['system:topic:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -61,7 +85,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:regulation:remove']"
+          v-hasPermi="['system:topic:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -71,26 +95,23 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:regulation:export']"
+          v-hasPermi="['system:topic:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="regulationList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="topicList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="制度ID" align="center" prop="regulationId" />
-      <el-table-column label="制度名称" align="center" prop="regulationName" />
-      <el-table-column label="制度类型" align="center" prop="regulationType" />
-      <el-table-column label="制度内容" align="center" prop="regulationContent" />
-      <el-table-column label="文件路径" align="center" prop="filePath" />
-      <el-table-column label="生效日期" align="center" prop="effectiveDate" width="180">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.effectiveDate, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="版本号" align="center" prop="version" />
-      <el-table-column label="状态(0-停用,1-正常)" align="center" prop="status" />
+      <el-table-column label="议题ID" align="center" prop="topicId" />
+      <el-table-column label="所属会议ID" align="center" prop="meetingId" />
+      <el-table-column label="议题标题" align="center" prop="topicTitle" />
+      <el-table-column label="议题内容" align="center" prop="topicContent" />
+      <el-table-column label="附件URL列表" align="center" prop="files" />
+      <el-table-column label="同意票数" align="center" prop="agreeCount" />
+      <el-table-column label="反对票数" align="center" prop="opposeCount" />
+      <el-table-column label="弃权票数" align="center" prop="abstainCount" />
+      <el-table-column label="显示顺序" align="center" prop="orderNum" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -99,19 +120,19 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:regulation:edit']"
+            v-hasPermi="['system:topic:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:regulation:remove']"
+            v-hasPermi="['system:topic:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
+    
     <pagination
       v-show="total>0"
       :total="total"
@@ -120,47 +141,32 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改物业制度管理对话框 -->
+    <!-- 添加或修改会议议题对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="制度名称" prop="regulationName">
-          <el-input v-model="form.regulationName" placeholder="请输入制度名称" />
+        <el-form-item label="所属会议ID" prop="meetingId">
+          <el-input v-model="form.meetingId" placeholder="请输入所属会议ID" />
         </el-form-item>
-        <el-form-item label="制度类型" prop="regulationType">
-          <el-select v-model="form.regulationType" placeholder="请选择制度类型">
-            <el-option
-              v-for="dict in regulationTypeOptions"
-              :key="dict.dictValue"
-              :label="dict.dictLabel"
-              :value="dict.dictValue"
-            ></el-option>
-          </el-select>
+        <el-form-item label="议题标题" prop="topicTitle">
+          <el-input v-model="form.topicTitle" placeholder="请输入议题标题" />
         </el-form-item>
-        <el-form-item label="制度内容">
-          <editor v-model="form.regulationContent" :min-height="192"/>
+        <el-form-item label="议题内容">
+          <editor v-model="form.topicContent" :min-height="192"/>
         </el-form-item>
-        <el-form-item label="附件" prop="filePath">
-          <file-upload v-model="form.filePath"/>
+        <el-form-item label="附件URL列表" prop="files">
+          <el-input v-model="form.files" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="生效日期" prop="effectiveDate">
-          <el-date-picker clearable
-            v-model="form.effectiveDate"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择生效日期">
-          </el-date-picker>
+        <el-form-item label="同意票数" prop="agreeCount">
+          <el-input v-model="form.agreeCount" placeholder="请输入同意票数" />
         </el-form-item>
-        <el-form-item label="版本号" prop="version">
-          <el-input v-model="form.version" placeholder="请输入版本号" />
+        <el-form-item label="反对票数" prop="opposeCount">
+          <el-input v-model="form.opposeCount" placeholder="请输入反对票数" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio
-              v-for="dict in statusOptions"
-              :key="dict.dictValue"
-              :label="dict.dictValue"
-            >{{dict.dictLabel}}</el-radio>
-          </el-radio-group>
+        <el-form-item label="弃权票数" prop="abstainCount">
+          <el-input v-model="form.abstainCount" placeholder="请输入弃权票数" />
+        </el-form-item>
+        <el-form-item label="显示顺序" prop="orderNum">
+          <el-input v-model="form.orderNum" placeholder="请输入显示顺序" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -175,14 +181,10 @@
 </template>
 
 <script>
-import { listRegulation, getRegulation, delRegulation, addRegulation, updateRegulation } from "@/api/system/regulation";
-import FileUpload from '@/components/FileUpload';
+import { listTopic, getTopic, delTopic, addTopic, updateTopic } from "@/api/system/topic"
 
 export default {
-  name: "Regulation",
-  components: {
-    FileUpload
-  },
+  name: "Topic",
   data() {
     return {
       // 遮罩层
@@ -197,56 +199,47 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 物业制度管理表格数据
-      regulationList: [],
+      // 会议议题表格数据
+      topicList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
       open: false,
-      // 制度类型字典
-      regulationTypeOptions: [],
-      // 状态字典
-      statusOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        regulationName: null,
-        regulationType: null,
-        regulationContent: null,
-        filePath: null,
-        effectiveDate: null,
-        version: null,
-        status: null,
+        meetingId: null,
+        topicTitle: null,
+        topicContent: null,
+        files: null,
+        agreeCount: null,
+        opposeCount: null,
+        abstainCount: null,
+        orderNum: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        regulationName: [
-          { required: true, message: "制度名称不能为空", trigger: "blur" }
+        meetingId: [
+          { required: true, message: "所属会议ID不能为空", trigger: "blur" }
         ],
-        regulationType: [
-          { required: true, message: "制度类型不能为空", trigger: "change" }
+        topicTitle: [
+          { required: true, message: "议题标题不能为空", trigger: "blur" }
         ],
       }
     }
   },
   created() {
-    this.getList();
-    this.getDicts("sys_regulation_type").then(response => {
-      this.regulationTypeOptions = response.data;
-    });
-    this.getDicts("sys_normal_disable").then(response => {
-      this.statusOptions = response.data;
-    });
+    this.getList()
   },
   methods: {
-    /** 查询物业制度管理列表 */
+    /** 查询会议议题列表 */
     getList() {
       this.loading = true
-      listRegulation(this.queryParams).then(response => {
-        this.regulationList = response.rows
+      listTopic(this.queryParams).then(response => {
+        this.topicList = response.rows
         this.total = response.total
         this.loading = false
       })
@@ -259,14 +252,15 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        regulationId: null,
-        regulationName: null,
-        regulationType: null,
-        regulationContent: null,
-        filePath: null,
-        effectiveDate: null,
-        version: null,
-        status: "0",
+        topicId: null,
+        meetingId: null,
+        topicTitle: null,
+        topicContent: null,
+        files: null,
+        agreeCount: null,
+        opposeCount: null,
+        abstainCount: null,
+        orderNum: null,
         createBy: null,
         createTime: null,
         updateBy: null,
@@ -287,7 +281,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.regulationId)
+      this.ids = selection.map(item => item.topicId)
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
@@ -295,30 +289,30 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = "添加物业制度管理"
+      this.title = "添加会议议题"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const regulationId = row.regulationId || this.ids
-      getRegulation(regulationId).then(response => {
+      const topicId = row.topicId || this.ids
+      getTopic(topicId).then(response => {
         this.form = response.data
         this.open = true
-        this.title = "修改物业制度管理"
+        this.title = "修改会议议题"
       })
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.regulationId != null) {
-            updateRegulation(this.form).then(response => {
+          if (this.form.topicId != null) {
+            updateTopic(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
             })
           } else {
-            addRegulation(this.form).then(response => {
+            addTopic(this.form).then(response => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
               this.getList()
@@ -329,9 +323,9 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const regulationIds = row.regulationId || this.ids
-      this.$modal.confirm('是否确认删除物业制度管理编号为"' + regulationIds + '"的数据项？').then(function() {
-        return delRegulation(regulationIds)
+      const topicIds = row.topicId || this.ids
+      this.$modal.confirm('是否确认删除会议议题编号为"' + topicIds + '"的数据项？').then(function() {
+        return delTopic(topicIds)
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess("删除成功")
@@ -339,9 +333,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/regulation/export', {
+      this.download('system/topic/export', {
         ...this.queryParams
-      }, `regulation_${new Date().getTime()}.xlsx`)
+      }, `topic_${new Date().getTime()}.xlsx`)
     }
   }
 }

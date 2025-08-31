@@ -1,6 +1,7 @@
 package com.ruoyi.system.domain;
 
 import java.util.Date;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -63,7 +64,8 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "实际参与人数")
     private Long actualVoters;
 
-
+    /** 议题列表 */
+    private List<SysPropertyMeetingTopic> topics;
 
     public void setMeetingId(Long meetingId) 
     {
@@ -175,6 +177,16 @@ public class SysPropertyMeeting extends BaseEntity
         return actualVoters;
     }
 
+    public List<SysPropertyMeetingTopic> getTopics()
+    {
+        return topics;
+    }
+
+    public void setTopics(List<SysPropertyMeetingTopic> topics)
+    {
+        this.topics = topics;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -193,6 +205,7 @@ public class SysPropertyMeeting extends BaseEntity
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())
             .append("updateTime", getUpdateTime())
+            .append("topics", getTopics())
             .toString();
     }
 

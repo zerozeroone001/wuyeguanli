@@ -378,15 +378,10 @@ export default {
     },
     
     goAuth() {
-      // 演示功能：点击切换认证状态
-      this.mockUser.authStatus = !this.mockUser.authStatus
-      uni.showToast({
-        title: this.mockUser.authStatus ? '已切换为认证状态' : '已切换为未认证状态',
-        icon: 'success',
-        duration: 2000
-      })
-      // 实际项目中应该跳转到认证页面
-      // uni.navigateTo({ url: '/pages/mine/auth/index' })
+      // 如果未认证，则跳转到认证页面
+      if (!this.mockUser.authStatus) {
+        uni.navigateTo({ url: '/pages/mine/auth' })
+      }
     },
     
     goMessage() {

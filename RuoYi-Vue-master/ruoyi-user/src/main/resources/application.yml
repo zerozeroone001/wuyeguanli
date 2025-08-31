@@ -6,8 +6,8 @@ ruoyi:
   version: 3.9.0
   # 版权年份
   copyrightYear: 2025
-  # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-  profile: D:/ruoyi/uploadPath
+  # 文件路径 示例（ Windows配置F:\code\wuyeguanli/uploadPath，Linux配置 /home/ruoyi/uploadPath）
+  profile: F:\code\wuyeguanli\uploadPath
   # 获取ip地址开关
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
@@ -126,3 +126,17 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# 阿里云配置
+aliyun:
+  ocr:
+    accessKeyId: YOUR_ACCESS_KEY_ID
+    accessKeySecret: YOUR_ACCESS_KEY_SECRET
+    endpoint: ocr-api.cn-hangzhou.aliyuncs.com
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
+    accessKeySecret: jW56Mq5BiaCs0SQnmwsDlJfGHc75Vl
+    bucketName: zhuote
+    # 自定义域名，可选。配置后，返回的URL将使用此域名
+    domain:

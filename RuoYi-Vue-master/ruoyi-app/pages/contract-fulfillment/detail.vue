@@ -1,363 +1,264 @@
 <template>
-  <view class="detail-container">
-    <!-- 合同基本信息 -->
-    <view class="contract-info">
-      <view class="info-header">
-        <text class="contract-name">{{ contractInfo.contractName }}</text>
-        <view class="contract-status" :class="[contractInfo.status === 'active' ? 'status-active' : contractInfo.status === 'expired' ? 'status-expired' : contractInfo.status === 'pending' ? 'status-pending' : 'status-default']">
-          {{ getStatusText(contractInfo.status) }}
+  <view class="container">
+    <!-- 加载状态 -->
+    <view v-if="loading" class="loading-state">
+      <uni-icons type="spinner-cycle" size="40" color="#D9D9D9" />
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 加载成功后显示 -->
+    <view v-else-if="contractInfo" class="detail-container">
+      <!-- 合同基本信息 -->
+      <view class="contract-info">
+        <view class="info-header">
+          <text class="contract-name">{{ contractInfo.contractName }}</text>
+          <view class="contract-status" :class="[contractInfo.status === '0' ? 'status-active' : 'status-default']">
+            {{ getStatusText(contractInfo.status) }}
+          </view>
+        </view>
+        <view class="contract-no">
+          <text>合同编号：{{ contractInfo.contractNo }}</text>
         </view>
       </view>
-      
-      <view class="contract-no">
-        <text>合同编号：{{ contractInfo.contractNo }}</text>
+
+      <!-- 合同详情 -->
+      <view class="detail-section">
+        <view class="section-header">
+          <uni-icons type="list" size="20" color="#262626" />
+          <text class="section-title">合同详情</text>
+        </view>
+        <view class="detail-list">
+          <view class="detail-item">
+            <text class="detail-label">生效日期</text>
+            <text class="detail-value">{{ contractInfo.effectiveDate | formatDate }}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">到期日期</text>
+            <text class="detail-value">{{ contractInfo.expiryDate | formatDate }}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">合同期限</text>
+            <text class="detail-value">{{ getContractDuration() }}</text>
+          </view>
+          <view class="detail-item" v-if="contractInfo.contractAmount">
+            <text class="detail-label">合同金额</text>
+            <text class="detail-value amount">¥{{ formatAmount(contractInfo.contractAmount) }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 合同双方 -->
+      <view class="parties-section">
+        <view class="section-header">
+          <uni-icons type="person" size="20" color="#262626" />
+          <text class="section-title">合同双方</text>
+        </view>
+        <view class="parties-content">
+          <view class="party-item">
+            <view class="party-header"><text class="party-role">甲方</text></view>
+            <view class="party-info"><text class="party-name">{{ contractInfo.partyA }}</text></view>
+          </view>
+          <view class="party-divider"><uni-icons type="right" size="16" color="#D9D9D9" /></view>
+          <view class="party-item">
+            <view class="party-header"><text class="party-role">乙方</text></view>
+            <view class="party-info"><text class="party-name">{{ contractInfo.partyB }}</text></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 负责人信息 -->
+      <view class="manager-section" v-if="contractInfo.managerName">
+        <view class="section-header">
+          <uni-icons type="contact" size="20" color="#262626" />
+          <text class="section-title">负责人信息</text>
+        </view>
+        <view class="detail-list">
+          <view class="detail-item">
+            <text class="detail-label">负责人姓名</text>
+            <text class="detail-value">{{ contractInfo.managerName }}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">联系电话</text>
+            <text class="detail-value">{{ contractInfo.managerPhone }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 合同内容 -->
+      <view class="content-section" v-if="contractInfo.contractContent">
+        <view class="section-header">
+          <uni-icons type="compose" size="20" color="#262626" />
+          <text class="section-title">合同内容</text>
+        </view>
+        <view class="content-text"><text>{{ contractInfo.contractContent }}</text></view>
+      </view>
+
+      <!-- 重要条款 -->
+      <view class="clauses-section" v-if="parsedClauses.length > 0">
+        <view class="section-header">
+          <uni-icons type="flag" size="20" color="#262626" />
+          <text class="section-title">重要条款</text>
+        </view>
+        <view class="clauses-list">
+          <view class="clause-item" v-for="(clause, index) in parsedClauses" :key="index">
+            <view class="clause-number">{{ index + 1 }}</view>
+            <view class="clause-content">
+              <text class="clause-title">{{ clause.title }}</text>
+              <text class="clause-text">{{ clause.content }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="action-buttons">
+        <button class="action-btn contact" @click="contactManager" v-if="contractInfo.managerPhone">
+          <uni-icons type="phone" size="18" color="#FA8C16" />
+          <text>联系负责人</text>
+        </button>
+        <button class="action-btn share" open-type="share">
+          <uni-icons type="redo" size="18" color="#52C41A" />
+          <text>分享合同</text>
+        </button>
       </view>
     </view>
 
-    <!-- 合同详情 -->
-    <view class="detail-section">
-      <view class="section-header">
-        <uni-icons type="list" size="20" color="#262626" />
-        <text class="section-title">合同详情</text>
-      </view>
-      
-      <view class="detail-list">
-        <view class="detail-item">
-          <text class="detail-label">合同类型</text>
-          <text class="detail-value">{{ getCategoryText(contractInfo.category) }}</text>
-        </view>
-        <view class="detail-item">
-          <text class="detail-label">签订日期</text>
-          <text class="detail-value">{{ contractInfo.signDate }}</text>
-        </view>
-        <view class="detail-item">
-          <text class="detail-label">生效日期</text>
-          <text class="detail-value">{{ contractInfo.startDate }}</text>
-        </view>
-        <view class="detail-item">
-          <text class="detail-label">到期日期</text>
-          <text class="detail-value">{{ contractInfo.endDate }}</text>
-        </view>
-        <view class="detail-item">
-          <text class="detail-label">合同期限</text>
-          <text class="detail-value">{{ getContractDuration() }}</text>
-        </view>
-        <view class="detail-item" v-if="contractInfo.contractAmount">
-          <text class="detail-label">合同金额</text>
-          <text class="detail-value amount">¥{{ formatAmount(contractInfo.contractAmount) }}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 合同双方 -->
-    <view class="parties-section">
-      <view class="section-header">
-        <uni-icons type="person" size="20" color="#262626" />
-        <text class="section-title">合同双方</text>
-      </view>
-      
-      <view class="parties-content">
-        <view class="party-item">
-          <view class="party-header">
-            <text class="party-role">甲方</text>
-          </view>
-          <view class="party-info">
-            <text class="party-name">{{ contractInfo.partyA }}</text>
-            <text class="party-desc" v-if="contractInfo.partyAInfo">{{ contractInfo.partyAInfo }}</text>
-          </view>
-        </view>
-        
-        <view class="party-divider">
-          <uni-icons type="right" size="16" color="#D9D9D9" />
-        </view>
-        
-        <view class="party-item">
-          <view class="party-header">
-            <text class="party-role">乙方</text>
-          </view>
-          <view class="party-info">
-            <text class="party-name">{{ contractInfo.partyB }}</text>
-            <text class="party-desc" v-if="contractInfo.partyBInfo">{{ contractInfo.partyBInfo }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 合同内容 -->
-    <view class="content-section">
-      <view class="section-header">
-        <uni-icons type="compose" size="20" color="#262626" />
-        <text class="section-title">合同内容</text>
-      </view>
-      <view class="content-text">
-        <text>{{ contractInfo.description }}</text>
-      </view>
-    </view>
-
-    <!-- 重要条款 -->
-    <view class="clauses-section" v-if="contractInfo.keyClauses && contractInfo.keyClauses.length > 0">
-      <view class="section-header">
-        <uni-icons type="flag" size="20" color="#262626" />
-        <text class="section-title">重要条款</text>
-      </view>
-      
-      <view class="clauses-list">
-        <view class="clause-item" v-for="(clause, index) in contractInfo.keyClauses" :key="index">
-          <view class="clause-number">{{ index + 1 }}</view>
-          <view class="clause-content">
-            <text class="clause-title">{{ clause.title }}</text>
-            <text class="clause-text">{{ clause.content }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 履约情况 -->
-    <view class="performance-section" v-if="contractInfo.status === 'active'">
-      <view class="section-header">
-        <uni-icons type="checkmarkempty" size="20" color="#262626" />
-        <text class="section-title">履约情况</text>
-      </view>
-      
-      <view class="performance-content">
-        <view class="progress-info">
-          <text class="progress-label">履约进度</text>
-          <text class="progress-percent">{{ contractInfo.performanceRate || 0 }}%</text>
-        </view>
-        <view class="progress-bar">
-          <view class="progress-fill" :style="{ width: (contractInfo.performanceRate || 0) + '%' }"></view>
-        </view>
-        
-        <view class="performance-details">
-          <view class="performance-item">
-            <uni-icons type="calendar" size="16" color="#52C41A" />
-            <text>最近更新：{{ contractInfo.lastUpdateTime || '暂无记录' }}</text>
-          </view>
-          <view class="performance-item">
-            <uni-icons type="person" size="16" color="#52C41A" />
-            <text>负责人：{{ contractInfo.manager || '待指定' }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 相关文档 -->
-    <view class="documents-section" v-if="contractInfo.documents && contractInfo.documents.length > 0">
-      <view class="section-header">
-        <uni-icons type="paperplane" size="20" color="#262626" />
-        <text class="section-title">相关文档</text>
-      </view>
-      
-      <view class="documents-list">
-        <view 
-          class="document-item" 
-          v-for="doc in contractInfo.documents" 
-          :key="doc.id"
-          @click="viewDocument(doc)"
-        >
-          <view class="doc-icon">
-            <uni-icons :type="getDocIcon(doc.type)" size="24" :color="getDocColor(doc.type)" />
-          </view>
-          <view class="doc-info">
-            <text class="doc-name">{{ doc.name }}</text>
-            <text class="doc-meta">{{ doc.size }} • {{ doc.uploadTime }}</text>
-          </view>
-          <view class="doc-action">
-            <uni-icons type="download" size="18" color="#1890FF" />
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 操作按钮 -->
-    <view class="action-buttons">
-      <button class="action-btn download" @click="downloadContract">
-        <uni-icons type="download" size="18" color="#1890FF" />
-        <text>下载合同</text>
-      </button>
-      <button class="action-btn share" @click="shareContract">
-        <uni-icons type="redo" size="18" color="#52C41A" />
-        <text>分享合同</text>
-      </button>
-      <button class="action-btn contact" @click="contactManager" v-if="contractInfo.managerPhone">
-        <uni-icons type="phone" size="18" color="#FA8C16" />
-        <text>联系负责人</text>
-      </button>
+    <!-- 加载失败或无数据状态 -->
+    <view v-else class="empty-state">
+      <uni-icons type="paperplane" size="80" color="#D9D9D9" />
+      <text class="empty-text">无法加载合同信息</text>
     </view>
   </view>
 </template>
 
 <script>
+import { getUserContract } from '@/api/contract.js';
+
 export default {
   data() {
     return {
       contractId: null,
-      contractInfo: {}
+      contractInfo: null,
+      loading: true
+    }
+  },
+  filters: {
+    formatDate(dateStr) {
+      if (!dateStr) return '';
+      return dateStr.split(' ')[0]; // 只取日期部分
+    }
+  },
+  computed: {
+    parsedClauses() {
+      if (!this.contractInfo || !this.contractInfo.importantClauses) {
+        return [];
+      }
+      try {
+        const clauses = JSON.parse(this.contractInfo.importantClauses);
+        return Array.isArray(clauses) ? clauses : [];
+      } catch (e) {
+        console.error("Parsing important clauses failed:", e);
+        return [];
+      }
     }
   },
   onLoad(options) {
-    this.contractId = options.id
-    this.loadContractDetail()
+    if (options.id) {
+        this.contractId = options.id;
+        this.loadContractDetail();
+    } else {
+        uni.showToast({
+            title: '缺少合同ID',
+            icon: 'error'
+        });
+        this.loading = false;
+    }
+  },
+  onShareAppMessage() {
+    return {
+      title: `合同详情：${this.contractInfo.contractName}`,
+      path: `/pages/contract-fulfillment/detail?id=${this.contractId}`
+    };
   },
   methods: {
     loadContractDetail() {
-      // 模拟合同详情数据
-      this.contractInfo = {
-        contractId: 1,
-        contractNo: 'HT202401001',
-        contractName: '智慧花园小区物业服务合同',
-        category: 'property',
-        status: 'active',
-        signDate: '2024-01-01',
-        startDate: '2024-01-01',
-        endDate: '2026-12-31',
-        partyA: '智慧花园业主委员会',
-        partyB: '北京优质物业服务有限公司',
-        partyAInfo: '代表全体业主利益的自治组织',
-        partyBInfo: '专业物业管理服务企业，具有一级资质',
-        contractAmount: 2400000.00,
-        description: '本合同是智慧花园小区与北京优质物业服务有限公司签订的物业服务合同。合同约定乙方为甲方提供全方位的物业管理服务，包括但不限于：保洁服务、保安服务、绿化养护、设备维护、客户服务等。服务标准严格按照国家相关规定和行业标准执行，确保为业主提供优质、专业的物业服务。',
-        performanceRate: 85,
-        lastUpdateTime: '2024-01-15 10:30',
-        manager: '李经理',
-        managerPhone: '13800138001',
-        keyClauses: [
-          {
-            title: '服务标准',
-            content: '乙方应按照国家物业管理相关法规和本合同约定，提供专业、规范的物业服务，服务质量应达到优良标准。'
-          },
-          {
-            title: '费用支付',
-            content: '甲方应按月支付物业服务费，每月25日前支付下月费用。逾期支付的，按日加收0.5‰的滞纳金。'
-          },
-          {
-            title: '违约责任',
-            content: '任何一方违反合同约定的，应承担相应的违约责任，并赔偿对方因此造成的损失。'
-          }
-        ],
-        documents: [
-          {
-            id: 1,
-            name: '物业服务合同正本.pdf',
-            type: 'pdf',
-            size: '2.5MB',
-            uploadTime: '2024-01-01'
-          },
-          {
-            id: 2,
-            name: '服务标准附件.doc',
-            type: 'doc',
-            size: '1.2MB',
-            uploadTime: '2024-01-01'
-          },
-          {
-            id: 3,
-            name: '收费标准明细.xlsx',
-            type: 'excel',
-            size: '856KB',
-            uploadTime: '2024-01-01'
-          }
-        ]
-      }
-    },
-    
-    getStatusClass(status) {
-      const classMap = {
-        'active': 'status-active',
-        'expired': 'status-expired',
-        'pending': 'status-pending'
-      }
-      return classMap[status] || 'status-default'
+      this.loading = true;
+      getUserContract(this.contractId).then(response => {
+        if (response.data) {
+            this.contractInfo = response.data;
+        } else {
+            uni.showToast({
+                title: '未找到合同信息',
+                icon: 'none'
+            });
+        }
+        this.loading = false;
+      }).catch(error => {
+        console.error("获取合同详情失败:", error);
+        uni.showToast({
+            title: '加载失败，请稍后重试',
+            icon: 'none'
+        });
+        this.loading = false;
+      });
     },
     
     getStatusText(status) {
       const textMap = {
-        'active': '生效中',
-        'expired': '已到期',
-        'pending': '待生效'
+        '0': '正常',
+        '1': '已归档'
       }
       return textMap[status] || '未知'
     },
     
-    getCategoryText(category) {
-      const categoryMap = {
-        'property': '物业服务合同',
-        'maintenance': '维修保养合同',
-        'other': '其他合同'
-      }
-      return categoryMap[category] || '未知类型'
-    },
-    
     formatAmount(amount) {
+      if (amount === null || amount === undefined) return '0.00';
       return new Intl.NumberFormat('zh-CN').format(amount)
     },
-    
+
     getContractDuration() {
-      if (!this.contractInfo.startDate || !this.contractInfo.endDate) {
+      if (!this.contractInfo || !this.contractInfo.effectiveDate || !this.contractInfo.expiryDate) {
         return '未知'
       }
       
-      const start = new Date(this.contractInfo.startDate)
-      const end = new Date(this.contractInfo.endDate)
+      const start = new Date(this.contractInfo.effectiveDate)
+      const end = new Date(this.contractInfo.expiryDate)
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+          return '日期无效'
+      }
+
       const diffTime = Math.abs(end - start)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // 包含起止当天
+      
+      if (diffDays < 0) return '日期错误';
+
       const years = Math.floor(diffDays / 365)
       const months = Math.floor((diffDays % 365) / 30)
       
+      let duration = ''
       if (years > 0) {
-        return `${years}年${months > 0 ? months + '个月' : ''}`
-      } else {
-        return `${months}个月`
+        duration += `${years}年`;
       }
-    },
-    
-    getDocIcon(type) {
-      const iconMap = {
-        'pdf': 'paperplane',
-        'doc': 'compose',
-        'excel': 'list',
-        'image': 'image'
+      if (months > 0) {
+        duration += `${months}个月`;
       }
-      return iconMap[type] || 'paperplane'
-    },
-    
-    getDocColor(type) {
-      const colorMap = {
-        'pdf': '#FF4D4F',
-        'doc': '#1890FF',
-        'excel': '#52C41A',
-        'image': '#FA8C16'
+      if (duration === '') {
+          const days = Math.floor(diffDays % 30);
+          if (days > 0) {
+              duration = `${days}天`;
+          }
       }
-      return colorMap[type] || '#8C8C8C'
+
+      return duration || '少于1个月';
     },
-    
-    viewDocument(doc) {
-      uni.showToast({
-        title: '文档预览功能开发中',
-        icon: 'none'
-      })
-    },
-    
-    downloadContract() {
-      uni.showToast({
-        title: '下载功能开发中',
-        icon: 'none'
-      })
-    },
-    
-    shareContract() {
-      uni.showToast({
-        title: '分享功能开发中',
-        icon: 'none'
-      })
-    },
-    
+
     contactManager() {
+      if (!this.contractInfo.managerPhone) {
+          uni.showToast({ title: '未提供联系电话', icon: 'none' });
+          return;
+      }
       uni.makePhoneCall({
         phoneNumber: this.contractInfo.managerPhone,
-        success: () => {
-          console.log('拨打电话成功')
-        },
         fail: () => {
           uni.showToast({
             title: '拨打失败',
@@ -371,25 +272,36 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '@/static/scss/global.scss';
+.container {
+    min-height: 100vh;
+    background-color: #FAFBFC;
+}
 
-page {
-  background-color: #FAFBFC;
+.loading-state, .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 300rpx;
+    .loading-text, .empty-text {
+        margin-top: 20rpx;
+        color: #8C8C8C;
+    }
 }
 
 .detail-container {
-  min-height: 100vh;
-  background-color: #FAFBFC;
-  padding-bottom: 40rpx;
+  padding-bottom: 160rpx; /* 为底部按钮留出空间 */
 }
 
-.contract-info {
+.contract-info, .detail-section, .parties-section, .manager-section, .content-section, .clauses-section {
   background: #FFFFFF;
   margin: 20rpx;
   border-radius: 24rpx;
   padding: 40rpx;
   border: 1rpx solid #F0F0F0;
-  
+}
+
+.contract-info {
   .info-header {
     display: flex;
     justify-content: space-between;
@@ -417,14 +329,9 @@ page {
         color: #52C41A;
       }
       
-      &.status-expired {
-        background: #FFF2F0;
-        color: #FF4D4F;
-      }
-      
-      &.status-pending {
-        background: #FFF2E8;
-        color: #FA8C16;
+      &.status-default {
+        background: #F0F0F0;
+        color: #8C8C8C;
       }
     }
   }
@@ -437,14 +344,7 @@ page {
   }
 }
 
-.detail-section, .parties-section, .content-section, .clauses-section, .performance-section, .documents-section {
-  background: #FFFFFF;
-  margin: 0 20rpx 20rpx;
-  border-radius: 24rpx;
-  padding: 40rpx;
-  border: 1rpx solid #F0F0F0;
-  
-  .section-header {
+.section-header {
     display: flex;
     align-items: center;
     margin-bottom: 24rpx;
@@ -455,7 +355,6 @@ page {
       font-weight: 600;
       color: #262626;
     }
-  }
 }
 
 .detail-list {
@@ -520,12 +419,6 @@ page {
         color: #262626;
         margin-bottom: 8rpx;
       }
-      
-      .party-desc {
-        font-size: 22rpx;
-        color: #8C8C8C;
-        line-height: 1.4;
-      }
     }
   }
   
@@ -586,113 +479,18 @@ page {
   }
 }
 
-.performance-content {
-  .progress-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16rpx;
-    
-    .progress-label {
-      font-size: 26rpx;
-      color: #262626;
-      font-weight: 500;
-    }
-    
-    .progress-percent {
-      font-size: 28rpx;
-      font-weight: 600;
-      color: #52C41A;
-    }
-  }
-  
-  .progress-bar {
-    height: 16rpx;
-    background: #F0F0F0;
-    border-radius: 8rpx;
-    overflow: hidden;
-    margin-bottom: 24rpx;
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #52C41A, #73D13D);
-      border-radius: 8rpx;
-      transition: width 0.5s ease;
-    }
-  }
-  
-  .performance-details {
-    .performance-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12rpx;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-      
-      text {
-        margin-left: 12rpx;
-        font-size: 24rpx;
-        color: #595959;
-      }
-    }
-  }
-}
-
-.documents-list {
-  .document-item {
-    display: flex;
-    align-items: center;
-    padding: 20rpx 0;
-    border-bottom: 1rpx solid #F0F0F0;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    &:active {
-      background: #F8F9FA;
-    }
-    
-    .doc-icon {
-      width: 60rpx;
-      height: 60rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #F8F9FA;
-      border-radius: 12rpx;
-      margin-right: 20rpx;
-    }
-    
-    .doc-info {
-      flex: 1;
-      
-      .doc-name {
-        display: block;
-        font-size: 26rpx;
-        color: #262626;
-        font-weight: 500;
-        margin-bottom: 8rpx;
-      }
-      
-      .doc-meta {
-        font-size: 22rpx;
-        color: #8C8C8C;
-      }
-    }
-    
-    .doc-action {
-      padding: 16rpx;
-    }
-  }
-}
-
 .action-buttons {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   gap: 16rpx;
-  padding: 0 20rpx;
+  padding: 20rpx;
+  background-color: #FFFFFF;
+  border-top: 1rpx solid #F0F0F0;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
   
   .action-btn {
     flex: 1;
@@ -709,19 +507,14 @@ page {
       margin-left: 8rpx;
     }
     
-    &.download {
-      background: #E6F7FF;
-      color: #1890FF;
+    &.contact {
+      background: #FFF2E8;
+      color: #FA8C16;
     }
     
     &.share {
       background: #F6FFED;
       color: #52C41A;
-    }
-    
-    &.contact {
-      background: #FFF2E8;
-      color: #FA8C16;
     }
     
     &:active {
@@ -730,5 +523,3 @@ page {
   }
 }
 </style>
- 
- 

@@ -167,10 +167,10 @@
         </view>
         
         <!-- 重要标识 -->
-        <view class="important-badge" v-if="regulation.isImportant">
+        <!-- <view class="important-badge" v-if="regulation.isImportant">
           <uni-icons type="flag" size="12" color="#FF4D4F" />
           <text>重要</text>
-        </view>
+        </view> -->
       </view>
     </view>
 

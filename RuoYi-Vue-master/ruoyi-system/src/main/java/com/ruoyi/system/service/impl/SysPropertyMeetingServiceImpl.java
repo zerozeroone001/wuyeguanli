@@ -3,8 +3,12 @@ package com.ruoyi.system.service.impl;
 import java.util.List;
 import java.util.Map;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.system.domain.SysPropertyMeetingTopic;
+import com.ruoyi.system.mapper.SysPropertyMeetingTopicMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.system.mapper.SysPropertyMeetingMapper;
 import com.ruoyi.system.domain.SysPropertyMeeting;
 import com.ruoyi.system.service.ISysPropertyMeetingService;
@@ -20,6 +24,9 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 {
     @Autowired
     private SysPropertyMeetingMapper sysPropertyMeetingMapper;
+
+    @Autowired
+    private SysPropertyMeetingTopicMapper sysPropertyMeetingTopicMapper;
 
     /**
      * 查询会议管理
@@ -52,10 +59,13 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
      * @return 结果
      */
     @Override
+    @Transactional
     public int insertSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting)
     {
         sysPropertyMeeting.setCreateTime(DateUtils.getNowDate());
-        return sysPropertyMeetingMapper.insertSysPropertyMeeting(sysPropertyMeeting);
+        int rows = sysPropertyMeetingMapper.insertSysPropertyMeeting(sysPropertyMeeting);
+        insertTopics(sysPropertyMeeting);
+        return rows;
     }
 
     /**
@@ -65,10 +75,14 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
      * @return 结果
      */
     @Override
+    @Transactional
     public int updateSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting)
     {
         sysPropertyMeeting.setUpdateTime(DateUtils.getNowDate());
-        return sysPropertyMeetingMapper.updateSysPropertyMeeting(sysPropertyMeeting);
+        int rows = sysPropertyMeetingMapper.updateSysPropertyMeeting(sysPropertyMeeting);
+        sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(sysPropertyMeeting.getMeetingId());
+        insertTopics(sysPropertyMeeting);
+        return rows;
     }
 
     /**
@@ -78,8 +92,12 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteSysPropertyMeetingByMeetingIds(Long[] meetingIds)
     {
+        for (Long meetingId : meetingIds) {
+            sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
+        }
         return sysPropertyMeetingMapper.deleteSysPropertyMeetingByMeetingIds(meetingIds);
     }
 
@@ -90,9 +108,30 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteSysPropertyMeetingByMeetingId(Long meetingId)
     {
+        sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
         return sysPropertyMeetingMapper.deleteSysPropertyMeetingByMeetingId(meetingId);
+    }
+
+    /**
+     * 新增议题信息
+     * 
+     * @param sysPropertyMeeting 会议管理对象
+     */
+    public void insertTopics(SysPropertyMeeting sysPropertyMeeting)
+    {
+        List<SysPropertyMeetingTopic> topics = sysPropertyMeeting.getTopics();
+        Long meetingId = sysPropertyMeeting.getMeetingId();
+        if (StringUtils.isNotEmpty(topics))
+        {
+            for (SysPropertyMeetingTopic topic : topics)
+            {
+                topic.setMeetingId(meetingId);
+                sysPropertyMeetingTopicMapper.insertSysPropertyMeetingTopic(topic);
+            }
+        }
     }
 
     @Override

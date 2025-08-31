@@ -1,6 +1,8 @@
 package com.ruoyi.framework.config;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import com.ruoyi.common.utils.ServletUtils;
 
@@ -9,7 +11,7 @@ import com.ruoyi.common.utils.ServletUtils;
  * 
  * @author ruoyi
  */
-@Component
+@Configuration
 public class ServerConfig
 {
     /**

@@ -9,37 +9,21 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="合同版本" prop="contractVersion">
+      <el-form-item label="甲方" prop="partyA">
         <el-input
-          v-model="queryParams.contractVersion"
-          placeholder="请输入合同版本"
+          v-model="queryParams.partyA"
+          placeholder="请输入甲方"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="合同文件URL" prop="fileUrl">
+      <el-form-item label="乙方" prop="partyB">
         <el-input
-          v-model="queryParams.fileUrl"
-          placeholder="请输入合同文件URL"
+          v-model="queryParams.partyB"
+          placeholder="请输入乙方"
           clearable
           @keyup.enter.native="handleQuery"
         />
-      </el-form-item>
-      <el-form-item label="生效日期" prop="effectiveDate">
-        <el-date-picker clearable
-          v-model="queryParams.effectiveDate"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择生效日期">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item label="失效日期" prop="expiryDate">
-        <el-date-picker clearable
-          v-model="queryParams.expiryDate"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择失效日期">
-        </el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -96,9 +80,14 @@
     <el-table v-loading="loading" :data="contractList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="合同ID" align="center" prop="contractId" />
+      <el-table-column label="合同编号" align="center" prop="contractNo" />
       <el-table-column label="合同名称" align="center" prop="contractName" />
+      <el-table-column label="合同金额" align="center" prop="contractAmount" />
+      <el-table-column label="负责人" align="center" prop="managerName" />
+      <el-table-column label="联系电话" align="center" prop="managerPhone" />
+      <el-table-column label="甲方" align="center" prop="partyA" />
+      <el-table-column label="乙方" align="center" prop="partyB" />
       <el-table-column label="合同版本" align="center" prop="contractVersion" />
-      <el-table-column label="合同文件URL" align="center" prop="fileUrl" />
       <el-table-column label="生效日期" align="center" prop="effectiveDate" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.effectiveDate, '{y}-{m}-{d}') }}</span>
@@ -110,7 +99,6 @@
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status" />
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -140,35 +128,97 @@
     />
 
     <!-- 添加或修改物业服务合同对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="合同名称" prop="contractName">
-          <el-input v-model="form.contractName" placeholder="请输入合同名称" />
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="合同名称" prop="contractName">
+              <el-input v-model="form.contractName" placeholder="请输入合同名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="合同版本" prop="contractVersion">
+              <el-input v-model="form.contractVersion" placeholder="请输入合同版本" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+                <el-row>
+          <el-col :span="12">
+            <el-form-item label="甲方" prop="partyA">
+              <el-input v-model="form.partyA" placeholder="请输入甲方" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="乙方" prop="partyB">
+              <el-input v-model="form.partyB" placeholder="请输入乙方" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="负责人" prop="managerName">
+              <el-input v-model="form.managerName" placeholder="请输入负责人姓名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话" prop="managerPhone">
+              <el-input v-model="form.managerPhone" placeholder="请输入负责人电话" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="合同金额" prop="contractAmount">
+              <el-input-number v-model="form.contractAmount" placeholder="请输入合同金额" :precision="2" :step="100" style="width:100%"></el-input-number>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="生效日期" prop="effectiveDate">
+              <el-date-picker clearable
+                v-model="form.effectiveDate"
+                style="width: 100%"
+                type="date"
+                value-format="yyyy-MM-dd"
+                placeholder="请选择生效日期">
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="失效日期" prop="expiryDate">
+              <el-date-picker clearable
+                v-model="form.expiryDate"
+                style="width: 100%"
+                type="date"
+                value-format="yyyy-MM-dd"
+                placeholder="请选择失效日期">
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="合同内容" prop="contractContent">
+          <editor v-model="form.contractContent" :min-height="192"/>
         </el-form-item>
-        <el-form-item label="合同版本" prop="contractVersion">
-          <el-input v-model="form.contractVersion" placeholder="请输入合同版本" />
+        <el-form-item label="重要条款">
+          <div v-for="(item, index) in form.importantClausesList" :key="index" class="clause-item">
+            <el-input v-model="item.title" placeholder="条款标题" class="clause-title"></el-input>
+            <el-input v-model="item.content" type="textarea" placeholder="条款内容" class="clause-content"></el-input>
+            <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeClause(index)" class="clause-delete-btn"></el-button>
+          </div>
+          <el-button type="primary" icon="el-icon-plus" size="small" @click="addClause">添加条款</el-button>
         </el-form-item>
-        <el-form-item label="合同文件URL" prop="fileUrl">
-          <el-input v-model="form.fileUrl" placeholder="请输入合同文件URL" />
+        <el-form-item label="合同附件" prop="fileUrl">
+          <file-upload v-model="form.fileUrl"/>
         </el-form-item>
-        <el-form-item label="生效日期" prop="effectiveDate">
-          <el-date-picker clearable
-            v-model="form.effectiveDate"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择生效日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="失效日期" prop="expiryDate">
-          <el-date-picker clearable
-            v-model="form.expiryDate"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择失效日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="删除标志" prop="delFlag">
-          <el-input v-model="form.delFlag" placeholder="请输入删除标志" />
+        <el-form-item label="状态">
+          <el-radio-group v-model="form.status">
+            <el-radio
+              v-for="dict in statusOptions"
+              :key="dict.dictValue"
+              :label="dict.dictValue"
+            >{{dict.dictLabel}}</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -183,10 +233,14 @@
 </template>
 
 <script>
-import { listContract, getContract, delContract, addContract, updateContract } from "@/api/system/contract"
+import { listContract, getContract, delContract, addContract, updateContract } from "@/api/system/contract";
+import FileUpload from '@/components/FileUpload';
 
 export default {
   name: "Contract",
+  components: {
+    FileUpload
+  },
   data() {
     return {
       // 遮罩层
@@ -207,12 +261,16 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 状态字典
+      statusOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         contractName: null,
         contractVersion: null,
+        partyA: null,
+        partyB: null,
         fileUrl: null,
         effectiveDate: null,
         expiryDate: null,
@@ -225,14 +283,14 @@ export default {
         contractName: [
           { required: true, message: "合同名称不能为空", trigger: "blur" }
         ],
-        fileUrl: [
-          { required: true, message: "合同文件URL不能为空", trigger: "blur" }
-        ],
       }
     }
   },
   created() {
-    this.getList()
+    this.getList();
+    this.getDicts("sys_normal_disable").then(response => {
+      this.statusOptions = response.data;
+    });
   },
   methods: {
     /** 查询物业服务合同列表 */
@@ -253,12 +311,20 @@ export default {
     reset() {
       this.form = {
         contractId: null,
+        contractNo: null,
         contractName: null,
         contractVersion: null,
+        contractAmount: 0.00,
+        partyA: null,
+        partyB: null,
+        managerName: null,
+        managerPhone: null,
+        contractContent: null,
+        importantClauses: null,
         fileUrl: null,
         effectiveDate: null,
         expiryDate: null,
-        status: null,
+        status: "0",
         delFlag: null,
         createBy: null,
         createTime: null,
@@ -295,7 +361,20 @@ export default {
       this.reset()
       const contractId = row.contractId || this.ids
       getContract(contractId).then(response => {
-        this.form = response.data
+        const formData = response.data;
+        // 安全地处理 importantClauses
+        try {
+          if (formData.importantClauses && typeof formData.importantClauses === 'string') {
+            formData.importantClausesList = JSON.parse(formData.importantClauses);
+          } else {
+            formData.importantClausesList = [];
+          }
+        } catch (e) {
+          formData.importantClausesList = [];
+          console.error("重要条款JSON解析失败:", e);
+        }
+        this.form = formData;
+
         this.open = true
         this.title = "修改物业服务合同"
       })
@@ -304,6 +383,12 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          // 使用 $set 确保响应式更新
+          this.$set(this.form, 'importantClauses', JSON.stringify(this.form.importantClausesList));
+
+          // 【调试日志】打印即将提交到后端的数据
+          console.log("即将提交到后端的数据:", JSON.parse(JSON.stringify(this.form)));
+
           if (this.form.contractId != null) {
             updateContract(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
@@ -329,6 +414,18 @@ export default {
         this.getList()
         this.$modal.msgSuccess("删除成功")
       }).catch(() => {})
+    },
+    /** 新增条款 */
+    addClause() {
+      // 防御性检查，确保 importantClausesList 是一个数组
+      if (!Array.isArray(this.form.importantClausesList)) {
+        this.$set(this.form, 'importantClausesList', []);
+      }
+      this.form.importantClausesList.push({ title: '', content: '' });
+    },
+    /** 删除条款 */
+    removeClause(index) {
+      this.form.importantClausesList.splice(index, 1);
     },
     /** 导出按钮操作 */
     handleExport() {

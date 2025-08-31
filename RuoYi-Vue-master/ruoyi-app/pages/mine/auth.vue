@@ -53,8 +53,8 @@ export default {
             required: true,
             errorMessage: '身份证号不能为空'
           }, {
-            pattern: /^\d{17}(\d|X)$/i,
-            errorMessage: '请输入正确的18位身份证号码'
+            // pattern: /^\d{17}(\d|X)$/i,
+            // errorMessage: '请输入正确的18位身份证号码'
           }]
         },
         phone: {
@@ -62,8 +62,8 @@ export default {
             required: true,
             errorMessage: '联系电话不能为空'
           }, {
-            pattern: /^1[3-9]\d{9}$/,
-            errorMessage: '请输入正确的手机号码'
+            // pattern: /^1[3-9]\d{9}$/,
+            // errorMessage: '请输入正确的手机号码'
           }]
         },
         address: {

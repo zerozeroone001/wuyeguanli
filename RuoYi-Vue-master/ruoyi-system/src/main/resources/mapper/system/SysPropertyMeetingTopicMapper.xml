@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysPropertyMeetingTopicMapper">
+    
+    <resultMap type="SysPropertyMeetingTopic" id="SysPropertyMeetingTopicResult">
+        <result property="topicId"    column="topic_id"    />
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="topicTitle"    column="topic_title"    />
+        <result property="topicContent"    column="topic_content"    />
+        <result property="files"    column="files"    />
+        <result property="agreeCount"    column="agree_count"    />
+        <result property="opposeCount"    column="oppose_count"    />
+        <result property="abstainCount"    column="abstain_count"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysPropertyMeetingTopicVo">
+        select topic_id, meeting_id, topic_title, topic_content, files, agree_count, oppose_count, abstain_count, order_num, create_by, create_time, update_by, update_time, remark from sys_property_meeting_topic
+    </sql>
+
+    <select id="selectSysPropertyMeetingTopicList" parameterType="SysPropertyMeetingTopic" resultMap="SysPropertyMeetingTopicResult">
+        <include refid="selectSysPropertyMeetingTopicVo"/>
+        <where>  
+            <if test="meetingId != null "> and meeting_id = #{meetingId}</if>
+            <if test="topicTitle != null  and topicTitle != ''"> and topic_title = #{topicTitle}</if>
+            <if test="topicContent != null  and topicContent != ''"> and topic_content = #{topicContent}</if>
+            <if test="files != null  and files != ''"> and files = #{files}</if>
+            <if test="agreeCount != null "> and agree_count = #{agreeCount}</if>
+            <if test="opposeCount != null "> and oppose_count = #{opposeCount}</if>
+            <if test="abstainCount != null "> and abstain_count = #{abstainCount}</if>
+            <if test="orderNum != null "> and order_num = #{orderNum}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysPropertyMeetingTopicByTopicId" parameterType="Long" resultMap="SysPropertyMeetingTopicResult">
+        <include refid="selectSysPropertyMeetingTopicVo"/>
+        where topic_id = #{topicId}
+    </select>
+
+    <insert id="insertSysPropertyMeetingTopic" parameterType="SysPropertyMeetingTopic" useGeneratedKeys="true" keyProperty="topicId">
+        insert into sys_property_meeting_topic
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="topicTitle != null and topicTitle != ''">topic_title,</if>
+            <if test="topicContent != null">topic_content,</if>
+            <if test="files != null">files,</if>
+            <if test="agreeCount != null">agree_count,</if>
+            <if test="opposeCount != null">oppose_count,</if>
+            <if test="abstainCount != null">abstain_count,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="topicTitle != null and topicTitle != ''">#{topicTitle},</if>
+            <if test="topicContent != null">#{topicContent},</if>
+            <if test="files != null">#{files},</if>
+            <if test="agreeCount != null">#{agreeCount},</if>
+            <if test="opposeCount != null">#{opposeCount},</if>
+            <if test="abstainCount != null">#{abstainCount},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysPropertyMeetingTopic" parameterType="SysPropertyMeetingTopic">
+        update sys_property_meeting_topic
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="topicTitle != null and topicTitle != ''">topic_title = #{topicTitle},</if>
+            <if test="topicContent != null">topic_content = #{topicContent},</if>
+            <if test="files != null">files = #{files},</if>
+            <if test="agreeCount != null">agree_count = #{agreeCount},</if>
+            <if test="opposeCount != null">oppose_count = #{opposeCount},</if>
+            <if test="abstainCount != null">abstain_count = #{abstainCount},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where topic_id = #{topicId}
+    </update>
+
+    <delete id="deleteSysPropertyMeetingTopicByTopicId" parameterType="Long">
+        delete from sys_property_meeting_topic where topic_id = #{topicId}
+    </delete>
+
+    <delete id="deleteSysPropertyMeetingTopicByTopicIds" parameterType="String">
+        delete from sys_property_meeting_topic where topic_id in 
+        <foreach item="topicId" collection="array" open="(" separator="," close=")">
+            #{topicId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteSysPropertyMeetingTopicByMeetingId" parameterType="Long">
+        delete from sys_property_meeting_topic where meeting_id = #{meetingId}
+    </delete>
+
+    <select id="selectSysPropertyMeetingTopicListByMeetingId" parameterType="Long" resultMap="SysPropertyMeetingTopicResult">
+        <include refid="selectSysPropertyMeetingTopicVo"/>
+        where meeting_id = #{meetingId}
+    </select>
+</mapper>

@@ -22,7 +22,7 @@ import java.util.List;
  * @date 2025-08-21
  */
 @RestController
-@RequestMapping("/user/contract")
+@RequestMapping("/contract")
 public class PropertyContractController extends BaseController
 {
     @Autowired
@@ -31,7 +31,6 @@ public class PropertyContractController extends BaseController
     /**
      * 查询物业服务合同列表
      */
-    @PreAuthorize("@ss.hasPermi('system:contract:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyContract sysPropertyContract)
     {
@@ -43,7 +42,6 @@ public class PropertyContractController extends BaseController
     /**
      * 导出物业服务合同列表
      */
-    @PreAuthorize("@ss.hasPermi('system:contract:export')")
     @Log(title = "物业服务合同", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyContract sysPropertyContract)
@@ -56,45 +54,13 @@ public class PropertyContractController extends BaseController
     /**
      * 获取物业服务合同详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:contract:query')")
     @GetMapping(value = "/{contractId}")
     public AjaxResult getInfo(@PathVariable("contractId") Long contractId)
     {
         return success(sysPropertyContractService.selectSysPropertyContractByContractId(contractId));
     }
 
-    /**
-     * 新增物业服务合同
-     */
-    @PreAuthorize("@ss.hasPermi('system:contract:add')")
-    @Log(title = "物业服务合同", businessType = BusinessType.INSERT)
-    @PostMapping
-    public AjaxResult add(@RequestBody SysPropertyContract sysPropertyContract)
-    {
-        return toAjax(sysPropertyContractService.insertSysPropertyContract(sysPropertyContract));
-    }
 
-    /**
-     * 修改物业服务合同
-     */
-    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
-    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@RequestBody SysPropertyContract sysPropertyContract)
-    {
-        return toAjax(sysPropertyContractService.updateSysPropertyContract(sysPropertyContract));
-    }
-
-    /**
-     * 删除物业服务合同
-     */
-    @PreAuthorize("@ss.hasPermi('system:contract:remove')")
-    @Log(title = "物业服务合同", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{contractIds}")
-    public AjaxResult remove(@PathVariable Long[] contractIds)
-    {
-        return toAjax(sysPropertyContractService.deleteSysPropertyContractByContractIds(contractIds));
-    }
 
 
     @GetMapping("/download/{contractId}")

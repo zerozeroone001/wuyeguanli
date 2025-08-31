@@ -1,6 +1,10 @@
 package com.ruoyi.system.service.impl;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,6 +57,9 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Override
     public int insertSysPropertyContract(SysPropertyContract sysPropertyContract)
     {
+        // 生成合同编号
+        String contractNo = "HT" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ThreadLocalRandom.current().nextInt(100000, 1000000);
+        sysPropertyContract.setContractNo(contractNo);
         sysPropertyContract.setCreateTime(DateUtils.getNowDate());
         return sysPropertyContractMapper.insertSysPropertyContract(sysPropertyContract);
     }
