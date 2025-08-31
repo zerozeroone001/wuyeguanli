@@ -1,16 +1,18 @@
 package com.ruoyi.system.service.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.system.domain.SysContractFile;
+import com.ruoyi.system.domain.SysFileInfo;
+import com.ruoyi.system.mapper.SysContractFileMapper;
+import com.ruoyi.system.service.ISysFileInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.SysPropertyContractMapper;
 import com.ruoyi.system.domain.SysPropertyContract;
 import com.ruoyi.system.service.ISysPropertyContractService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 物业服务合同Service业务层处理
@@ -24,6 +26,12 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Autowired
     private SysPropertyContractMapper sysPropertyContractMapper;
 
+    @Autowired
+    private ISysFileInfoService sysFileInfoService;
+
+    @Autowired
+    private SysContractFileMapper sysContractFileMapper;
+
     /**
      * 查询物业服务合同
      * 
@@ -33,7 +41,13 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Override
     public SysPropertyContract selectSysPropertyContractByContractId(Long contractId)
     {
-        return sysPropertyContractMapper.selectSysPropertyContractByContractId(contractId);
+        SysPropertyContract contract = sysPropertyContractMapper.selectSysPropertyContractByContractId(contractId);
+        if (contract != null)
+        {
+            List<SysFileInfo> fileList = sysFileInfoService.selectSysFileInfoListByContractId(contractId);
+            contract.setFileList(fileList);
+        }
+        return contract;
     }
 
     /**
@@ -55,13 +69,15 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
      * @return 结果
      */
     @Override
+    @Transactional
     public int insertSysPropertyContract(SysPropertyContract sysPropertyContract)
     {
-        // 生成合同编号
-        String contractNo = "HT" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ThreadLocalRandom.current().nextInt(100000, 1000000);
-        sysPropertyContract.setContractNo(contractNo);
         sysPropertyContract.setCreateTime(DateUtils.getNowDate());
-        return sysPropertyContractMapper.insertSysPropertyContract(sysPropertyContract);
+        // 1. 插入主表
+        int rows = sysPropertyContractMapper.insertSysPropertyContract(sysPropertyContract);
+        // 2. 插入关联文件
+        insertContractFiles(sysPropertyContract);
+        return rows;
     }
 
     /**
@@ -71,9 +87,15 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
      * @return 结果
      */
     @Override
+    @Transactional
     public int updateSysPropertyContract(SysPropertyContract sysPropertyContract)
     {
         sysPropertyContract.setUpdateTime(DateUtils.getNowDate());
+        // 1. 删除旧的文件关联
+        sysContractFileMapper.deleteByContractId(sysPropertyContract.getContractId());
+        // 2. 插入新的文件关联
+        insertContractFiles(sysPropertyContract);
+        // 3. 更新主表
         return sysPropertyContractMapper.updateSysPropertyContract(sysPropertyContract);
     }
 
@@ -84,8 +106,12 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteSysPropertyContractByContractIds(Long[] contractIds)
     {
+        for (Long contractId : contractIds) {
+            sysContractFileMapper.deleteByContractId(contractId);
+        }
         return sysPropertyContractMapper.deleteSysPropertyContractByContractIds(contractIds);
     }
 
@@ -96,8 +122,32 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteSysPropertyContractByContractId(Long contractId)
     {
+        sysContractFileMapper.deleteByContractId(contractId);
         return sysPropertyContractMapper.deleteSysPropertyContractByContractId(contractId);
+    }
+
+    /**
+     * 新增合同与文件关联信息
+     *
+     * @param contract 合同对象
+     */
+    public void insertContractFiles(SysPropertyContract contract)
+    {
+        List<Long> fileIds = contract.getFileIds();
+        if (fileIds != null && !fileIds.isEmpty())
+        {
+            List<SysContractFile> list = new ArrayList<>();
+            for (Long fileId : fileIds)
+            {
+                list.add(new SysContractFile(contract.getContractId(), fileId));
+            }
+            if (list.size() > 0)
+            {
+                sysContractFileMapper.batchInsert(list);
+            }
+        }
     }
 }

@@ -9,7 +9,7 @@
     <!-- 加载成功后显示 -->
     <view v-else-if="contractInfo" class="detail-container">
       <!-- 合同基本信息 -->
-      <view class="contract-info">
+      <view class="card-container">
         <view class="info-header">
           <text class="contract-name">{{ contractInfo.contractName }}</text>
           <view class="contract-status" :class="[contractInfo.status === '0' ? 'status-active' : 'status-default']">
@@ -22,7 +22,7 @@
       </view>
 
       <!-- 合同详情 -->
-      <view class="detail-section">
+      <view class="card-container">
         <view class="section-header">
           <uni-icons type="list" size="20" color="#262626" />
           <text class="section-title">合同详情</text>
@@ -48,7 +48,7 @@
       </view>
 
       <!-- 合同双方 -->
-      <view class="parties-section">
+      <view class="card-container">
         <view class="section-header">
           <uni-icons type="person" size="20" color="#262626" />
           <text class="section-title">合同双方</text>
@@ -67,7 +67,7 @@
       </view>
 
       <!-- 负责人信息 -->
-      <view class="manager-section" v-if="contractInfo.managerName">
+      <view class="card-container" v-if="contractInfo.managerName">
         <view class="section-header">
           <uni-icons type="contact" size="20" color="#262626" />
           <text class="section-title">负责人信息</text>
@@ -85,7 +85,7 @@
       </view>
 
       <!-- 合同内容 -->
-      <view class="content-section" v-if="contractInfo.contractContent">
+      <view class="card-container" v-if="contractInfo.contractContent">
         <view class="section-header">
           <uni-icons type="compose" size="20" color="#262626" />
           <text class="section-title">合同内容</text>
@@ -94,7 +94,7 @@
       </view>
 
       <!-- 重要条款 -->
-      <view class="clauses-section" v-if="parsedClauses.length > 0">
+      <view class="card-container" v-if="parsedClauses.length > 0">
         <view class="section-header">
           <uni-icons type="flag" size="20" color="#262626" />
           <text class="section-title">重要条款</text>
@@ -105,6 +105,28 @@
             <view class="clause-content">
               <text class="clause-title">{{ clause.title }}</text>
               <text class="clause-text">{{ clause.content }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 相关文档 -->
+      <view class="card-container" v-if="contractInfo.fileList && contractInfo.fileList.length > 0">
+        <view class="section-header">
+          <uni-icons type="paperclip" size="20" color="#262626" />
+          <text class="section-title">相关文档</text>
+        </view>
+        <view class="documents-list">
+          <view class="document-item" v-for="file in contractInfo.fileList" :key="file.fileId" @click="viewDocument(file)">
+            <view class="doc-icon">
+              <uni-icons :type="getDocIcon(file.fileType)" size="24" :color="getDocColor(file.fileType)" />
+            </view>
+            <view class="doc-info">
+              <text class="doc-name">{{ file.fileOriginName }}</text>
+              <text class="doc-meta">{{ (file.fileSize / 1024).toFixed(2) }} KB</text>
+            </view>
+            <view class="doc-action">
+              <uni-icons type="download" size="18" color="#1890FF" />
             </view>
           </view>
         </view>
@@ -139,7 +161,8 @@ export default {
     return {
       contractId: null,
       contractInfo: null,
-      loading: true
+      loading: true,
+      baseUrl: process.env.VUE_APP_BASE_API
     }
   },
   filters: {
@@ -157,7 +180,6 @@ export default {
         const clauses = JSON.parse(this.contractInfo.importantClauses);
         return Array.isArray(clauses) ? clauses : [];
       } catch (e) {
-        console.error("Parsing important clauses failed:", e);
         return [];
       }
     }
@@ -194,15 +216,52 @@ export default {
         }
         this.loading = false;
       }).catch(error => {
-        console.error("获取合同详情失败:", error);
-        uni.showToast({
-            title: '加载失败，请稍后重试',
-            icon: 'none'
-        });
         this.loading = false;
       });
     },
-    
+    getDocIcon(type) {
+      if (!type) return 'paperplane';
+      if (type.includes('pdf')) return 'paperplane-filled';
+      if (type.includes('word')) return 'compose';
+      if (type.includes('excel')) return 'list';
+      if (type.includes('image')) return 'image';
+      return 'paperplane';
+    },
+    getDocColor(type) {
+      if (!type) return '#8C8C8C';
+      if (type.includes('pdf')) return '#FF4D4F';
+      if (type.includes('word')) return '#1890FF';
+      if (type.includes('excel')) return '#52C41A';
+      if (type.includes('image')) return '#FA8C16';
+      return '#8C8C8C';
+    },
+    viewDocument(file) {
+        uni.showLoading({
+            title: '正在打开文件'
+        });
+        uni.downloadFile({
+            url: this.baseUrl + file.fileUrl,
+            success: (res) => {
+                if (res.statusCode === 200) {
+                    uni.openDocument({
+                        filePath: res.tempFilePath,
+                        showMenu: true,
+                        fail: (err) => {
+                            uni.showToast({ title: '打开文件失败', icon: 'none' });
+                        }
+                    });
+                } else {
+                    uni.showToast({ title: '下载文件失败', icon: 'none' });
+                }
+            },
+            fail: (err) => {
+                uni.showToast({ title: '下载文件失败', icon: 'none' });
+            },
+            complete: () => {
+                uni.hideLoading();
+            }
+        });
+    },
     getStatusText(status) {
       const textMap = {
         '0': '正常',
@@ -210,31 +269,24 @@ export default {
       }
       return textMap[status] || '未知'
     },
-    
     formatAmount(amount) {
       if (amount === null || amount === undefined) return '0.00';
       return new Intl.NumberFormat('zh-CN').format(amount)
     },
-
     getContractDuration() {
       if (!this.contractInfo || !this.contractInfo.effectiveDate || !this.contractInfo.expiryDate) {
         return '未知'
       }
-      
       const start = new Date(this.contractInfo.effectiveDate)
       const end = new Date(this.contractInfo.expiryDate)
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
           return '日期无效'
       }
-
       const diffTime = Math.abs(end - start)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // 包含起止当天
-      
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
       if (diffDays < 0) return '日期错误';
-
       const years = Math.floor(diffDays / 365)
       const months = Math.floor((diffDays % 365) / 30)
-      
       let duration = ''
       if (years > 0) {
         duration += `${years}年`;
@@ -248,10 +300,8 @@ export default {
               duration = `${days}天`;
           }
       }
-
       return duration || '少于1个月';
     },
-
     contactManager() {
       if (!this.contractInfo.managerPhone) {
           uni.showToast({ title: '未提供联系电话', icon: 'none' });
@@ -260,10 +310,7 @@ export default {
       uni.makePhoneCall({
         phoneNumber: this.contractInfo.managerPhone,
         fail: () => {
-          uni.showToast({
-            title: '拨打失败',
-            icon: 'none'
-          })
+          uni.showToast({ title: '拨打失败', icon: 'none' })
         }
       })
     }
@@ -276,7 +323,6 @@ export default {
     min-height: 100vh;
     background-color: #FAFBFC;
 }
-
 .loading-state, .empty-state {
     display: flex;
     flex-direction: column;
@@ -288,26 +334,22 @@ export default {
         color: #8C8C8C;
     }
 }
-
 .detail-container {
   padding-bottom: 160rpx; /* 为底部按钮留出空间 */
 }
-
-.contract-info, .detail-section, .parties-section, .manager-section, .content-section, .clauses-section {
+.card-container {
   background: #FFFFFF;
   margin: 20rpx;
   border-radius: 24rpx;
   padding: 40rpx;
   border: 1rpx solid #F0F0F0;
 }
-
 .contract-info {
   .info-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 16rpx;
-    
     .contract-name {
       flex: 1;
       font-size: 32rpx;
@@ -316,39 +358,24 @@ export default {
       line-height: 1.4;
       margin-right: 20rpx;
     }
-    
     .contract-status {
       padding: 8rpx 16rpx;
       border-radius: 16rpx;
       font-size: 22rpx;
       font-weight: 500;
       white-space: nowrap;
-      
-      &.status-active {
-        background: #F6FFED;
-        color: #52C41A;
-      }
-      
-      &.status-default {
-        background: #F0F0F0;
-        color: #8C8C8C;
-      }
+      &.status-active { background: #F6FFED; color: #52C41A; }
+      &.status-default { background: #F0F0F0; color: #8C8C8C; }
     }
   }
-  
   .contract-no {
-    text {
-      font-size: 24rpx;
-      color: #8C8C8C;
-    }
+    text { font-size: 24rpx; color: #8C8C8C; }
   }
 }
-
 .section-header {
     display: flex;
     align-items: center;
     margin-bottom: 24rpx;
-    
     .section-title {
       margin-left: 12rpx;
       font-size: 28rpx;
@@ -356,7 +383,6 @@ export default {
       color: #262626;
     }
 }
-
 .detail-list {
   .detail-item {
     display: flex;
@@ -364,121 +390,62 @@ export default {
     align-items: center;
     padding: 20rpx 0;
     border-bottom: 1rpx solid #F0F0F0;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    .detail-label {
-      font-size: 26rpx;
-      color: #8C8C8C;
-      min-width: 160rpx;
-    }
-    
+    &:last-child { border-bottom: none; }
+    .detail-label { font-size: 26rpx; color: #8C8C8C; min-width: 160rpx; }
     .detail-value {
       flex: 1;
       text-align: right;
       font-size: 26rpx;
       color: #262626;
       font-weight: 500;
-      
-      &.amount {
-        color: #1890FF;
-        font-weight: 600;
-      }
+      &.amount { color: #1890FF; font-weight: 600; }
     }
   }
 }
-
 .parties-content {
   display: flex;
   align-items: center;
-  
   .party-item {
     flex: 1;
-    
-    .party-header {
-      margin-bottom: 12rpx;
-      
-      .party-role {
-        display: inline-block;
-        padding: 6rpx 16rpx;
-        background: #E6F7FF;
-        color: #1890FF;
-        font-size: 22rpx;
-        font-weight: 500;
-        border-radius: 12rpx;
-      }
-    }
-    
-    .party-info {
-      .party-name {
-        display: block;
-        font-size: 26rpx;
-        font-weight: 600;
-        color: #262626;
-        margin-bottom: 8rpx;
-      }
-    }
+    .party-header { margin-bottom: 12rpx; }
+    .party-role { display: inline-block; padding: 6rpx 16rpx; background: #E6F7FF; color: #1890FF; font-size: 22rpx; font-weight: 500; border-radius: 12rpx; }
+    .party-info { .party-name { display: block; font-size: 26rpx; font-weight: 600; color: #262626; margin-bottom: 8rpx; } }
   }
-  
-  .party-divider {
-    margin: 0 30rpx;
-    opacity: 0.5;
-  }
+  .party-divider { margin: 0 30rpx; opacity: 0.5; }
 }
-
 .content-text {
-  text {
-    font-size: 26rpx;
-    color: #595959;
-    line-height: 1.6;
-  }
+  text { font-size: 26rpx; color: #595959; line-height: 1.6; }
 }
-
 .clauses-list {
   .clause-item {
     display: flex;
     margin-bottom: 30rpx;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
-    .clause-number {
-      width: 48rpx;
-      height: 48rpx;
-      line-height: 48rpx;
-      text-align: center;
-      background: #1890FF;
-      color: #FFFFFF;
-      border-radius: 50%;
-      font-size: 22rpx;
-      font-weight: 600;
-      margin-right: 20rpx;
-      flex-shrink: 0;
-    }
-    
+    &:last-child { margin-bottom: 0; }
+    .clause-number { width: 48rpx; height: 48rpx; line-height: 48rpx; text-align: center; background: #1890FF; color: #FFFFFF; border-radius: 50%; font-size: 22rpx; font-weight: 600; margin-right: 20rpx; flex-shrink: 0; }
     .clause-content {
       flex: 1;
-      
-      .clause-title {
-        display: block;
-        font-size: 26rpx;
-        font-weight: 600;
-        color: #262626;
-        margin-bottom: 12rpx;
-      }
-      
-      .clause-text {
-        font-size: 24rpx;
-        color: #595959;
-        line-height: 1.6;
-      }
+      .clause-title { display: block; font-size: 26rpx; font-weight: 600; color: #262626; margin-bottom: 12rpx; }
+      .clause-text { font-size: 24rpx; color: #595959; line-height: 1.6; }
     }
   }
 }
-
+.documents-list {
+  .document-item {
+    display: flex;
+    align-items: center;
+    padding: 20rpx 0;
+    border-bottom: 1rpx solid #F0F0F0;
+    &:last-child { border-bottom: none; }
+    &:active { background: #F8F9FA; }
+    .doc-icon { width: 80rpx; height: 80rpx; display: flex; align-items: center; justify-content: center; background: #F8F9FA; border-radius: 12rpx; margin-right: 20rpx; }
+    .doc-info {
+      flex: 1;
+      .doc-name { display: block; font-size: 26rpx; color: #262626; font-weight: 500; margin-bottom: 8rpx; }
+      .doc-meta { font-size: 22rpx; color: #8C8C8C; }
+    }
+    .doc-action { padding: 16rpx; }
+  }
+}
 .action-buttons {
   position: fixed;
   bottom: 0;
@@ -491,7 +458,6 @@ export default {
   border-top: 1rpx solid #F0F0F0;
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
-  
   .action-btn {
     flex: 1;
     height: 80rpx;
@@ -502,24 +468,10 @@ export default {
     font-size: 26rpx;
     font-weight: 500;
     border: none;
-    
-    text {
-      margin-left: 8rpx;
-    }
-    
-    &.contact {
-      background: #FFF2E8;
-      color: #FA8C16;
-    }
-    
-    &.share {
-      background: #F6FFED;
-      color: #52C41A;
-    }
-    
-    &:active {
-      opacity: 0.8;
-    }
+    text { margin-left: 8rpx; }
+    &.contact { background: #FFF2E8; color: #FA8C16; }
+    &.share { background: #F6FFED; color: #52C41A; }
+    &:active { opacity: 0.8; }
   }
 }
 </style>

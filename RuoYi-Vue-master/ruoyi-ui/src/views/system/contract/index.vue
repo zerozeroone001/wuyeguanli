@@ -85,17 +85,9 @@
       <el-table-column label="合同金额" align="center" prop="contractAmount" />
       <el-table-column label="负责人" align="center" prop="managerName" />
       <el-table-column label="联系电话" align="center" prop="managerPhone" />
-      <el-table-column label="甲方" align="center" prop="partyA" />
-      <el-table-column label="乙方" align="center" prop="partyB" />
-      <el-table-column label="合同版本" align="center" prop="contractVersion" />
       <el-table-column label="生效日期" align="center" prop="effectiveDate" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.effectiveDate, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="失效日期" align="center" prop="expiryDate" width="180">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.expiryDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status" />
@@ -129,7 +121,10 @@
 
     <!-- 添加或修改物业服务合同对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="合同编号" prop="contractNo" v-if="form.contractId">
+          <el-input v-model="form.contractNo" placeholder="系统自动生成" :disabled="true" />
+        </el-form-item>
         <el-row>
           <el-col :span="12">
             <el-form-item label="合同名称" prop="contractName">
@@ -142,7 +137,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-                <el-row>
+        <el-row>
           <el-col :span="12">
             <el-form-item label="甲方" prop="partyA">
               <el-input v-model="form.partyA" placeholder="请输入甲方" />
@@ -163,13 +158,6 @@
           <el-col :span="12">
             <el-form-item label="联系电话" prop="managerPhone">
               <el-input v-model="form.managerPhone" placeholder="请输入负责人电话" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="合同金额" prop="contractAmount">
-              <el-input-number v-model="form.contractAmount" placeholder="请输入合同金额" :precision="2" :step="100" style="width:100%"></el-input-number>
             </el-form-item>
           </el-col>
         </el-row>
@@ -197,6 +185,9 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-form-item label="合同金额" prop="contractAmount">
+          <el-input-number v-model="form.contractAmount" placeholder="请输入合同金额" :precision="2" :step="100" style="width:100%"></el-input-number>
+        </el-form-item>
         <el-form-item label="合同内容" prop="contractContent">
           <editor v-model="form.contractContent" :min-height="192"/>
         </el-form-item>
@@ -208,8 +199,19 @@
           </div>
           <el-button type="primary" icon="el-icon-plus" size="small" @click="addClause">添加条款</el-button>
         </el-form-item>
-        <el-form-item label="合同附件" prop="fileUrl">
-          <file-upload v-model="form.fileUrl"/>
+        <el-form-item label="相关文档">
+          <el-upload
+            ref="upload"
+            :action="upload.url"
+            :headers="upload.headers"
+            :file-list="upload.fileList"
+            :on-success="handleUploadSuccess"
+            :on-remove="handleFileRemove"
+            multiple
+            :limit="9"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="form.status">
@@ -234,15 +236,23 @@
 
 <script>
 import { listContract, getContract, delContract, addContract, updateContract } from "@/api/system/contract";
-import FileUpload from '@/components/FileUpload';
+import { getToken } from "@/utils/auth";
 
 export default {
   name: "Contract",
-  components: {
-    FileUpload
-  },
   data() {
     return {
+      // 上传参数
+      upload: {
+        // 是否禁用上传
+        isUploading: false,
+        // 设置上传的请求头部
+        headers: { Authorization: "Bearer " + getToken() },
+        // 上传的地址
+        url: process.env.VUE_APP_BASE_API + "/system/file/upload",
+        // 上传的文件列表
+        fileList: []
+      },
       // 遮罩层
       loading: true,
       // 选中数组
@@ -271,7 +281,6 @@ export default {
         contractVersion: null,
         partyA: null,
         partyB: null,
-        fileUrl: null,
         effectiveDate: null,
         expiryDate: null,
         status: null,
@@ -321,17 +330,10 @@ export default {
         managerPhone: null,
         contractContent: null,
         importantClauses: null,
-        fileUrl: null,
-        effectiveDate: null,
-        expiryDate: null,
-        status: "0",
-        delFlag: null,
-        createBy: null,
-        createTime: null,
-        updateBy: null,
-        updateTime: null,
-        remark: null
+        importantClausesList: [],
+        fileIds: [],
       }
+      this.upload.fileList = [];
       this.resetForm("form")
     },
     /** 搜索按钮操作 */
@@ -371,9 +373,12 @@ export default {
           }
         } catch (e) {
           formData.importantClausesList = [];
-          console.error("重要条款JSON解析失败:", e);
         }
         this.form = formData;
+        // 处理文件列表回显
+        this.upload.fileList = (this.form.fileList || []).map(file => {
+            return { name: file.fileOriginName, url: file.fileUrl, fileId: file.fileId };
+        });
 
         this.open = true
         this.title = "修改物业服务合同"
@@ -383,11 +388,10 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          // 使用 $set 确保响应式更新
+          // 转换重要条款为JSON字符串
           this.$set(this.form, 'importantClauses', JSON.stringify(this.form.importantClausesList));
-
-          // 【调试日志】打印即将提交到后端的数据
-          console.log("即将提交到后端的数据:", JSON.parse(JSON.stringify(this.form)));
+          // 收集文件ID
+          this.form.fileIds = this.upload.fileList.map(file => file.fileId);
 
           if (this.form.contractId != null) {
             updateContract(this.form).then(response => {
@@ -417,7 +421,6 @@ export default {
     },
     /** 新增条款 */
     addClause() {
-      // 防御性检查，确保 importantClausesList 是一个数组
       if (!Array.isArray(this.form.importantClausesList)) {
         this.$set(this.form, 'importantClausesList', []);
       }
@@ -426,6 +429,36 @@ export default {
     /** 删除条款 */
     removeClause(index) {
       this.form.importantClausesList.splice(index, 1);
+    },
+    /** 文件上传成功处理 */
+    handleUploadSuccess(response, file, fileList) {
+      if (response.code === 200) {
+        // 上传成功后，response.data 就是我们后端返回的 SysFileInfo 对象
+        // 我们需要将 el-upload 的内部 file 对象和我们的后端数据关联起来
+        // 最好的方法是直接使用 el-upload 返回的 fileList，并更新它
+        const updatedList = fileList.map(f => {
+          // 找到刚刚上传成功的这个文件
+          if (f.uid === file.uid) {
+            // 将后端返回的数据附加到这个文件对象上，以便后续使用
+            return { 
+              ...f, 
+              name: response.data.fileOriginName, 
+              url: response.data.fileUrl, 
+              fileId: response.data.fileId 
+            };
+          }
+          return f;
+        });
+        // 直接用 el-upload 的最新列表覆盖我们的列表
+        this.upload.fileList = updatedList;
+      } else {
+        this.$modal.msgError(response.msg);
+        this.$refs.upload.handleRemove(file);
+      }
+    },
+    /** 文件列表移除处理 */
+    handleFileRemove(file, fileList) {
+      this.upload.fileList = fileList;
     },
     /** 导出按钮操作 */
     handleExport() {
@@ -436,3 +469,19 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.clause-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.clause-title {
+  width: 150px;
+  margin-right: 10px;
+}
+.clause-content {
+  flex: 1;
+  margin-right: 10px;
+}
+</style>
