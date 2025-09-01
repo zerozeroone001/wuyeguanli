@@ -77,6 +77,7 @@ public class SysOwnerProfile extends BaseEntity {
      * 删除标志（0存在 2删除）
      */
     private String delFlag;
+    private boolean authRemark;
 
     public void setUserId(Long userId) {
         this.userId = userId;
@@ -175,7 +176,7 @@ public class SysOwnerProfile extends BaseEntity {
                 .append("idCardFrontUrl", getIdCardFrontUrl())
                 .append("idCardBackUrl", getIdCardBackUrl())
                 .append("authStatus", getAuthStatus())
-//                .append("authRemark", getAuthRemark())
+                .append("authRemark", getAuthRemark())
                 .append("buildingNo", getBuildingNo())
                 .append("unitNo", getUnitNo())
                 .append("roomNo", getRoomNo())
@@ -187,5 +188,13 @@ public class SysOwnerProfile extends BaseEntity {
                 .append("updateTime", getUpdateTime())
                 .append("remark", getRemark())
                 .toString();
+    }
+
+    public boolean getAuthRemark() {
+        return authRemark;
+    }
+
+    public void setAuthRemark(boolean authRemark) {
+        this.authRemark = authRemark;
     }
 }

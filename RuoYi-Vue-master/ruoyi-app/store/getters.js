@@ -28,6 +28,7 @@ const getters = {
     unit: state.user.unit,
     room: state.user.room
   }),
-  ownerType: state => state.user.ownerType
+  ownerType: state => state.user.ownerType,
+  ownerProfile: state => state.user.ownerProfile
 }
 export default getters

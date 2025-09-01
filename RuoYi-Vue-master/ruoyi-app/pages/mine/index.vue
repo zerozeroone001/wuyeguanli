@@ -6,24 +6,24 @@
         <view class="user-avatar-wrap">
           <image 
             class="user-avatar" 
-            :src="mockUser.avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
+            :src="avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
             mode="aspectFill"
             @click="handleToAvatar"
           />
-          <view class="auth-badge" v-if="mockUser.authStatus">
+          <view class="auth-badge" v-if="authStatus">
             <uni-icons type="checkmarkempty" size="16" color="white" />
           </view>
         </view>
         <view class="user-info">
-          <text class="user-name">{{ mockUser.nickName }}</text>
+          <text class="user-name">{{ nickName }}</text>
           <view class="user-status" @click="handleAuthStatusClick">
-            <text class="status-text" :class="{ verified: mockUser.authStatus }">
-              {{ mockUser.authStatus ? '已认证业主' : '未认证业主' }}
+            <text class="status-text" :class="{ verified: authStatus }">
+              {{ authStatus ? '已认证业主' : '未认证业主' }}
             </text>
             <uni-icons type="right" size="14" color="#8C8C8C" />
           </view>
           <view class="property-info">
-            <text class="property-text">{{ mockUser.building }} {{ mockUser.unit }} {{ mockUser.room }}</text>
+            <text class="property-text">{{ propertyAddress }}</text>
           </view>
         </view>
         <view class="qr-code" @click="showQRCode">
@@ -89,19 +89,11 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   data() {
     return {
-      // 模拟用户数据
-      mockUser: {
-        nickName: '张先生',
-        avatar: 'https://img.icons8.com/fluency/96/user-male-circle.png',
-        authStatus: false, // 认证状态
-        phone: '138****8888',
-        building: '3号楼',
-        unit: '2单元',
-        room: '1201'
-      },
       // 统计数据
       stats: {
         orders: 3,
@@ -171,9 +163,33 @@ export default {
       ]
     }
   },
+  computed: {
+    ...mapGetters([
+        'nickName',
+        'avatar',
+        'ownerProfile' // 直接获取ownerProfile对象
+    ]),
+    // 从ownerProfile中派生出认证状态
+    authStatus() {
+      return this.ownerProfile && this.ownerProfile.authStatus === '2'; // 2-已认证
+    },
+    propertyAddress() {
+      if (this.ownerProfile && (this.ownerProfile.buildingNo || this.ownerProfile.unitNo || this.ownerProfile.roomNo)) {
+        const building = this.ownerProfile.buildingNo || '';
+        const unit = this.ownerProfile.unitNo || '';
+        const room = this.ownerProfile.roomNo || '';
+        return `${building} ${unit} ${room}`.trim();
+      }
+      return '暂无房产信息';
+    }
+  },
+  onShow() {
+    // 每次页面显示时，都主动刷新一次认证信息
+    this.$store.dispatch('GetProfileInfo');
+  },
   methods: {
     handleAuthStatusClick() {
-      if (!this.mockUser.authStatus) {
+      if (!this.authStatus) {
         uni.navigateTo({
           url: '/pages/mine/auth'
         });
@@ -236,7 +252,7 @@ export default {
         uni.navigateTo({ url: item.path })
       } else {
         uni.showToast({
-          title: `${item.name}功能开发中`,
+          title: `${action.name}功能开发中`,
           icon: 'none',
           duration: 2000
         })

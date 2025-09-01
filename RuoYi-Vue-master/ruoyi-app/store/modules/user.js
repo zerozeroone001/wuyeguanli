@@ -3,6 +3,7 @@ import storage from '@/utils/storage'
 import constant from '@/utils/constant'
 import { isHttp, isEmpty } from "@/utils/validate"
 import { login, logout, getInfo, wechatLogin } from '@/api/login'
+import { getMyProfile } from '@/api/profile' // 引入获取认证信息的API
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import defAva from '@/static/images/profile.jpg'
 
@@ -17,18 +18,29 @@ const user = {
     roles: storage.get(constant.roles),
     permissions: storage.get(constant.permissions),
     // 物业系统扩展字段
-    nickName: storage.get(constant.nickName) || '张先生',
+    nickName: storage.get(constant.nickName) || '',
     authStatus: storage.get(constant.authStatus) || false,
     phone: storage.get(constant.phone),
     building: storage.get(constant.building),
     unit: storage.get(constant.unit),
     room: storage.get(constant.room),
-    ownerType: storage.get(constant.ownerType) || '1' // 1-业主,2-租户,3-其他
+    ownerType: storage.get(constant.ownerType) || '1', // 1-业主,2-租户,3-其他
+    ownerProfile: storage.get(constant.ownerProfile) || {}
   },
 
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
+    },
+    SET_OWNER_PROFILE: (state, profile) => {
+      state.ownerProfile = profile
+      // 为了兼容旧代码，可以同时更新根状态上的字段
+      state.authStatus = profile.authStatus
+      state.nickName = profile.realName || state.nickName
+      state.building = profile.buildingNo
+      state.unit = profile.unitNo
+      state.room = profile.roomNo
+      storage.set(constant.ownerProfile, profile)
     },
     SET_ID: (state, id) => {
       state.id = id
@@ -119,6 +131,8 @@ const user = {
           }
           const userid = (isEmpty(user) || isEmpty(user.userId)) ? "" : user.userId
 		  const username = (isEmpty(user) || isEmpty(user.userName)) ? "" : user.userName
+          const nickName = (isEmpty(user) || isEmpty(user.nickName)) ? username : user.nickName
+
 		  if (res.roles && res.roles.length > 0) {
             commit('SET_ROLES', res.roles)
             commit('SET_PERMISSIONS', res.permissions)
@@ -127,7 +141,17 @@ const user = {
           }
           commit('SET_ID', userid)
           commit('SET_NAME', username)
+          commit('SET_NICKNAME', nickName)
           commit('SET_AVATAR', avatar)
+          // 更新认证状态和其他物业信息
+          commit('SET_AUTH_STATUS', user.authFlag === '1')
+          commit('SET_PHONE', user.phonenumber)
+          commit('SET_PROPERTY_INFO', {
+            building: user.building,
+            unit: user.unit,
+            room: user.room
+          })
+          commit('SET_OWNER_TYPE', user.ownerType)
           resolve(res)
         }).catch(error => {
           reject(error)
@@ -145,6 +169,22 @@ const user = {
           removeToken()
           storage.clean()
           resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+
+    // 获取业主认证信息
+    GetProfileInfo({ commit }) {
+      return new Promise((resolve, reject) => {
+        getMyProfile().then(res => {
+          if (res.data) {
+            commit('SET_OWNER_PROFILE', res.data)
+            resolve(res.data)
+          } else {
+            reject('获取认证信息失败')
+          }
         }).catch(error => {
           reject(error)
         })

@@ -1,25 +1,25 @@
 package com.ruoyi.web.controller.system;
 
-import com.alibaba.druid.util.StringUtils;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.system.domain.SysOwnerProfile;
 import com.ruoyi.system.service.ISysOwnerProfileService;
 import com.ruoyi.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
  * 业主信息扩展Controller
- * 
+ *
  * @author ruoyi
  * @date 2025-08-21
  */
@@ -34,7 +34,49 @@ public class SysOwnerProfileController extends BaseController
     private ISysUserService userService;
 
     /**
-     * 查询业主信息扩展列表
+     * (小程序端) 提交认证申请
+     */
+    @Log(title = "业主认证申请", businessType = BusinessType.INSERT)
+    @PostMapping("/submitAuth")
+    public AjaxResult submitAuth(@RequestBody SysOwnerProfile sysOwnerProfile)
+    {
+        Long userId = SecurityUtils.getUserId();
+        SysOwnerProfile existingProfile = sysOwnerProfileService.selectSysOwnerProfileByUserId(userId);
+        if (existingProfile != null && ("1".equals(existingProfile.getAuthStatus()) || "2".equals(existingProfile.getAuthStatus()))) {
+            return AjaxResult.error("您已提交认证申请或已认证，请勿重复提交");
+        }
+
+        sysOwnerProfile.setUserId(userId);
+        sysOwnerProfile.setAuthStatus("1"); // 1-待审核
+        if (existingProfile != null) {
+            // 如果之前有记录（如认证失败），则更新
+            return toAjax(sysOwnerProfileService.updateSysOwnerProfile(sysOwnerProfile));
+        } else {
+            // 否则，插入新纪录
+            return toAjax(sysOwnerProfileService.insertSysOwnerProfile(sysOwnerProfile));
+        }
+    }
+
+    /**
+     * (小程序端) 获取我的认证信息
+     */
+    @GetMapping("/myProfile")
+    public AjaxResult getMyProfile()
+    {
+        Long userId = SecurityUtils.getUserId();
+        SysOwnerProfile profile = sysOwnerProfileService.selectSysOwnerProfileByUserId(userId);
+        if (profile == null) {
+            // 为了前端处理方便，如果不存在记录，返回一个包含默认状态的对象
+            SysOwnerProfile defaultProfile = new SysOwnerProfile();
+            defaultProfile.setAuthStatus("0"); // 0-未认证
+            return AjaxResult.success(defaultProfile);
+        }
+        return AjaxResult.success(profile);
+    }
+
+
+    /**
+     * (管理端) 查询业主信息扩展列表
      */
     @PreAuthorize("@ss.hasPermi('system:profile:list')")
     @GetMapping("/list")
@@ -46,43 +88,39 @@ public class SysOwnerProfileController extends BaseController
     }
 
     /**
-     * 审核认证申请
+     * (管理端) 审核认证申请
      */
     @PreAuthorize("@ss.hasPermi('system:profile:audit')")
     @Log(title = "业主认证审核", businessType = BusinessType.UPDATE)
     @PutMapping("/audit")
     public AjaxResult audit(@RequestBody SysOwnerProfile profile)
     {
-        // 简单验证，确保状态和备注不为空
-        if (StringUtils.isEmpty(profile.getAuthStatus()) || profile.getUserId() == null)
+        // 验证关键参数
+        if (profile.getUserId() == null || !StringUtils.hasText(profile.getAuthStatus()))
         {
             return error("审核失败，缺少必要参数");
         }
-        // 审核通过时，将用户信息同步到主表
+
+        SysOwnerProfile ownerProfile = sysOwnerProfileService.selectSysOwnerProfileByUserId(profile.getUserId());
+        if (ownerProfile == null) {
+            return error("审核失败，找不到对应的认证记录");
+        }
+
+        // 更新状态和审核备注
+        ownerProfile.setAuthStatus(profile.getAuthStatus());
+        ownerProfile.setRemark(profile.getRemark()); // 管理员填写的审核备注
+
+        // 如果审核通过，可以同步一些信息到sys_user表
         if ("2".equals(profile.getAuthStatus())) {
-            SysOwnerProfile ownerProfile = sysOwnerProfileService.selectSysOwnerProfileByUserId(profile.getUserId());
             SysUser user = new SysUser();
             user.setUserId(ownerProfile.getUserId());
-            user.setNickName(ownerProfile.getRealName()); // 可将昵称同步为真实姓名
-            // user.setPhonenumber(ownerProfile.getPhonenumber()); // 如果需要同步手机号
+            user.setNickName(ownerProfile.getRealName()); // 将昵称同步为真实姓名
+            // 可以在这里添加更多需要同步的字段
             userService.updateUserProfile(user);
         }
-        return toAjax(sysOwnerProfileService.updateSysOwnerProfile(profile));
+
+        return toAjax(sysOwnerProfileService.updateSysOwnerProfile(ownerProfile));
     }
-
-
-    /**
-     * 导出业主信息扩展列表
-     */
-//    @PreAuthorize("@ss.hasPermi('system:profile:export')")
-//    @Log(title = "业主信息扩展", businessType = BusinessType.EXPORT)
-//    @PostMapping("/export")
-//    public void export(HttpServletResponse response, SysOwnerProfile sysOwnerProfile)
-//    {
-//        List<SysOwnerProfile> list = sysOwnerProfileService.selectSysOwnerProfileList(sysOwnerProfile);
-//        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
-//        util.exportExcel(response, list, "业主信息扩展数据");
-//    }
 
     /**
      * 获取业主信息扩展详细信息

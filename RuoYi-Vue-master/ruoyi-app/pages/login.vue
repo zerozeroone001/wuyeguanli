@@ -3,7 +3,7 @@
     <view class="logo-content align-center justify-center flex">
       <image style="width: 100rpx;height: 100rpx;" :src="globalConfig.appInfo.logo" mode="widthFix">
       </image>
-      <text class="title">若依移动端登录</text>
+      <text class="title">卓特物业</text>
     </view>
     <view class="login-form-content">
       
@@ -61,16 +61,18 @@
       // 获取用户头像
       onChooseAvatar(e) {
         this.$modal.loading("头像上传中...")
-        upload({ 
-          url: '/common/upload',
-          filePath: e.detail.avatarUrl
-        }).then(res => {
-          this.$modal.closeLoading()
-          this.avatarUrl = res.url
-        }).catch(err => {
-          this.$modal.closeLoading()
-          this.$modal.msgError("头像上传失败")
-        })
+		console.log(e)
+        // upload({ 
+        //   url: '/common/upload',
+        //   filePath: e.detail.avatarUrl
+        // }).then(res => {
+        //   this.$modal.closeLoading()
+        //   this.avatarUrl = res.url
+        // }).catch(err => {
+        //   this.$modal.closeLoading()
+        //   this.$modal.msgError("头像上传失败")
+        // })
+		this.$modal.closeLoading()
       },
       // 昵称输入框失焦（兼容性处理）
       onNicknameBlur(e) {

@@ -27,7 +27,7 @@ import java.util.List;
  * @author ruoyi
  */
 @RestController
-@RequestMapping("/userapi/common")
+@RequestMapping("/common")
 public class CommonController
 {
     private static final Logger log = LoggerFactory.getLogger(CommonController.class);

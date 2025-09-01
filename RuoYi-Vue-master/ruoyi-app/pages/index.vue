@@ -22,25 +22,25 @@
         <view class="user-avatar-wrap">
           <image 
             class="user-avatar" 
-            :src="mockUser.avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
+            :src="avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
             mode="aspectFill"
           />
         </view>
         <view class="user-detail">
           <view class="greeting-wrap">
-            <text class="greeting">{{ greeting }}，{{ mockUser.nickName }}</text>
+            <text class="greeting">{{ greeting }}，{{ nickName }}</text>
             <view class="weather-info">
               <uni-icons type="cloudy" size="14" color="#8C8C8C" />
               <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
             </view>
           </view>
-          <view class="auth-status" v-if="!mockUser.authStatus" @click="goAuth">
+          <view class="auth-status" v-if="!authStatus" @click="goAuth">
             <text class="status-text">未认证业主</text>
             <text class="auth-link">去认证 ></text>
           </view>
           <view class="auth-status verified" v-else>
-            <uni-icons type="checkmarkempty" size="16" color="#52C41A" />
-            <text class="verified-text">已认证业主</text>
+            <uni-icons type="home-filled" size="16" color="#52C41A" />
+            <text class="verified-text">{{ propertyAddress || '已认证业主' }}</text>
           </view>
         </view>
       </view>
@@ -69,9 +69,9 @@
         <swiper-item v-for="notice in noticeList" :key="notice.noticeId">
           <view class="notice-item" @click="viewNotice(notice)">
             <view class="notice-left">
-              <view class="notice-badge" :class="notice.noticeType === '1' ? 'urgent' : 'normal'">
+            <!--  <view class="notice-badge" :class="notice.noticeType === '1' ? 'urgent' : 'normal'">
                 <text class="notice-type">{{ notice.noticeType === '1' ? '重要' : '通知' }}</text>
-              </view>
+              </view> -->
               <view class="notice-content">
                 <text class="notice-title">{{ notice.noticeTitle }}</text>
                 <text class="notice-summary">{{ notice.noticeContent }}</text>
@@ -169,6 +169,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import config from '@/config'
 import { listNotice } from '@/api/notice.js'
 
@@ -181,16 +182,6 @@ export default {
       weather: {
         text: '晴',
         temp: 22
-      },
-      // 模拟用户数据(无需登录)
-      mockUser: {
-        nickName: '张先生',
-        avatar: 'https://img.icons8.com/fluency/96/user-male-circle.png',
-        authStatus: false, // false显示未认证，true显示已认证
-        phone: '138****8888',
-        building: '3号楼',
-        unit: '2单元',
-        room: '1201'
       },
       // 公告数据改为空数组，将从API获取
       noticeList: [],
@@ -279,6 +270,25 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+        'nickName',
+        'avatar',
+        'ownerProfile' // 直接获取ownerProfile对象
+    ]),
+    // 从ownerProfile中派生出认证状态
+    authStatus() {
+      return this.ownerProfile && this.ownerProfile.authStatus === '2'; // 2-已认证
+    },
+    // 新增：从业主信息中拼接地址
+    propertyAddress() {
+      if (this.authStatus && this.ownerProfile) {
+        const { buildingNo, unitNo, roomNo } = this.ownerProfile;
+        if (buildingNo || unitNo || roomNo) {
+          return `${buildingNo || ''} ${unitNo || ''} ${roomNo || ''}`.trim();
+        }
+      }
+      return '';
+    },
     greeting() {
       const hour = new Date().getHours()
       if (hour < 12) return '早上好'
@@ -288,6 +298,10 @@ export default {
   },
   onLoad() {
     this.initPage()
+  },
+  onShow() {
+    // 每次页面显示时，都主动刷新一次认证信息
+    this.$store.dispatch('GetProfileInfo');
   },
   
   // 下拉刷新
@@ -379,7 +393,7 @@ export default {
     
     goAuth() {
       // 如果未认证，则跳转到认证页面
-      if (!this.mockUser.authStatus) {
+      if (!this.authStatus) {
         uni.navigateTo({ url: '/pages/mine/auth' })
       }
     },
