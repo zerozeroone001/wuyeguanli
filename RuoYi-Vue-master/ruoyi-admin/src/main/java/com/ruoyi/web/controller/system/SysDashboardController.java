@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +34,7 @@ public class SysDashboardController extends BaseController
     
     @Autowired
     private ISysPropertyComplaintService complaintService;
-    
+
     @Autowired
     private ISysPropertyMeetingService meetingService;
     
@@ -54,7 +56,7 @@ public class SysDashboardController extends BaseController
         Long monthNewOwners = userService.countMonthNewOwners();
         ownerStats.put("total", totalOwners);
         ownerStats.put("monthNew", monthNewOwners);
-        ownerStats.put("trend", monthNewOwners > 0 ? "up" : "stable");
+        ownerStats.put("trend", monthNewOwners != null && monthNewOwners > 0 ? "up" : "stable");
         data.put("ownerStats", ownerStats);
         
         // 投票统计
@@ -63,7 +65,7 @@ public class SysDashboardController extends BaseController
         Double participationRate = meetingService.getAverageParticipationRate();
         voteStats.put("ongoing", ongoingVotes);
         voteStats.put("participationRate", participationRate);
-        voteStats.put("trend", participationRate > 80 ? "up" : "down");
+        voteStats.put("trend", participationRate != null && participationRate > 80 ? "up" : "down");
         data.put("voteStats", voteStats);
         
         // 投诉统计
@@ -72,7 +74,7 @@ public class SysDashboardController extends BaseController
         Double complaintGrowth = complaintService.getComplaintGrowthRate();
         complaintStats.put("pending", pendingComplaints);
         complaintStats.put("growth", complaintGrowth);
-        complaintStats.put("trend", complaintGrowth > 0 ? "up" : "down");
+        complaintStats.put("trend", complaintGrowth != null && complaintGrowth > 0 ? "up" : "down");
         data.put("complaintStats", complaintStats);
         
         // 资金统计
@@ -81,7 +83,7 @@ public class SysDashboardController extends BaseController
         Double fundGrowth = fundFlowService.getFundGrowthRate();
         fundStats.put("total", totalFunds);
         fundStats.put("growth", fundGrowth);
-        fundStats.put("trend", fundGrowth > 0 ? "up" : "down");
+        fundStats.put("trend", fundGrowth != null && fundGrowth > 0 ? "up" : "down");
         data.put("fundStats", fundStats);
         
         return success(data);
@@ -98,7 +100,7 @@ public class SysDashboardController extends BaseController
         
         // 紧急投诉待处理
         Long urgentComplaints = complaintService.countUrgentComplaints();
-        if (urgentComplaints > 0) {
+        if (urgentComplaints != null && urgentComplaints > 0) {
             Map<String, Object> todo = new HashMap<>();
             todo.put("id", 1);
             todo.put("type", "complaint");
@@ -112,7 +114,7 @@ public class SysDashboardController extends BaseController
         
         // 资金审批待处理
         Long pendingApprovals = fundFlowService.countPendingApprovals();
-        if (pendingApprovals > 0) {
+        if (pendingApprovals != null && pendingApprovals > 0) {
             Map<String, Object> todo = new HashMap<>();
             todo.put("id", 2);
             todo.put("type", "fund");
@@ -126,7 +128,7 @@ public class SysDashboardController extends BaseController
         
         // 会议安排
         Long upcomingMeetings = meetingService.countUpcomingMeetings();
-        if (upcomingMeetings > 0) {
+        if (upcomingMeetings != null && upcomingMeetings > 0) {
             Map<String, Object> todo = new HashMap<>();
             todo.put("id", 3);
             todo.put("type", "meeting");
@@ -183,10 +185,19 @@ public class SysDashboardController extends BaseController
         List<Map<String, Object>> recentVotes = meetingService.getRecentVotes(5);
         List<Map<String, Object>> recentFunds = fundFlowService.getRecentFunds(5);
         
-        activities.addAll(recentComplaints);
-        activities.addAll(recentVotes);
-        activities.addAll(recentFunds);
+        if (recentComplaints != null) {
+            activities.addAll(recentComplaints);
+        }
+        if (recentVotes != null) {
+            activities.addAll(recentVotes);
+        }
+        if (recentFunds != null) {
+            activities.addAll(recentFunds);
+        }
         
+        // 删除空的活动项
+        activities.removeIf(Objects::isNull);
+
         // 按时间排序
         activities.sort((a, b) -> {
             String timeA = (String) a.get("time");
