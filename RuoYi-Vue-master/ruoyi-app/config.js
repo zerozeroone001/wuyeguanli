@@ -1,9 +1,9 @@
 // 应用全局配置
 module.exports = {
   // 开发环境
-  baseUrl: 'http://www.zhuote.cloud/userapi',
+  // baseUrl: 'http://www.zhuote.cloud/userapi',
   // 生产环境
-  // baseUrl: 'http://localhost:8081/userapi',
+  baseUrl: 'http://localhost:8081/userapi',
   
   // 应用信息
   appInfo: {
