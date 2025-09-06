@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysMeetingFeedbackMapper">
+
+    <resultMap type="SysMeetingFeedback" id="SysMeetingFeedbackResult">
+        <result property="feedbackId"    column="feedback_id"    />
+        <result property="topicId"    column="topic_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="content"    column="content"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectSysMeetingFeedbackVo">
+        select feedback_id, topic_id, user_id, user_name, content, create_time from sys_meeting_feedback
+    </sql>
+
+    <select id="selectSysMeetingFeedbackListByTopicId" parameterType="Long" resultMap="SysMeetingFeedbackResult">
+        <include refid="selectSysMeetingFeedbackVo"/>
+        where topic_id = #{topicId}
+    </select>
+
+</mapper>

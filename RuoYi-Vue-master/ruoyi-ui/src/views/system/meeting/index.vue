@@ -113,7 +113,11 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="会议ID" align="center" prop="meetingId" />
       <el-table-column label="会议标题" align="center" prop="meetingTitle" />
-      <el-table-column label="会议类型" align="center" prop="meetingType" />
+      <el-table-column label="会议类型" align="center" prop="meetingType" >
+        <template slot-scope="scope">
+          <span>{{ scope.row.meetingType === 1 ? '业主大会' : '业主委员会' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="会议内容" align="center" prop="meetingContent" />
       <el-table-column label="会议时间" align="center" prop="meetingTime" width="180">
         <template slot-scope="scope">
@@ -121,7 +125,7 @@
         </template>
       </el-table-column>
       <el-table-column label="会议地点" align="center" prop="meetingLocation" />
-      <el-table-column label="会议状态(0-筹备中,1-进行中,2-已结束)" align="center" prop="meetingStatus" />
+      <el-table-column label="会议状态" align="center" prop="meetingStatus" />
       <el-table-column label="投票开始时间" align="center" prop="voteStartTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.voteStartTime, '{y}-{m}-{d}') }}</span>
@@ -136,6 +140,12 @@
       <el-table-column label="实际参与人数" align="center" prop="actualVoters" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-view"
+            @click="handleViewTopics(scope.row)"
+          >查看议题</el-button>
           <el-button
             size="mini"
             type="text"
@@ -271,6 +281,49 @@
       </div>
     </el-dialog>
 
+    <!-- 议题列表对话框 -->
+    <el-dialog title="议题列表" :visible.sync="topicListDialogVisible" width="60%" append-to-body>
+      <el-table :data="currentMeetingTopics" border>
+        <el-table-column label="议题标题" prop="topicTitle" align="center"></el-table-column>
+        <el-table-column label="操作" align="center">
+          <template slot-scope="scope">
+            <el-button size="mini" type="text" @click="handleViewVotes(scope.row)">投票列表</el-button>
+            <el-button size="mini" type="text" @click="handleViewFeedbacks(scope.row)">意见反馈</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+    <!-- 投票列表对话框 -->
+    <el-dialog title="投票列表" :visible.sync="voteListDialogVisible" width="50%" append-to-body>
+      <el-table :data="currentTopicVotes" border>
+        <el-table-column label="投票人" prop="userName" align="center"></el-table-column>
+        <el-table-column label="投票选项" prop="voteOption" align="center">
+          <template slot-scope="scope">
+            <span>{{ formatVoteOption(scope.row.voteOption) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="投票时间" prop="createTime" align="center">
+           <template slot-scope="scope">
+             <span>{{ parseTime(scope.row.createTime) }}</span>
+           </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+    <!-- 意见反馈列表对话框 -->
+    <el-dialog title="意见反馈列表" :visible.sync="feedbackListDialogVisible" width="50%" append-to-body>
+      <el-table :data="currentTopicFeedbacks" border>
+        <el-table-column label="反馈人" prop="userName" align="center"></el-table-column>
+        <el-table-column label="反馈内容" prop="content"></el-table-column>
+        <el-table-column label="反馈时间" prop="createTime" align="center">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.createTime) }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -339,7 +392,16 @@ export default {
         topicTitle: [
           { required: true, message: "议题标题不能为空", trigger: "blur" }
         ]
-      }
+      },
+      // 议题列表对话框
+      topicListDialogVisible: false,
+      currentMeetingTopics: [],
+      // 投票列表对话框
+      voteListDialogVisible: false,
+      currentTopicVotes: [],
+      // 意见反馈列表对话框
+      feedbackListDialogVisible: false,
+      currentTopicFeedbacks: [],
     }
   },
   created() {
@@ -449,6 +511,30 @@ export default {
       this.download('system/meeting/export', {
         ...this.queryParams
       }, `meeting_${new Date().getTime()}.xlsx`)
+    },
+    /** 查看议题按钮操作 */
+    handleViewTopics(row) {
+      getMeeting(row.meetingId).then(response => {
+        this.currentMeetingTopics = response.data.topics || [];
+        this.topicListDialogVisible = true;
+      });
+    },
+    /** 查看投票列表按钮操作 */
+    handleViewVotes(topic) {
+      this.currentTopicVotes = topic.voteList || [];
+      this.voteListDialogVisible = true;
+    },
+    /** 查看意见反馈列表按钮操作 */
+    handleViewFeedbacks(topic) {
+      this.currentTopicFeedbacks = topic.feedbackList || [];
+      this.feedbackListDialogVisible = true;
+    },
+    /** 格式化投票选项 */
+    formatVoteOption(option) {
+      if (option === 0) return '同意';
+      if (option === 1) return '反对';
+      if (option === 2) return '弃权';
+      return '未知';
     },
     // 议题表单重置
     resetTopic() {

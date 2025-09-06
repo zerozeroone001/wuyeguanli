@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.Map;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.system.domain.SysMeetingFeedback;
+import com.ruoyi.system.domain.SysMeetingVote;
 import com.ruoyi.system.domain.SysPropertyMeetingTopic;
 import com.ruoyi.system.mapper.SysPropertyMeetingTopicMapper;
+import com.ruoyi.system.service.ISysMeetingFeedbackService;
+import com.ruoyi.system.service.ISysMeetingVoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +32,12 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     @Autowired
     private SysPropertyMeetingTopicMapper sysPropertyMeetingTopicMapper;
 
+    @Autowired
+    private ISysMeetingVoteService sysMeetingVoteService;
+
+    @Autowired
+    private ISysMeetingFeedbackService sysMeetingFeedbackService;
+
     /**
      * 查询会议管理
      * 
@@ -37,7 +47,16 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     @Override
     public SysPropertyMeeting selectSysPropertyMeetingByMeetingId(Long meetingId)
     {
-        return sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        if (meeting != null && meeting.getTopics() != null) {
+            for (SysPropertyMeetingTopic topic : meeting.getTopics()) {
+                List<SysMeetingVote> voteList = sysMeetingVoteService.selectSysMeetingVoteListByTopicId(topic.getTopicId());
+                List<SysMeetingFeedback> feedbackList = sysMeetingFeedbackService.selectSysMeetingFeedbackListByTopicId(topic.getTopicId());
+                topic.setVoteList(voteList);
+                topic.setFeedbackList(feedbackList);
+            }
+        }
+        return meeting;
     }
 
     /**

@@ -4,10 +4,11 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import java.util.List;
 
 /**
  * 会议议题对象 sys_property_meeting_topic
- * 
+ *
  * @author ruoyi
  * @date 2025-08-31
  */
@@ -50,94 +51,116 @@ public class SysPropertyMeetingTopic extends BaseEntity
     @Excel(name = "显示顺序")
     private Long orderNum;
 
-    public void setTopicId(Long topicId) 
+    /** 投票列表 */
+    private List<SysMeetingVote> voteList;
+
+    /** 意见反馈列表 */
+    private List<SysMeetingFeedback> feedbackList;
+
+    public void setTopicId(Long topicId)
     {
         this.topicId = topicId;
     }
 
-    public Long getTopicId() 
+    public Long getTopicId()
     {
         return topicId;
     }
 
-    public void setMeetingId(Long meetingId) 
+    public void setMeetingId(Long meetingId)
     {
         this.meetingId = meetingId;
     }
 
-    public Long getMeetingId() 
+    public Long getMeetingId()
     {
         return meetingId;
     }
 
-    public void setTopicTitle(String topicTitle) 
+    public void setTopicTitle(String topicTitle)
     {
         this.topicTitle = topicTitle;
     }
 
-    public String getTopicTitle() 
+    public String getTopicTitle()
     {
         return topicTitle;
     }
 
-    public void setTopicContent(String topicContent) 
+    public void setTopicContent(String topicContent)
     {
         this.topicContent = topicContent;
     }
 
-    public String getTopicContent() 
+    public String getTopicContent()
     {
         return topicContent;
     }
 
-    public void setFiles(String files) 
+    public void setFiles(String files)
     {
         this.files = files;
     }
 
-    public String getFiles() 
+    public String getFiles()
     {
         return files;
     }
 
-    public void setAgreeCount(Long agreeCount) 
+    public void setAgreeCount(Long agreeCount)
     {
         this.agreeCount = agreeCount;
     }
 
-    public Long getAgreeCount() 
+    public Long getAgreeCount()
     {
         return agreeCount;
     }
 
-    public void setOpposeCount(Long opposeCount) 
+    public void setOpposeCount(Long opposeCount)
     {
         this.opposeCount = opposeCount;
     }
 
-    public Long getOpposeCount() 
+    public Long getOpposeCount()
     {
         return opposeCount;
     }
 
-    public void setAbstainCount(Long abstainCount) 
+    public void setAbstainCount(Long abstainCount)
     {
         this.abstainCount = abstainCount;
     }
 
-    public Long getAbstainCount() 
+    public Long getAbstainCount()
     {
         return abstainCount;
     }
 
-    public void setOrderNum(Long orderNum) 
+    public void setOrderNum(Long orderNum)
     {
         this.orderNum = orderNum;
     }
 
-    public Long getOrderNum() 
+    public Long getOrderNum()
     {
         return orderNum;
+    }
+
+    public List<SysMeetingVote> getVoteList() {
+        return voteList;
+    }
+
+    public void setVoteList(List<SysMeetingVote> voteList) {
+        this.voteList = voteList;
+    }
+
+    public List<SysMeetingFeedback> getFeedbackList() {
+        return feedbackList;
+    }
+
+    public void setFeedbackList(List<SysMeetingFeedback> feedbackList) {
+        this.feedbackList = feedbackList;
     }
 
     @Override
@@ -157,6 +180,8 @@ public class SysPropertyMeetingTopic extends BaseEntity
             .append("updateBy", getUpdateBy())
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
+            .append("voteList", getVoteList())
+            .append("feedbackList", getFeedbackList())
             .toString();
     }
 }

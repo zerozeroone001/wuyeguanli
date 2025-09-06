@@ -28,6 +28,14 @@ public interface SysMeetingVoteMapper
     public List<SysMeetingVote> selectSysMeetingVoteList(SysMeetingVote sysMeetingVote);
 
     /**
+     * 根据议题ID查询业主大会投票列表
+     *
+     * @param topicId 议题ID
+     * @return 业主大会投票集合
+     */
+    public List<SysMeetingVote> selectSysMeetingVoteListByTopicId(Long topicId);
+
+    /**
      * 新增业主大会投票
      * 
      * @param sysMeetingVote 业主大会投票

@@ -45,6 +45,18 @@ public class SysMeetingVoteServiceImpl implements ISysMeetingVoteService
     }
 
     /**
+     * 根据议题ID查询业主大会投票列表
+     *
+     * @param topicId 议题ID
+     * @return 业主大会投票
+     */
+    @Override
+    public List<SysMeetingVote> selectSysMeetingVoteListByTopicId(Long topicId)
+    {
+        return sysMeetingVoteMapper.selectSysMeetingVoteListByTopicId(topicId);
+    }
+
+    /**
      * 新增业主大会投票
      * 
      * @param sysMeetingVote 业主大会投票

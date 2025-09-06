@@ -8,8 +8,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="voteId"    column="vote_id"    />
         <result property="topicId"    column="topic_id"    />
         <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
         <result property="voteOption"    column="vote_option"    />
+        <result property="createTime"    column="create_time"    />
     </resultMap>
+
+    <sql id="selectSysMeetingVoteVo">
+        select v.vote_id, v.topic_id, v.user_id, u.user_name, v.vote_option, v.create_time
+        from sys_meeting_vote v
+        left join sys_user u on v.user_id = u.user_id
+    </sql>
+
+    <select id="selectSysMeetingVoteListByTopicId" parameterType="Long" resultMap="SysMeetingVoteResult">
+        <include refid="selectSysMeetingVoteVo"/>
+        where v.topic_id = #{topicId}
+    </select>
 
     <insert id="insertMeetingVote" parameterType="SysMeetingVote">
         insert into sys_meeting_vote (topic_id, user_id, vote_option) values (#{topicId}, #{userId}, #{voteOption})
