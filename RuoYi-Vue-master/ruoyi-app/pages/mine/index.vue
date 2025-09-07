@@ -143,6 +143,12 @@ export default {
           path: '/pages/mine/auth'
         },
         {
+          name: '我的房产',
+          icon: 'home-filled',
+          bgColor: '#FA8C16',
+          path: '/pages/property/index'
+        },
+        {
           name: '消息设置',
           icon: 'email',
           bgColor: '#096DD9',

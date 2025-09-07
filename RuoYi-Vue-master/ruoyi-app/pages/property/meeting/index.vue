@@ -1,14 +1,5 @@
 <template>
   <view class="meeting-container">
-    <!-- 会议日历 -->
-  <!--  <view class="calendar-section">
-      <uni-calendar 
-        :selected="selectedDate" 
-        @change="onCalendarChange"
-        :marks="meetingMarks"
-      />
-    </view> -->
-
     <!-- 会议分类 -->
     <view class="meeting-tabs">
       <view 
@@ -44,7 +35,7 @@
       >
         <view class="meeting-header">
           <text class="meeting-title">{{ meeting.meetingTitle }}</text>
-          <view class="meeting-status" :class="[meeting.meetingStatus === 'preparing' ? 'status-preparing' : meeting.meetingStatus === 'voting' ? 'status-voting' : meeting.meetingStatus === 'completed' ? 'status-completed' : 'status-default']">
+          <view class="meeting-status" :class="{ 'status-upcoming': meeting.meetingStatus == '0', 'status-ongoing': meeting.meetingStatus == '1', 'status-finished': meeting.meetingStatus == '2' }">
             {{ getStatusText(meeting.meetingStatus) }}
           </view>
         </view>
@@ -59,7 +50,7 @@
           </view>
           <view class="info-row">
             <uni-icons type="person" size="16" color="#8C8C8C" />
-            <text class="meeting-participants">{{ meeting.actualVoters }}/{{ meeting.totalVoters }}人参与</text>
+            <text class="meeting-participants">{{ meeting.actualVoters || 0 }}/{{ meeting.totalVoters || 0 }}人参与</text>
           </view>
         </view>
         <view class="meeting-action">
@@ -69,13 +60,6 @@
             @click.stop="goVote(meeting)"
           >
             参与投票
-          </button>
-          <button 
-            v-else-if="meeting.meetingStatus === '2'" 
-            class="result-btn"
-            @click.stop="viewResult(meeting)"
-          >
-            查看结果
           </button>
           <button 
             v-else 
@@ -88,116 +72,92 @@
       </view>
     </view>
 
-    <!-- 空状态 -->
-    <view class="empty-state" v-if="meetingList.length === 0">
-      <uni-icons type="calendar" size="80" color="#D9D9D9" />
-      <text class="empty-text">暂无会议信息</text>
+    <!-- 列表为空或加载状态 -->
+    <view class="status-view">
+      <view class="empty-state" v-if="!loading && meetingList.length === 0">
+        <uni-icons type="calendar" size="80" color="#D9D9D9" />
+        <text class="empty-text">暂无会议信息</text>
+      </view>
+      <uni-load-more v-if="loading || meetingList.length > 0" :status="loading ? 'loading' : (finished ? 'noMore' : 'more')"></uni-load-more>
     </view>
+
   </view>
 </template>
 
 <script>
+import { listMeeting } from "@/api/property/meeting";
+
 export default {
   data() {
     return {
       activeTab: 'ongoing',
-      selectedDate: [],
       meetingList: [],
-      meetingMarks: []
+      // 查询参数
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        meetingStatus: '1' // 默认加载进行中
+      },
+      // 加载状态
+      loading: false,
+      // 是否已加载全部数据
+      finished: false,
+      total: 0
     }
   },
   onLoad() {
-    this.loadMeetings()
+    this.loadMeetings();
   },
+  // 下拉刷新
   onPullDownRefresh() {
-    this.loadMeetings()
+    this.resetAndLoad();
     setTimeout(() => {
-      uni.stopPullDownRefresh()
-    }, 1000)
+      uni.stopPullDownRefresh();
+    }, 500);
+  },
+  // 触底加载更多
+  onReachBottom() {
+    if (!this.finished && !this.loading) {
+      this.queryParams.pageNum++;
+      this.loadMeetings();
+    }
   },
   methods: {
+    // 重置并加载
+    resetAndLoad() {
+      this.queryParams.pageNum = 1;
+      this.meetingList = [];
+      this.finished = false;
+      this.total = 0;
+      this.loadMeetings();
+    },
+    // 加载会议列表
     loadMeetings() {
-      // 模拟数据
-      const mockData = {
-        ongoing: [
-          {
-            meetingId: 1,
-            meetingTitle: '2024年度业主大会第一次会议',
-            meetingType: '1',
-            meetingStatus: '1',
-            meetingTime: '2024-01-15 14:00',
-            meetingLocation: '小区会议室',
-            totalVoters: 856,
-            actualVoters: 324,
-            voteEndTime: '2024-01-20 18:00',
-            description: '讨论小区物业管理费调整方案'
-          }
-        ],
-        upcoming: [
-          {
-            meetingId: 2,
-            meetingTitle: '业委会换届选举大会',
-            meetingType: '1',
-            meetingStatus: '0',
-            meetingTime: '2024-02-01 09:00',
-            meetingLocation: '小区广场',
-            totalVoters: 856,
-            actualVoters: 0,
-            description: '进行新一届业委会成员选举'
-          },
-          {
-            meetingId: 3,
-            meetingTitle: '小区绿化改造方案讨论',
-            meetingType: '2',
-            meetingStatus: '0',
-            meetingTime: '2024-02-10 15:00',
-            meetingLocation: '小区会议室',
-            totalVoters: 856,
-            actualVoters: 0,
-            description: '讨论小区绿化改造具体方案'
-          }
-        ],
-        finished: [
-          {
-            meetingId: 4,
-            meetingTitle: '2023年度财务报告审议',
-            meetingType: '1',
-            meetingStatus: '2',
-            meetingTime: '2023-12-25 14:00',
-            meetingLocation: '小区会议室',
-            totalVoters: 856,
-            actualVoters: 567,
-            description: '审议2023年度小区财务收支情况'
-          },
-          {
-            meetingId: 5,
-            meetingTitle: '停车位管理规定修订',
-            meetingType: '2',
-            meetingStatus: '2',
-            meetingTime: '2023-12-10 16:00',
-            meetingLocation: '小区会议室',
-            totalVoters: 856,
-            actualVoters: 423,
-            description: '修订小区停车位使用管理规定'
-          }
-        ]
+      if (this.loading || (this.queryParams.pageNum > 1 && this.finished)) {
+        return;
       }
-      
-      this.meetingList = mockData[this.activeTab] || []
-      this.generateCalendarMarks()
+      this.loading = true;
+      this.queryParams.meetingStatus = this.getStatusByTab(this.activeTab);
+
+      listMeeting(this.queryParams).then(response => {
+        const { rows, total } = response;
+        if (rows && rows.length > 0) {
+          this.meetingList = this.queryParams.pageNum === 1 ? rows : this.meetingList.concat(rows);
+        }
+        this.total = total;
+        this.finished = this.meetingList.length >= this.total;
+        this.loading = false;
+      }).catch(err => {
+        this.loading = false;
+      });
     },
-    
-    generateCalendarMarks() {
-      this.meetingMarks = this.meetingList.map(meeting => ({
-        date: meeting.meetingTime.split(' ')[0],
-        info: meeting.meetingTitle.substring(0, 6) + '...',
-        data: meeting
-      }))
-    },
-    
+    // 切换Tab
     switchTab(tab) {
-      this.activeTab = tab
-      this.loadMeetings()
+      if (this.activeTab === tab) {
+        return;
+      }
+      this.activeTab = tab;
+      this.resetAndLoad();
     },
     
     getStatusByTab(tab) {
@@ -209,33 +169,20 @@ export default {
       return statusMap[tab]
     },
     
-    getStatusClass(status) {
-      const classMap = {
-        '0': 'status-upcoming',
-        '1': 'status-ongoing',
-        '2': 'status-finished'
-      }
-      return classMap[status] || 'status-default'
-    },
+    
     
     getStatusText(status) {
       const textMap = {
         '0': '筹备中',
-        '1': '投票中',
+        '1': '进行中',
         '2': '已结束'
       }
       return textMap[status] || '未知'
     },
     
-    onCalendarChange(event) {
-      this.selectedDate = event.fulldate
-      // 可以根据选中日期过滤会议
-    },
-    
     viewMeeting(meeting) {
-      uni.navigateTo({
-        url: `/pages/property/meeting/detail?id=${meeting.meetingId}`
-      })
+      // 统一跳转到投票页，因为那里信息最全
+      this.goVote(meeting);
     },
     
     goVote(meeting) {
@@ -244,15 +191,10 @@ export default {
       })
     },
     
-    viewResult(meeting) {
-      uni.navigateTo({
-        url: `/pages/property/meeting/result?id=${meeting.meetingId}`
-      })
-    },
-    
     viewDetail(meeting) {
+      // 详情页也可以与投票页合并
       uni.navigateTo({
-        url: `/pages/property/meeting/detail?id=${meeting.meetingId}`
+        url: `/pages/property/meeting/vote?id=${meeting.meetingId}`
       })
     }
   }
@@ -271,36 +213,31 @@ page {
   background-color: #FAFBFC;
 }
 
-.calendar-section {
-  background: #FFFFFF;
-  margin: 20rpx;
-  border-radius: 24rpx;
-  padding: 30rpx;
-  border: 1rpx solid #F0F0F0;
-}
-
 .meeting-tabs {
   display: flex;
   background: #FFFFFF;
-  margin: 0 20rpx 20rpx;
+  margin: 20rpx;
   border-radius: 24rpx;
   padding: 10rpx;
   border: 1rpx solid #F0F0F0;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #8C8C8C;
+  border-radius: 20rpx;
+  transition: all 0.3s ease;
   
-  .tab-item {
-    flex: 1;
-    text-align: center;
-    padding: 20rpx 0;
-    font-size: 28rpx;
-    color: #8C8C8C;
-    border-radius: 20rpx;
-    transition: all 0.3s ease;
-    
-    &.active {
-      background: #1890FF;
-      color: #FFFFFF;
-      font-weight: 600;
-    }
+  &.active {
+    background: #1890FF;
+    color: #FFFFFF;
+    font-weight: 600;
   }
 }
 
@@ -384,19 +321,20 @@ page {
   justify-content: flex-end;
   
   button {
+    margin: 0;
     padding: 16rpx 32rpx;
     border-radius: 20rpx;
     font-size: 26rpx;
     font-weight: 500;
     border: none;
+    line-height: 1.5;
     
+    &::after {
+      border: none;
+    }
+
     &.vote-btn {
       background: #1890FF;
-      color: #FFFFFF;
-    }
-    
-    &.result-btn {
-      background: #52C41A;
       color: #FFFFFF;
     }
     
@@ -409,6 +347,10 @@ page {
       opacity: 0.8;
     }
   }
+}
+
+.status-view {
+  padding-bottom: 40rpx;
 }
 
 .empty-state {
@@ -425,5 +367,3 @@ page {
   }
 }
 </style>
- 
- 

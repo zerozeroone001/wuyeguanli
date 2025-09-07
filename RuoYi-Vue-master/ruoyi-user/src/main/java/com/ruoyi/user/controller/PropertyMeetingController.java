@@ -23,7 +23,7 @@ import java.util.List;
  * @date 2025-08-21
  */
 @RestController
-@RequestMapping("/system/meeting")
+@RequestMapping("/meeting")
 public class PropertyMeetingController extends BaseController
 {
     @Autowired
@@ -32,7 +32,6 @@ public class PropertyMeetingController extends BaseController
     /**
      * 查询会议管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:meeting:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyMeeting sysPropertyMeeting)
     {
@@ -44,7 +43,6 @@ public class PropertyMeetingController extends BaseController
     /**
      * 导出会议管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:meeting:export')")
     @Log(title = "会议管理", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyMeeting sysPropertyMeeting)
@@ -57,7 +55,6 @@ public class PropertyMeetingController extends BaseController
     /**
      * 获取会议管理详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:meeting:query')")
     @GetMapping(value = "/{meetingId}")
     public AjaxResult getInfo(@PathVariable("meetingId") Long meetingId)
     {
@@ -67,7 +64,6 @@ public class PropertyMeetingController extends BaseController
     /**
      * 新增会议管理
      */
-    @PreAuthorize("@ss.hasPermi('system:meeting:add')")
     @Log(title = "会议管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyMeeting sysPropertyMeeting)
@@ -78,7 +74,6 @@ public class PropertyMeetingController extends BaseController
     /**
      * 修改会议管理
      */
-    @PreAuthorize("@ss.hasPermi('system:meeting:edit')")
     @Log(title = "会议管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyMeeting sysPropertyMeeting)
@@ -89,7 +84,6 @@ public class PropertyMeetingController extends BaseController
     /**
      * 删除会议管理
      */
-    @PreAuthorize("@ss.hasPermi('system:meeting:remove')")
     @Log(title = "会议管理", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{meetingIds}")
     public AjaxResult remove(@PathVariable Long[] meetingIds)

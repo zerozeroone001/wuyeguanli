@@ -246,6 +246,23 @@
     "style": {
       "navigationBarTitleText": "查验报告"
     }
+  }, {
+    "path": "pages/property/index",
+    "style": {
+      "navigationBarTitleText": "我的房产",
+      "enablePullDownRefresh": true
+    }
+  }, {
+    "path": "pages/property/add",
+    "style": {
+      "navigationBarTitleText": "绑定房产"
+    }
+  }, {
+    "path": "pages/property/history",
+    "style": {
+      "navigationBarTitleText": "提交历史",
+      "enablePullDownRefresh": true
+    }
   }],
   "tabBar": {
     "color": "#8C8C8C",
