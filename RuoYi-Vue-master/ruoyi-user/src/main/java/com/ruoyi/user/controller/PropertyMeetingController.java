@@ -6,8 +6,10 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.system.domain.SysMeetingVote;
 import com.ruoyi.system.domain.SysPropertyMeeting;
 import com.ruoyi.system.service.ISysMeetingTopicService;
+import com.ruoyi.system.service.ISysMeetingVoteService;
 import com.ruoyi.system.service.ISysPropertyMeetingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +30,12 @@ public class PropertyMeetingController extends BaseController
 {
     @Autowired
     private ISysPropertyMeetingService sysPropertyMeetingService;
+
+    @Autowired
+    private ISysMeetingVoteService meetingVoteService;
+
+    @Autowired
+    private ISysMeetingTopicService meetingTopicService;
 
     /**
      * 查询会议管理列表
@@ -97,12 +105,23 @@ public class PropertyMeetingController extends BaseController
     }
 
 
-    @Autowired
-    private ISysMeetingTopicService meetingTopicService;
+
 
         @GetMapping("/{meetingId}/topics")
     public AjaxResult getMeetingTopics(@PathVariable("meetingId") Long meetingId) {
         return AjaxResult.success(meetingTopicService.selectMeetingTopicList(meetingId));
+    }
+
+    @GetMapping("/{meetingId}/my-votes")
+    public AjaxResult getMyVotes(@PathVariable("meetingId") Long meetingId) {
+        Long userId = getUserId(); // Assumes this method exists in BaseController
+        return AjaxResult.success(meetingVoteService.selectUserVotesInMeeting(userId, meetingId));
+    }
+
+    @PostMapping("/vote")
+    public AjaxResult submitVote(@RequestBody SysMeetingVote vote) {
+        vote.setUserId(getUserId()); // Assumes this method exists in BaseController
+        return AjaxResult.success(meetingVoteService.submitVote(vote));
     }
 
 

@@ -1,78 +1,54 @@
 package com.ruoyi.system.domain;
 
 import com.ruoyi.common.core.domain.BaseEntity;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class SysMeetingVote extends BaseEntity
-{
+public class SysMeetingVote extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     private Long voteId;
-
+    private Long meetingId;
     private Long topicId;
-
     private Long userId;
+    private String choice;
 
-    private String userName;
+    // Getters and Setters
+    public Long getVoteId() {
+        return voteId;
+    }
 
-    private Integer voteOption;
-
-    public void setVoteId(Long voteId)
-    {
+    public void setVoteId(Long voteId) {
         this.voteId = voteId;
     }
 
-    public Long getVoteId()
-    {
-        return voteId;
+    public Long getMeetingId() {
+        return meetingId;
     }
-    public void setTopicId(Long topicId)
-    {
+
+    public void setMeetingId(Long meetingId) {
+        this.meetingId = meetingId;
+    }
+
+    public Long getTopicId() {
+        return topicId;
+    }
+
+    public void setTopicId(Long topicId) {
         this.topicId = topicId;
     }
 
-    public Long getTopicId()
-    {
-        return topicId;
-    }
-    public void setUserId(Long userId)
-    {
-        this.userId = userId;
-    }
-
-    public Long getUserId()
-    {
+    public Long getUserId() {
         return userId;
     }
 
-    public String getUserName() {
-        return userName;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public String getChoice() {
+        return choice;
     }
 
-    public void setVoteOption(Integer voteOption)
-    {
-        this.voteOption = voteOption;
-    }
-
-    public Integer getVoteOption()
-    {
-        return voteOption;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-                .append("voteId", getVoteId())
-                .append("topicId", getTopicId())
-                .append("userId", getUserId())
-                .append("userName", getUserName())
-                .append("voteOption", getVoteOption())
-                .append("createTime", getCreateTime())
-                .toString();
+    public void setChoice(String choice) {
+        this.choice = choice;
     }
 }

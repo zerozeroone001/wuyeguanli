@@ -3,29 +3,91 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.SysMeetingVoteMapper">
-    
+
     <resultMap type="SysMeetingVote" id="SysMeetingVoteResult">
-        <result property="voteId"    column="vote_id"    />
-        <result property="topicId"    column="topic_id"    />
-        <result property="userId"    column="user_id"    />
-        <result property="userName"    column="user_name"    />
-        <result property="voteOption"    column="vote_option"    />
-        <result property="createTime"    column="create_time"    />
+        <id property="voteId" column="vote_id"/>
+        <result property="meetingId" column="meeting_id"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="choice" column="choice"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <sql id="selectSysMeetingVoteVo">
-        select v.vote_id, v.topic_id, v.user_id, u.user_name, v.vote_option, v.create_time
-        from sys_meeting_vote v
-        left join sys_user u on v.user_id = u.user_id
-    </sql>
-
-    <select id="selectSysMeetingVoteListByTopicId" parameterType="Long" resultMap="SysMeetingVoteResult">
-        <include refid="selectSysMeetingVoteVo"/>
-        where v.topic_id = #{topicId}
+    <select id="findVote" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote where user_id = #{userId} and topic_id = #{topicId}
     </select>
 
-    <insert id="insertMeetingVote" parameterType="SysMeetingVote">
-        insert into sys_meeting_vote (topic_id, user_id, vote_option) values (#{topicId}, #{userId}, #{voteOption})
+    <insert id="insertVote" parameterType="SysMeetingVote">
+        insert into sys_meeting_vote(meeting_id, topic_id, user_id, choice, create_time, update_time)
+        values(#{meetingId}, #{topicId}, #{userId}, #{choice}, sysdate(), sysdate())
     </insert>
+
+    <update id="updateVote" parameterType="SysMeetingVote">
+        update sys_meeting_vote
+        set choice = #{choice},
+            update_time = sysdate()
+        where vote_id = #{voteId}
+    </update>
+
+    <select id="selectUserVotesInMeeting" resultMap="SysMeetingVoteResult">
+        select topic_id, choice from sys_meeting_vote
+        where user_id = #{userId} and meeting_id = #{meetingId}
+    </select>
+
+    <select id="selectVotesByTopicId" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote where topic_id = #{topicId}
+    </select>
+
+    <select id="selectSysMeetingVoteByVoteId" parameterType="Long" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote where vote_id = #{voteId}
+    </select>
+
+    <select id="selectSysMeetingVoteList" parameterType="SysMeetingVote" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote
+        <where>
+            <if test="meetingId != null "> and meeting_id = #{meetingId}</if>
+            <if test="topicId != null "> and topic_id = #{topicId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="choice != null  and choice != ''"> and choice = #{choice}</if>
+        </where>
+    </select>
+
+    <insert id="insertSysMeetingVote" parameterType="SysMeetingVote" useGeneratedKeys="true" keyProperty="voteId">
+        insert into sys_meeting_vote
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="topicId != null">topic_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="choice != null and choice != ''">choice,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="topicId != null">#{topicId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="choice != null and choice != ''">#{choice},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysMeetingVote" parameterType="SysMeetingVote">
+        update sys_meeting_vote
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="topicId != null">topic_id = #{topicId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="choice != null and choice != ''">choice = #{choice},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where vote_id = #{voteId}
+    </update>
+
+    <delete id="deleteSysMeetingVoteByVoteIds" parameterType="String">
+        delete from sys_meeting_vote where vote_id in 
+        <foreach item="voteId" collection="array" open="(" separator="," close=")">
+            #{voteId}
+        </foreach>
+    </delete>
 
 </mapper>

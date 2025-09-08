@@ -31,7 +31,6 @@ public class MeetingVoteController extends BaseController
     /**
      * 查询业主大会投票列表
      */
-    @PreAuthorize("@ss.hasPermi('system:vote:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysMeetingVote sysMeetingVote)
     {
@@ -43,7 +42,6 @@ public class MeetingVoteController extends BaseController
     /**
      * 导出业主大会投票列表
      */
-    @PreAuthorize("@ss.hasPermi('system:vote:export')")
     @Log(title = "业主大会投票", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysMeetingVote sysMeetingVote)
@@ -56,7 +54,6 @@ public class MeetingVoteController extends BaseController
     /**
      * 获取业主大会投票详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:vote:query')")
     @GetMapping(value = "/{voteId}")
     public AjaxResult getInfo(@PathVariable("voteId") Long voteId)
     {
@@ -66,7 +63,6 @@ public class MeetingVoteController extends BaseController
     /**
      * 新增业主大会投票
      */
-    @PreAuthorize("@ss.hasPermi('system:vote:add')")
     @Log(title = "业主大会投票", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysMeetingVote sysMeetingVote)
@@ -77,7 +73,6 @@ public class MeetingVoteController extends BaseController
     /**
      * 修改业主大会投票
      */
-    @PreAuthorize("@ss.hasPermi('system:vote:edit')")
     @Log(title = "业主大会投票", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysMeetingVote sysMeetingVote)
@@ -88,7 +83,6 @@ public class MeetingVoteController extends BaseController
     /**
      * 删除业主大会投票
      */
-    @PreAuthorize("@ss.hasPermi('system:vote:remove')")
     @Log(title = "业主大会投票", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{voteIds}")
     public AjaxResult remove(@PathVariable Long[] voteIds)

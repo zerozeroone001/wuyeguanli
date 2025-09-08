@@ -5,22 +5,48 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.ruoyi.system.mapper.SysMeetingTopicMapper">
     
     <resultMap type="SysMeetingTopic" id="SysMeetingTopicResult">
-        <result property="topicId"    column="topic_id"    />
+        <id property="topicId"    column="topic_id"    />
         <result property="meetingId"    column="meeting_id"    />
         <result property="topicTitle"    column="topic_title"    />
         <result property="topicContent"    column="topic_content"    />
         <result property="agreeCount"    column="agree_count"    />
         <result property="opposeCount"    column="oppose_count"    />
         <result property="abstainCount"    column="abstain_count"    />
+        <result property="filesRaw"    column="files"    />
     </resultMap>
 
     <sql id="selectSysMeetingTopicVo">
-        select topic_id, meeting_id, topic_title, topic_content, agree_count, oppose_count, abstain_count from sys_meeting_topic
+        select topic_id, meeting_id, topic_title, topic_content, agree_count, oppose_count, abstain_count, files from sys_property_meeting_topic t
     </sql>
 
     <select id="selectMeetingTopicList" parameterType="Long" resultMap="SysMeetingTopicResult">
         <include refid="selectSysMeetingTopicVo"/>
-        where meeting_id = #{meetingId}
+        where t.meeting_id = #{meetingId}
     </select>
+
+    <select id="selectMeetingTopicById" parameterType="Long" resultMap="SysMeetingTopicResult">
+        <include refid="selectSysMeetingTopicVo"/>
+        where t.topic_id = #{topicId}
+    </select>
+
+    <update id="incrementVoteCount">
+        update sys_property_meeting_topic
+        <set>
+            <if test="choice == '1'">agree_count = agree_count + 1</if>
+            <if test="choice == '2'">oppose_count = oppose_count + 1</if>
+            <if test="choice == '3'">abstain_count = abstain_count + 1</if>
+        </set>
+        where topic_id = #{topicId}
+    </update>
+
+    <update id="decrementVoteCount">
+        update sys_property_meeting_topic
+        <set>
+            <if test="choice == '1'">agree_count = agree_count - 1</if>
+            <if test="choice == '2'">oppose_count = oppose_count - 1</if>
+            <if test="choice == '3'">abstain_count = abstain_count - 1</if>
+        </set>
+        where topic_id = #{topicId}
+    </update>
 
 </mapper>

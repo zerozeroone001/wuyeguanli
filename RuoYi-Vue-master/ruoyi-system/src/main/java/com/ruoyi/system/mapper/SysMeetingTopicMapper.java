@@ -3,6 +3,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysMeetingTopic;
+import io.lettuce.core.dynamic.annotation.Param;
 
 /**
  * 会议议题Mapper接口
@@ -19,4 +20,28 @@ public interface SysMeetingTopicMapper
      * @return 会议议题集合
      */
     public List<SysMeetingTopic> selectMeetingTopicList(Long meetingId);
+
+    /**
+     * 根据议题ID查询议题详细信息
+     * 
+     * @param topicId 议题ID
+     * @return 议题对象
+     */
+    public SysMeetingTopic selectMeetingTopicById(Long topicId);
+
+    /**
+     * 增加投票计数
+     * 
+     * @param topicId 议题ID
+     * @param choice 选项 (1, 2, 3)
+     */
+    public void incrementVoteCount(@Param("topicId") Long topicId, @Param("choice") String choice);
+
+    /**
+     * 减少投票计数
+     * 
+     * @param topicId 议题ID
+     * @param choice 选项 (1, 2, 3)
+     */
+    public void decrementVoteCount(@Param("topicId") Long topicId, @Param("choice") String choice);
 }

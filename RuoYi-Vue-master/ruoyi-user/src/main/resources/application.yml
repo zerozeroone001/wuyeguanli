@@ -78,7 +78,7 @@ spring:
     password: 45625852@redis
 #    password: 137680@redis
     # 连接超时时间
-    timeout: 30s
+    timeout: 3000
     lettuce:
       pool:
         # 连接池中的最小空闲连接

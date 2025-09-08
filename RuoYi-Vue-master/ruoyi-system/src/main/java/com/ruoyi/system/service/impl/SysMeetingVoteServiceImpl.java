@@ -1,108 +1,86 @@
 package com.ruoyi.system.service.impl;
 
-import java.util.List;
-import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.system.domain.SysMeetingTopic;
+import com.ruoyi.system.domain.SysMeetingVote;
+import com.ruoyi.system.mapper.SysMeetingTopicMapper;
+import com.ruoyi.system.mapper.SysMeetingVoteMapper;
+import com.ruoyi.system.service.ISysMeetingVoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.ruoyi.system.mapper.SysMeetingVoteMapper;
-import com.ruoyi.system.domain.SysMeetingVote;
-import com.ruoyi.system.service.ISysMeetingVoteService;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 业主大会投票Service业务层处理
- * 
- * @author ruoyi
- * @date 2025-08-21
- */
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
-public class SysMeetingVoteServiceImpl implements ISysMeetingVoteService 
-{
+public class SysMeetingVoteServiceImpl implements ISysMeetingVoteService {
+
     @Autowired
-    private SysMeetingVoteMapper sysMeetingVoteMapper;
+    private SysMeetingVoteMapper meetingVoteMapper;
 
-    /**
-     * 查询业主大会投票
-     * 
-     * @param voteId 业主大会投票主键
-     * @return 业主大会投票
-     */
+    @Autowired
+    private SysMeetingTopicMapper meetingTopicMapper;
+
     @Override
-    public SysMeetingVote selectSysMeetingVoteByVoteId(Long voteId)
-    {
-        return sysMeetingVoteMapper.selectSysMeetingVoteByVoteId(voteId);
+    public Map<Long, String> selectUserVotesInMeeting(Long userId, Long meetingId) {
+        List<SysMeetingVote> votes = meetingVoteMapper.selectUserVotesInMeeting(userId, meetingId);
+        return votes.stream().collect(Collectors.toMap(SysMeetingVote::getTopicId, SysMeetingVote::getChoice));
     }
 
-    /**
-     * 查询业主大会投票列表
-     * 
-     * @param sysMeetingVote 业主大会投票
-     * @return 业主大会投票
-     */
     @Override
-    public List<SysMeetingVote> selectSysMeetingVoteList(SysMeetingVote sysMeetingVote)
-    {
-        return sysMeetingVoteMapper.selectSysMeetingVoteList(sysMeetingVote);
+    public List<SysMeetingVote> selectSysMeetingVoteListByTopicId(Long topicId) {
+        return meetingVoteMapper.selectVotesByTopicId(topicId);
     }
 
-    /**
-     * 根据议题ID查询业主大会投票列表
-     *
-     * @param topicId 议题ID
-     * @return 业主大会投票
-     */
     @Override
-    public List<SysMeetingVote> selectSysMeetingVoteListByTopicId(Long topicId)
-    {
-        return sysMeetingVoteMapper.selectSysMeetingVoteListByTopicId(topicId);
+    @Transactional
+    public SysMeetingTopic submitVote(SysMeetingVote vote) {
+        // 1. Find if a vote already exists
+        SysMeetingVote existingVote = meetingVoteMapper.findVote(vote.getUserId(), vote.getTopicId());
+
+        // 2. Decrement old vote count if it exists and choice is different
+        if (existingVote != null && !existingVote.getChoice().equals(vote.getChoice())) {
+            meetingTopicMapper.decrementVoteCount(existingVote.getTopicId(), existingVote.getChoice());
+        }
+
+        // 3. Insert or Update the vote record
+        if (existingVote == null) {
+            meetingVoteMapper.insertVote(vote);
+        } else {
+            existingVote.setChoice(vote.getChoice());
+            meetingVoteMapper.updateVote(existingVote);
+        }
+
+        // 4. Increment new vote count
+        meetingTopicMapper.incrementVoteCount(vote.getTopicId(), vote.getChoice());
+
+        // 5. Return the updated topic with new counts
+        return meetingTopicMapper.selectMeetingTopicById(vote.getTopicId());
     }
 
-    /**
-     * 新增业主大会投票
-     * 
-     * @param sysMeetingVote 业主大会投票
-     * @return 结果
-     */
     @Override
-    public int insertSysMeetingVote(SysMeetingVote sysMeetingVote)
-    {
-        sysMeetingVote.setCreateTime(DateUtils.getNowDate());
-        return sysMeetingVoteMapper.insertSysMeetingVote(sysMeetingVote);
+    public SysMeetingVote selectSysMeetingVoteByVoteId(Long voteId) {
+        return meetingVoteMapper.selectSysMeetingVoteByVoteId(voteId);
     }
 
-    /**
-     * 修改业主大会投票
-     * 
-     * @param sysMeetingVote 业主大会投票
-     * @return 结果
-     */
     @Override
-    public int updateSysMeetingVote(SysMeetingVote sysMeetingVote)
-    {
-        sysMeetingVote.setUpdateTime(DateUtils.getNowDate());
-        return sysMeetingVoteMapper.updateSysMeetingVote(sysMeetingVote);
+    public List<SysMeetingVote> selectSysMeetingVoteList(SysMeetingVote sysMeetingVote) {
+        return meetingVoteMapper.selectSysMeetingVoteList(sysMeetingVote);
     }
 
-    /**
-     * 批量删除业主大会投票
-     * 
-     * @param voteIds 需要删除的业主大会投票主键
-     * @return 结果
-     */
     @Override
-    public int deleteSysMeetingVoteByVoteIds(Long[] voteIds)
-    {
-        return sysMeetingVoteMapper.deleteSysMeetingVoteByVoteIds(voteIds);
+    public int insertSysMeetingVote(SysMeetingVote sysMeetingVote) {
+        return meetingVoteMapper.insertSysMeetingVote(sysMeetingVote);
     }
 
-    /**
-     * 删除业主大会投票信息
-     * 
-     * @param voteId 业主大会投票主键
-     * @return 结果
-     */
     @Override
-    public int deleteSysMeetingVoteByVoteId(Long voteId)
-    {
-        return sysMeetingVoteMapper.deleteSysMeetingVoteByVoteId(voteId);
+    public int updateSysMeetingVote(SysMeetingVote sysMeetingVote) {
+        return meetingVoteMapper.updateSysMeetingVote(sysMeetingVote);
+    }
+
+    @Override
+    public int deleteSysMeetingVoteByVoteIds(Long[] voteIds) {
+        return meetingVoteMapper.deleteSysMeetingVoteByVoteIds(voteIds);
     }
 }
