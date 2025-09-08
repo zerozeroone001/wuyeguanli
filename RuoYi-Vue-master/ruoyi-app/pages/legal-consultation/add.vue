@@ -14,7 +14,7 @@
           @click="selectType('property')"
         >
           <uni-icons type="home" size="24" :color="formData.consultationType === 'property' ? '#FFFFFF' : '#1890FF'" />
-          <text>物业纠纷</text>
+          <text>民事</text>
         </view>
         <view 
           class="type-item" 
@@ -22,7 +22,7 @@
           @click="selectType('contract')"
         >
           <uni-icons type="paperplane" size="24" :color="formData.consultationType === 'contract' ? '#FFFFFF' : '#52C41A'" />
-          <text>合同问题</text>
+          <text>行政</text>
         </view>
         <view 
           class="type-item" 
@@ -30,7 +30,7 @@
           @click="selectType('fee')"
         >
           <uni-icons type="wallet" size="24" :color="formData.consultationType === 'fee' ? '#FFFFFF' : '#FA8C16'" />
-          <text>收费争议</text>
+          <text>刑事</text>
         </view>
         <view 
           class="type-item" 
@@ -38,7 +38,7 @@
           @click="selectType('other')"
         >
           <uni-icons type="help" size="24" :color="formData.consultationType === 'other' ? '#FFFFFF' : '#722ED1'" />
-          <text>其他咨询</text>
+          <text>涉外</text>
         </view>
       </view>
     </view>
@@ -59,26 +59,6 @@
           maxlength="50"
         />
         <text class="char-count">{{ formData.title.length }}/50</text>
-      </view>
-      
-      <view class="form-item">
-        <text class="item-label">紧急程度</text>
-        <radio-group @change="onUrgencyChange">
-          <view class="radio-group">
-            <label class="radio-item">
-              <radio value="1" :checked="formData.urgency === '1'" />
-              <text>紧急（24小时内回复）</text>
-            </label>
-            <label class="radio-item">
-              <radio value="2" :checked="formData.urgency === '2'" />
-              <text>普通（3天内回复）</text>
-            </label>
-            <label class="radio-item">
-              <radio value="3" :checked="formData.urgency === '3'" />
-              <text>一般（7天内回复）</text>
-            </label>
-          </view>
-        </radio-group>
       </view>
     </view>
 
@@ -166,75 +146,11 @@
       </view>
     </view>
 
-    <!-- 律师偏好 -->
-    <view class="form-section">
-      <view class="section-title">
-        <uni-icons type="person" size="18" color="#262626" />
-        <text>律师偏好</text>
-        <text class="section-desc">（可选择指定律师回复）</text>
-      </view>
-      
-      <view class="lawyer-selection">
-        <view 
-          class="lawyer-item" 
-          :class="{ active: formData.preferredLawyer === lawyer.id }"
-          v-for="lawyer in availableLawyers" 
-          :key="lawyer.id"
-          @click="selectLawyer(lawyer.id)"
-        >
-          <image class="lawyer-avatar" :src="lawyer.avatar" />
-          <view class="lawyer-info">
-            <text class="lawyer-name">{{ lawyer.name }}</text>
-            <text class="lawyer-title">{{ lawyer.title }}</text>
-            <view class="lawyer-specialties">
-              <text class="specialty-tag" v-for="specialty in lawyer.specialties" :key="specialty">
-                {{ specialty }}
-              </text>
-            </view>
-          </view>
-          <view class="selection-indicator" v-if="formData.preferredLawyer === lawyer.id">
-            <uni-icons type="checkmarkempty" size="18" color="#1890FF" />
-          </view>
-        </view>
-        
-        <view 
-          class="lawyer-item auto" 
-          :class="{ active: formData.preferredLawyer === 'auto' }"
-          @click="selectLawyer('auto')"
-        >
-          <view class="auto-icon">
-            <uni-icons type="settings" size="24" color="#8C8C8C" />
-          </view>
-          <view class="lawyer-info">
-            <text class="lawyer-name">系统自动分配</text>
-            <text class="lawyer-title">根据问题类型匹配最合适的律师</text>
-          </view>
-          <view class="selection-indicator" v-if="formData.preferredLawyer === 'auto'">
-            <uni-icons type="checkmarkempty" size="18" color="#1890FF" />
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 费用说明 -->
-    <view class="fee-notice">
-      <view class="notice-header">
-        <uni-icons type="info" size="18" color="#1890FF" />
-        <text class="notice-title">费用说明</text>
-      </view>
-      <view class="notice-content">
-        <text>• 首次咨询免费，律师会在承诺时间内给出初步建议</text>
-        <text>• 如需深度咨询或法律服务，律师会另行报价</text>
-        <text>• 所有收费均透明公开，无隐性费用</text>
-        <text>• 不满意可申请退费，保障您的权益</text>
-      </view>
-    </view>
 
     <!-- 提交按钮 -->
     <view class="submit-section">
       <button 
         class="submit-btn" 
-        :disabled="!canSubmit"
         @click="submitConsultation"
       >
         提交咨询
@@ -245,6 +161,8 @@
 </template>
 
 <script>
+import { addLegalConsultation } from '@/api/legal.js';
+
 export default {
   data() {
     return {
@@ -259,14 +177,6 @@ export default {
       },
       uploadedFiles: [],
       availableLawyers: []
-    }
-  },
-  computed: {
-    canSubmit() {
-      return this.formData.consultationType && 
-             this.formData.title.trim() && 
-             this.formData.content.trim() && 
-             this.formData.contactPhone.trim()
     }
   },
   onLoad(options) {
@@ -346,15 +256,40 @@ export default {
     },
     
     async submitConsultation() {
-      if (!this.canSubmit) return
-      
+      // Explicit validation with user feedback
+      if (!this.formData.consultationType) {
+        uni.showToast({ title: '请选择咨询类型', icon: 'none' });
+        return;
+      }
+      if (!this.formData.title.trim()) {
+        uni.showToast({ title: '请输入咨询标题', icon: 'none' });
+        return;
+      }
+      if (!this.formData.content.trim()) {
+        uni.showToast({ title: '请详细描述您的问题', icon: 'none' });
+        return;
+      }
+      if (!this.formData.contactPhone.trim()) {
+        uni.showToast({ title: '请输入您的联系电话', icon: 'none' });
+        return;
+      }
+      if (!/^1[3-9]\d{9}$/.test(this.formData.contactPhone)) {
+        uni.showToast({ title: '请输入正确的手机号码', icon: 'none' });
+        return;
+      }
+
       uni.showLoading({
         title: '提交中...'
       })
       
+      // Prepare the data for submission, including the user ID
+      const submissionData = {
+        ...this.formData,
+        userId: this.$store.getters.id
+      };
+
       try {
-        // 模拟提交API调用
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await addLegalConsultation(submissionData);
         
         uni.hideLoading()
         
@@ -420,11 +355,12 @@ page {
 }
 
 .type-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  grid-template-columns: 1fr;
   gap: 20rpx;
   
   .type-item {
+	  width: 22%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -472,12 +408,15 @@ page {
   
   .item-input {
     width: 100%;
-    padding: 20rpx;
+    height: 88rpx; /* Explicit height */
+    padding: 0 20rpx; /* Horizontal padding only */
     background: #F8F9FA;
     border: 1rpx solid #F0F0F0;
     border-radius: 16rpx;
     font-size: 26rpx;
     color: #262626;
+    box-sizing: border-box;
+    line-height: 88rpx; /* Match height to vertically center text */
   }
   
   .char-count {
@@ -515,7 +454,9 @@ page {
     border-radius: 16rpx;
     font-size: 26rpx;
     color: #262626;
-    line-height: 1.6;
+    line-height: 1.5; /* Adjusted for better alignment */
+    display: block;
+    box-sizing: border-box;
   }
 }
 

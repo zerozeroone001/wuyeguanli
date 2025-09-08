@@ -10,7 +10,7 @@
     </view>
 
     <!-- 快速咨询入口 -->
-    <view class="quick-actions">
+   <!-- <view class="quick-actions">
       <view class="action-item" @click="quickConsult('property')">
         <view class="action-icon property">
           <uni-icons type="home" size="20" color="#1890FF" />
@@ -35,7 +35,7 @@
         </view>
         <text class="action-text">其他咨询</text>
       </view>
-    </view>
+    </view> -->
 
     <!-- 咨询状态筛选 -->
     <view class="status-tabs">
@@ -123,41 +123,6 @@
       <button class="empty-action" @click="addConsultation">立即咨询</button>
     </view>
 
-    <!-- 专家团队 -->
-    <view class="expert-team">
-      <view class="team-header">
-        <uni-icons type="person" size="20" color="#262626" />
-        <text class="team-title">专家团队</text>
-      </view>
-      
-      <view class="expert-list">
-        <view 
-          class="expert-item" 
-          v-for="expert in expertTeam" 
-          :key="expert.id"
-          @click="viewExpert(expert)"
-        >
-          <image class="expert-avatar" :src="expert.avatar" />
-          <view class="expert-info">
-            <text class="expert-name">{{ expert.name }}</text>
-            <text class="expert-title">{{ expert.title }}</text>
-            <view class="expert-specialties">
-              <text 
-                class="specialty-tag" 
-                v-for="specialty in expert.specialties" 
-                :key="specialty"
-              >
-                {{ specialty }}
-              </text>
-            </view>
-          </view>
-          <view class="expert-stats">
-            <text class="stat-item">{{ expert.consultationCount }}次咨询</text>
-            <text class="stat-item">{{ expert.rating }}分</text>
-          </view>
-        </view>
-      </view>
-    </view>
 
     <!-- 常见问题 -->
     <view class="faq-section">
@@ -193,13 +158,22 @@
 </template>
 
 <script>
+import { getLegalConsultationList } from '@/api/legal.js';
+
 export default {
   data() {
     return {
       activeStatus: 'all',
       consultationList: [],
-      expertTeam: [],
-      faqList: []
+      expertTeam: [], // This will remain mock data for now
+      faqList: [], // This will remain mock data for now
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        userId: null 
+      },
+      total: 0,
+      loading: false,
     }
   },
   computed: {
@@ -216,69 +190,49 @@ export default {
     this.loadFAQ()
   },
   onPullDownRefresh() {
-    this.loadConsultations()
-    this.loadExpertTeam()
+    this.queryParams.pageNum = 1;
+    this.loadConsultations().then(() => {
+        uni.stopPullDownRefresh();
+    });
+    this.loadExpertTeam() // These can be refreshed too if needed
     this.loadFAQ()
-    setTimeout(() => {
-      uni.stopPullDownRefresh()
-    }, 1000)
+  },
+  onReachBottom() {
+    if (this.consultationList.length >= this.total) {
+      return;
+    }
+    this.queryParams.pageNum++;
+    this.loadConsultations();
   },
   methods: {
-    loadConsultations() {
-      // 模拟咨询数据
-      this.consultationList = [
-        {
-          consultationId: 1,
-          title: '物业费收费标准是否合理？',
-          content: '我们小区的物业费每平米3.5元，感觉偏高，请问这个收费标准是否合理？有什么法律依据吗？',
-          consultationType: 'fee',
-          status: 'replied',
-          urgency: '2',
-          createTime: '2024-01-15 10:30',
-          lawyerName: '张律师',
-          replyCount: 2,
-          lastReplyTime: '2024-01-16 14:20'
-        },
-        {
-          consultationId: 2,
-          title: '业主委员会选举程序问题',
-          content: '我们小区业委会选举过程中存在程序不规范的问题，请问应该如何处理？',
-          consultationType: 'property',
-          status: 'pending',
-          urgency: '1',
-          createTime: '2024-01-14 16:45',
-          lawyerName: '李律师',
-          replyCount: 0
-        },
-        {
-          consultationId: 3,
-          title: '物业服务合同纠纷',
-          content: '物业公司提供的服务与合同约定不符，业主可以要求解除合同吗？',
-          consultationType: 'contract',
-          status: 'replied',
-          urgency: '2',
-          createTime: '2024-01-13 09:15',
-          lawyerName: '王律师',
-          replyCount: 3,
-          lastReplyTime: '2024-01-14 11:30'
-        },
-        {
-          consultationId: 4,
-          title: '共有部分收益分配问题',
-          content: '小区广告位、停车位等共有部分的收益应该如何分配？业主有知情权吗？',
-          consultationType: 'property',
-          status: 'closed',
-          urgency: '2',
-          createTime: '2024-01-10 14:20',
-          lawyerName: '赵律师',
-          replyCount: 1,
-          lastReplyTime: '2024-01-11 16:45'
+    async loadConsultations() {
+      if (this.loading) return;
+      this.loading = true;
+      
+      // Set the current user's ID for filtering
+      this.queryParams.userId = this.$store.getters.id;
+
+      try {
+        const response = await getLegalConsultationList(this.queryParams);
+        if (this.queryParams.pageNum === 1) {
+          this.consultationList = response.rows;
+        } else {
+          this.consultationList = this.consultationList.concat(response.rows);
         }
-      ]
+        this.total = response.total;
+      } catch (error) {
+        console.error("Failed to load consultations:", error);
+        uni.showToast({
+          title: '加载失败，请稍后重试',
+          icon: 'none'
+        });
+      } finally {
+        this.loading = false;
+      }
     },
     
     loadExpertTeam() {
-      // 模拟专家团队数据
+      // Mock data for expert team
       this.expertTeam = [
         {
           id: 1,
@@ -299,22 +253,12 @@ export default {
           consultationCount: 89,
           rating: 4.8,
           experience: '10年执业经验'
-        },
-        {
-          id: 3,
-          name: '王志强',
-          title: '专业律师',
-          avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
-          specialties: ['收费争议', '服务合同', '法律顾问'],
-          consultationCount: 124,
-          rating: 4.7,
-          experience: '12年执业经验'
         }
       ]
     },
     
     loadFAQ() {
-      // 模拟常见问题数据
+      // Mock data for FAQ
       this.faqList = [
         {
           id: 1,
@@ -327,24 +271,16 @@ export default {
           question: '业主委员会有哪些职责？',
           answerPreview: '业主委员会是业主大会的执行机构，主要职责包括...',
           category: 'property'
-        },
-        {
-          id: 3,
-          question: '如何更换物业公司？',
-          answerPreview: '更换物业公司需要经过业主大会决议，程序包括...',
-          category: 'contract'
-        },
-        {
-          id: 4,
-          question: '物业服务不到位怎么办？',
-          answerPreview: '遇到物业服务不到位的情况，业主可以采取以下措施...',
-          category: 'property'
         }
       ]
     },
     
     switchStatus(status) {
       this.activeStatus = status
+      // Note: This only filters on the frontend. For backend filtering, you would do:
+      // this.queryParams.status = status === 'all' ? null : status;
+      // this.queryParams.pageNum = 1;
+      // this.loadConsultations();
     },
     
     getTypeText(type) {
@@ -355,15 +291,6 @@ export default {
         'other': '其他咨询'
       }
       return typeMap[type] || '未知类型'
-    },
-    
-    getStatusClass(status) {
-      const classMap = {
-        'pending': 'status-pending',
-        'replied': 'status-replied',
-        'closed': 'status-closed'
-      }
-      return classMap[status] || 'status-default'
     },
     
     getStatusText(status) {
