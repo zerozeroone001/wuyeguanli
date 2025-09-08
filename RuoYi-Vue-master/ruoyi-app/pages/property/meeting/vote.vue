@@ -92,26 +92,32 @@
         <!-- 投票选项 -->
         <view class="vote-options-btn" v-if="meetingInfo.meetingStatus !== '2'">
           <button 
+            size="mini"
             class="vote-btn agree"
             :class="{ selected: voteData[topic.topicId] === '1' }"
             @click="handleTopicVote(topic, '1')">
-            <uni-icons type="checkmarkempty" size="20" :color="voteData[topic.topicId] === '1' ? '#FFFFFF' : '#52C41A'" />
+            <uni-icons type="checkmarkempty" size="16" :color="voteData[topic.topicId] === '1' ? '#FFFFFF' : '#52C41A'" />
             <text>同意</text>
           </button>
           <button 
+            size="mini"
             class="vote-btn oppose"
             :class="{ selected: voteData[topic.topicId] === '2' }"
             @click="handleTopicVote(topic, '2')">
-            <uni-icons type="clear" size="20" :color="voteData[topic.topicId] === '2' ? '#FFFFFF' : '#FF4D4F'" />
+            <uni-icons type="clear" size="16" :color="voteData[topic.topicId] === '2' ? '#FFFFFF' : '#FF4D4F'" />
             <text>反对</text>
           </button>
           <button 
+            size="mini"
             class="vote-btn abstain"
             :class="{ selected: voteData[topic.topicId] === '3' }"
             @click="handleTopicVote(topic, '3')">
-            <uni-icons type="minus" size="20" :color="voteData[topic.topicId] === '3' ? '#FFFFFF' : '#8C8C8C'" />
+            <uni-icons type="minus" size="16" :color="voteData[topic.topicId] === '3' ? '#FFFFFF' : '#8C8C8C'" />
             <text>弃权</text>
           </button>
+        </view>
+        <view class="consultation-btn-container" style="margin-top: 20rpx; text-align: right;">
+          <button size="mini" type="primary" plain @click="handleConsultation(topic)">意见征询</button>
         </view>
       </view>
     </view>
@@ -246,6 +252,17 @@ export default {
           icon: 'none'
         });
       }
+    },
+
+    handleConsultation(topic) {
+      // uni.showToast({
+      //   title: `对议题“${topic.topicTitle}”进行意见征询`,
+      //   icon: 'none'
+      // });
+      // 这里可以跳转到意见征询页面，并带上议题ID
+      // uni.navigateTo({
+      //   url: `/pages/property/meeting/consultation?topicId=${topic.topicId}&meetingId=${this.meetingId}`
+      // });
     },
 
     startCountdown() {

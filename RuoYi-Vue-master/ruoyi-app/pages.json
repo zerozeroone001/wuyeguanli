@@ -109,7 +109,7 @@
     "style": {
       "navigationBarTitleText": "参与投票"
     }
-  }, {
+  },  {
     "path": "pages/property/meeting/result",
     "style": {
       "navigationBarTitleText": "投票结果"

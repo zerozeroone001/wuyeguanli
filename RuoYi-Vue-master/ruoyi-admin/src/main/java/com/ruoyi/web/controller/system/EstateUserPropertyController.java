@@ -28,7 +28,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * @date 2025-09-05
  */
 @RestController
-@RequestMapping("/system/property")
+@RequestMapping("/system/estateUserProperty")
 public class EstateUserPropertyController extends BaseController
 {
     @Autowired
