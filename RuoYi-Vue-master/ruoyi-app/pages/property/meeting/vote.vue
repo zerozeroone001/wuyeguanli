@@ -73,10 +73,24 @@
           </scroll-view>
         </view>
 
-       
+        <!-- 投票统计 -->
+        <view class="vote-stats" v-if="meetingInfo.meetingStatus === '2'">
+          <view class="stats-item">
+            <text class="stats-label">同意</text>
+            <text class="stats-count">{{ topic.agreeCount }}票</text>
+          </view>
+          <view class="stats-item">
+            <text class="stats-label">反对</text>
+            <text class="stats-count">{{ topic.opposeCount }}票</text>
+          </view>
+          <view class="stats-item">
+            <text class="stats-label">弃权</text>
+            <text class="stats-count">{{ topic.abstainCount }}票</text>
+          </view>
+        </view>
         
         <!-- 投票选项 -->
-        <view class="vote-options-btn">
+        <view class="vote-options-btn" v-if="meetingInfo.meetingStatus !== '2'">
           <button 
             class="vote-btn agree"
             :class="{ selected: voteData[topic.topicId] === '1' }"
