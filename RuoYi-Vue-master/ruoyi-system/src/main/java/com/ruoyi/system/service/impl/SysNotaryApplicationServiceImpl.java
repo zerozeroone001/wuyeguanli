@@ -93,4 +93,38 @@ public class SysNotaryApplicationServiceImpl implements ISysNotaryApplicationSer
     {
         return sysNotaryApplicationMapper.deleteSysNotaryApplicationByApplicationId(applicationId);
     }
+
+    @Override
+    public java.util.Map<String, Object> getNotaryStatsByUserId(Long userId) {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        long totalNotary = 0;
+        long pendingNotary = 0;
+        long completedNotary = 0;
+
+        List<java.util.Map<String, Object>> counts = sysNotaryApplicationMapper.countByStatus(userId);
+
+        for (java.util.Map<String, Object> count : counts) {
+            String status = (String) count.get("status");
+            long num = (long) count.get("count");
+            totalNotary += num;
+            if ("completed".equals(status)) {
+                completedNotary = num;
+            } else if ("reviewing".equals(status) || "processing".equals(status)) {
+                pendingNotary += num;
+            }
+        }
+
+        stats.put("totalNotary", totalNotary);
+        stats.put("pendingNotary", pendingNotary);
+        stats.put("completedNotary", completedNotary);
+
+        if (totalNotary > 0) {
+            double successRate = (double) completedNotary / totalNotary * 100;
+            stats.put("successRate", Math.round(successRate));
+        } else {
+            stats.put("successRate", 0);
+        }
+
+        return stats;
+    }
 }

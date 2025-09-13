@@ -353,6 +353,9 @@
 </template>
 
 <script>
+import { getNotaryDetail, addNotary, updateNotary, getNotaryOfficeList } from '@/api/notary'
+import { uploadFile } from '@/api/common' // Assuming a common upload API
+
 export default {
   data() {
     return {
@@ -364,16 +367,18 @@ export default {
         { label: '确认提交' }
       ],
       formData: {
+        notaryId: null,
         title: '',
         type: 'document',
-        urgent: false,
+        urgent: 0, // 0 for false, 1 for true
         description: '',
         contactName: '',
         contactPhone: '',
         idCard: '',
         address: '',
-        notaryOffice: '',
-        agreeTerms: false
+        notaryOfficeId: null, // Changed to notaryOfficeId to match backend
+        agreeTerms: false,
+        notaryAttachmentList: [] // For attachments to be sent to backend
       },
       notaryTypes: [
         {
@@ -415,13 +420,13 @@ export default {
       ],
       urgencyOptions: [
         {
-          value: false,
+          value: 0,
           name: '普通办理',
           desc: '7-10个工作日完成',
           extraFee: 0
         },
         {
-          value: true,
+          value: 1,
           name: '加急办理',
           desc: '3-5个工作日完成',
           extraFee: 100
@@ -435,7 +440,7 @@ export default {
         },
         {
           type: 'application',
-          name: '申请书',
+          name: '公证申请书',
           desc: '公证申请书'
         }
       ],
@@ -451,30 +456,8 @@ export default {
           desc: '相关现场照片'
         }
       ],
-      uploadedFiles: [],
-      notaryOffices: [
-        {
-          id: 1,
-          name: '北京市朝阳区公证处',
-          address: '朝阳区建国路88号',
-          phone: '010-85123456',
-          distance: '2.3km'
-        },
-        {
-          id: 2,
-          name: '北京市海淀区公证处',
-          address: '海淀区中关村大街1号',
-          phone: '010-62345678',
-          distance: '5.8km'
-        },
-        {
-          id: 3,
-          name: '北京市西城区公证处',
-          address: '西城区金融街35号',
-          phone: '010-66789012',
-          distance: '4.2km'
-        }
-      ],
+      uploadedFiles: [], // Files selected by user, with temp paths or uploaded URLs
+      notaryOffices: [],
       baseFee: 200,
       urgentFee: 100
     }
@@ -485,9 +468,13 @@ export default {
         case 1:
           return this.formData.title && this.formData.type && this.formData.description
         case 2:
-          return this.uploadedFiles.length > 0
+          // Check if all required materials are uploaded
+          const allRequiredUploaded = this.requiredMaterials.every(material => 
+            this.uploadedFiles.some(file => file.fileType === material.type && file.fileUrl)
+          )
+          return allRequiredUploaded
         case 3:
-          return this.formData.contactName && this.formData.contactPhone && this.formData.idCard && this.formData.notaryOffice
+          return this.formData.contactName && this.formData.contactPhone && this.formData.idCard && this.formData.notaryOfficeId
         case 4:
           return this.formData.agreeTerms
         default:
@@ -496,14 +483,20 @@ export default {
     },
     
     totalFee() {
-      return this.baseFee + (this.formData.urgent ? this.urgentFee : 0)
+      return this.baseFee + (this.formData.urgent === 1 ? this.urgentFee : 0)
     },
     
     expectedTime() {
-      const days = this.formData.urgent ? 5 : 10
+      const days = this.formData.urgent === 1 ? 5 : 10
       const date = new Date()
       date.setDate(date.getDate() + days)
       return date.toLocaleDateString('zh-CN')
+    },
+    
+    // Get the name of the selected notary office for display
+    selectedOfficeName() {
+      const office = this.notaryOffices.find(o => o.officeId === this.formData.notaryOfficeId)
+      return office ? office.name : ''
     }
   },
   onLoad(options) {
@@ -511,13 +504,53 @@ export default {
       this.formData.type = options.type
     }
     if (options.id) {
+      this.formData.notaryId = options.id
       this.loadDraftData(options.id)
     }
+    this.loadNotaryOffices()
   },
   methods: {
     loadDraftData(id) {
-      // 模拟加载草稿数据
-      // 实际开发中从API获取
+      uni.showLoading({
+        title: '加载草稿...'
+      })
+      getNotaryDetail(id).then(res => {
+        uni.hideLoading()
+        if (res.code === 200) {
+          const data = res.data
+          this.formData.notaryId = data.notaryId
+          this.formData.title = data.title
+          this.formData.type = data.type
+          this.formData.urgent = data.urgent
+          this.formData.description = data.description
+          this.formData.contactName = data.contactName
+          this.formData.contactPhone = data.contactPhone
+          this.formData.idCard = data.idCard
+          this.formData.address = data.address
+          this.formData.notaryOfficeId = data.notaryOfficeId
+          // Populate uploadedFiles from existing attachments
+          this.uploadedFiles = data.notaryAttachmentList.map(att => ({
+            fileType: att.fileType,
+            fileName: att.fileName,
+            fileUrl: att.fileUrl, // This is the URL from backend
+            status: att.status // For display if needed
+          }))
+        }
+      }).catch(() => {
+        uni.hideLoading()
+        uni.showToast({
+          title: '加载草稿失败',
+          icon: 'none'
+        })
+      })
+    },
+    
+    loadNotaryOffices() {
+      getNotaryOfficeList().then(res => {
+        if (res.code === 200) {
+          this.notaryOffices = res.data
+        }
+      })
     },
     
     selectType(type) {
@@ -525,45 +558,71 @@ export default {
     },
     
     onUrgencyChange(event) {
-      this.formData.urgent = event.detail.value === 'true'
+      this.formData.urgent = parseInt(event.detail.value)
     },
     
-    uploadMaterial(type) {
+    uploadMaterial(fileType) {
       uni.chooseImage({
-        count: 3,
+        count: 1, // Only allow one file per material type for simplicity
         sizeType: ['compressed'],
         sourceType: ['camera', 'album'],
         success: (res) => {
-          res.tempFilePaths.forEach((path, index) => {
-            this.uploadedFiles.push({
-              type: type,
-              name: `${type}_${Date.now()}_${index}.jpg`,
-              path: path,
-              size: '2.5MB'
+          const tempFilePath = res.tempFilePaths[0]
+          uni.showLoading({
+            title: '上传中...'
+          })
+          // Assuming a common upload API is available at /api/common.js
+          // You might need to create this file if it doesn't exist
+          uploadFile(tempFilePath).then(uploadRes => {
+            uni.hideLoading()
+            if (uploadRes.code === 200) {
+              // Remove existing file of the same type if any
+              this.uploadedFiles = this.uploadedFiles.filter(file => file.fileType !== fileType)
+              this.uploadedFiles.push({
+                fileType: fileType,
+                fileName: uploadRes.fileName, // Assuming backend returns fileName
+                fileUrl: uploadRes.url, // Assuming backend returns URL
+                status: 'pending' // Initial status for new upload
+              })
+              uni.showToast({
+                title: '上传成功',
+                icon: 'success'
+              })
+            } else {
+              uni.showToast({
+                title: uploadRes.msg || '上传失败',
+                icon: 'none'
+              })
+            }
+          }).catch(() => {
+            uni.hideLoading()
+            uni.showToast({
+              title: '网络错误，请重试',
+              icon: 'none'
             })
           })
         }
       })
     },
     
-    getMaterialStatus(type) {
-      const uploaded = this.uploadedFiles.some(file => file.type === type)
+    getMaterialStatus(fileType) {
+      const uploaded = this.uploadedFiles.some(file => file.fileType === fileType && file.fileUrl)
       return uploaded ? '已上传' : '上传'
     },
     
-    getFileIcon(type) {
+    getFileIcon(fileType) {
       const iconMap = {
         'id_card': 'person',
         'application': 'paperplane',
         'supporting_docs': 'folder',
         'photos': 'image'
       }
-      return iconMap[type] || 'paperplane'
+      return iconMap[fileType] || 'paperplane'
     },
     
     previewFile(file) {
       uni.previewImage({
-        urls: [file.path]
+        urls: [file.fileUrl] // Use fileUrl for preview
       })
     },
     
@@ -572,7 +631,7 @@ export default {
     },
     
     selectOffice(officeId) {
-      this.formData.notaryOffice = officeId
+      this.formData.notaryOfficeId = officeId
     },
     
     getTypeText(type) {
@@ -586,7 +645,7 @@ export default {
     },
     
     getOfficeName(officeId) {
-      const office = this.notaryOffices.find(o => o.id === officeId)
+      const office = this.notaryOffices.find(o => o.officeId === officeId)
       return office ? office.name : ''
     },
     
@@ -607,7 +666,13 @@ export default {
     },
     
     nextStep() {
-      if (!this.canNextStep) return
+      if (!this.canNextStep) {
+        uni.showToast({
+          title: '请填写完整信息',
+          icon: 'none'
+        })
+        return
+      }
       
       if (this.currentStep === 4) {
         this.submitApplication()
@@ -617,35 +682,61 @@ export default {
     },
     
     saveDraft() {
-      uni.showLoading({
-        title: '保存中...'
-      })
-      
-      setTimeout(() => {
-        uni.hideLoading()
-        uni.showToast({
-          title: '草稿已保存',
-          icon: 'success'
-        })
-      }, 1000)
+      this.submitForm('draft')
     },
     
     submitApplication() {
+      this.submitForm('reviewing')
+    },
+
+    submitForm(status) {
       uni.showLoading({
         title: '提交中...'
       })
-      
-      setTimeout(() => {
+
+      // Prepare data for backend
+      const dataToSend = {
+        ...this.formData,
+        status: status,
+        notaryAttachmentList: this.uploadedFiles.map(file => ({
+          fileName: file.fileName,
+          fileUrl: file.fileUrl,
+          fileType: file.fileType,
+          status: file.status || 'pending' // Default to pending if not set
+        }))
+      }
+
+      let requestPromise
+      if (dataToSend.notaryId) {
+        requestPromise = updateNotary(dataToSend)
+      } else {
+        requestPromise = addNotary(dataToSend)
+      }
+
+      requestPromise.then(res => {
         uni.hideLoading()
-        uni.showModal({
-          title: '申请成功',
-          content: '您的公证申请已提交，我们会在1个工作日内联系您确认相关信息。',
-          showCancel: false,
-          success: () => {
-            uni.navigateBack()
-          }
+        if (res.code === 200) {
+          uni.showModal({
+            title: '操作成功',
+            content: status === 'draft' ? '草稿已保存' : '您的公证申请已提交，我们会在1个工作日内联系您确认相关信息。',
+            showCancel: false,
+            success: () => {
+              uni.navigateBack() // Go back to index page
+            }
+          })
+        } else {
+          uni.showToast({
+            title: res.msg || '操作失败',
+            icon: 'none'
+          })
+        }
+      }).catch(() => {
+        uni.hideLoading()
+        uni.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
         })
-      }, 2000)
+      })
     }
   }
 }

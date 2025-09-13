@@ -121,7 +121,7 @@
       
       <view 
         class="regulation-item" 
-        v-for="regulation in filteredRegulations" 
+        v-for="regulation in regulationList" 
         :key="regulation.regulationId"
         @click="viewRegulation(regulation)"
       >
@@ -129,7 +129,7 @@
           <view class="regulation-info">
             <text class="regulation-name">{{ regulation.regulationName }}</text>
             <view class="regulation-meta">
-              <text class="regulation-category">{{ getCategoryText(regulation.category) }}</text>
+              <text class="regulation-category">{{ getCategoryText(regulation.categoryId) }}</text>
               <text class="regulation-version">v{{ regulation.version }}</text>
               <text class="regulation-date">{{ regulation.effectiveDate }}</text>
             </view>
@@ -147,11 +147,11 @@
           <view class="regulation-stats">
             <view class="stat-item">
               <uni-icons type="eye" size="14" color="#8C8C8C" />
-              <text>{{ regulation.viewCount }}次浏览</text>
+              <text>{{ regulation.viewCount || 0 }}次浏览</text>
             </view>
             <view class="stat-item">
               <uni-icons type="download" size="14" color="#8C8C8C" />
-              <text>{{ regulation.downloadCount }}次下载</text>
+              <text>{{ regulation.downloadCount || 0 }}次下载</text>
             </view>
           </view>
           <view class="regulation-actions">
@@ -175,7 +175,7 @@
     </view>
 
     <!-- 空状态 -->
-    <view class="empty-state" v-if="filteredRegulations.length === 0">
+    <view class="empty-state" v-if="regulationList.length === 0">
       <uni-icons type="paperplane" size="80" color="#D9D9D9" />
       <text class="empty-text">{{ getEmptyText() }}</text>
     </view>
@@ -199,220 +199,127 @@
 </template>
 
 <script>
+import { listRegulation, listCategory, incrementViewCount } from '@/api/regulation.js'
+
 export default {
   data() {
     return {
       searchKeyword: '',
-      activeCategory: 'all',
-      sortBy: 'time',
+      activeCategoryId: 'all',
+      sortBy: 'updateTime',
+      // 分类列表
+      categoryList: [],
+      // 制度列表
       regulationList: [],
-      recentUpdates: [],
+      // 统计数据（后续可由专门接口提供）
       stats: {
         total: 0,
         active: 0,
         updated: 0,
         totalViews: 0
-      }
-    }
-  },
-  computed: {
-    filteredRegulations() {
-      let regulations = this.regulationList
-      
-      // 按分类筛选
-      if (this.activeCategory !== 'all') {
-        regulations = regulations.filter(item => item.category === this.activeCategory)
-      }
-      
-      // 按关键词搜索
-      if (this.searchKeyword.trim()) {
-        const keyword = this.searchKeyword.trim().toLowerCase()
-        regulations = regulations.filter(item => 
-          item.regulationName.toLowerCase().includes(keyword) ||
-          (item.summary && item.summary.toLowerCase().includes(keyword))
-        )
-      }
-      
-      // 排序
-      if (this.sortBy === 'time') {
-        regulations.sort((a, b) => new Date(b.updateTime) - new Date(a.updateTime))
-      } else if (this.sortBy === 'views') {
-        regulations.sort((a, b) => b.viewCount - a.viewCount)
-      }
-      
-      return regulations
+      },
+      // 最近更新（后续可由专门接口提供）
+      recentUpdates: [],
+      // 查询参数
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        regulationName: undefined,
+        categoryId: undefined,
+        orderByColumn: 'update_time',
+        isAsc: 'desc'
+      },
+      // 列表总数
+      total: 0,
+      // 加载状态
+      loading: false,
+      // 定时器
+      searchTimer: null
     }
   },
   onLoad() {
-    this.loadRegulations()
-    this.loadRecentUpdates()
-    this.loadStats()
+    this.getCategoryList()
+    this.getList()
   },
   onPullDownRefresh() {
-    this.loadRegulations()
-    this.loadRecentUpdates()
-    this.loadStats()
+    this.queryParams.pageNum = 1
+    this.getList()
     setTimeout(() => {
       uni.stopPullDownRefresh()
     }, 1000)
   },
   methods: {
-    loadRegulations() {
-      // 模拟制度数据
-      this.regulationList = [
-        {
-          regulationId: 1,
-          regulationName: '智慧花园小区物业管理规约',
-          category: 'management',
-          version: '2.1',
-          status: 'active',
-          effectiveDate: '2024-01-01',
-          updateTime: '2024-01-15 10:30',
-          summary: '规范小区物业管理服务标准，明确业主权利义务，建立和谐社区管理秩序。',
-          viewCount: 1256,
-          downloadCount: 89,
-          isImportant: true,
-          fileSize: '2.5MB',
-          fileType: 'PDF'
-        },
-        {
-          regulationId: 2,
-          regulationName: '业主大会议事规则',
-          category: 'management',
-          version: '1.3',
-          status: 'active',
-          effectiveDate: '2024-01-01',
-          updateTime: '2024-01-10 14:20',
-          summary: '规范业主大会召开程序，保障业主民主决策权利，提高决策效率。',
-          viewCount: 892,
-          downloadCount: 67,
-          isImportant: true,
-          fileSize: '1.8MB',
-          fileType: 'PDF'
-        },
-        {
-          regulationId: 3,
-          regulationName: '物业服务质量标准',
-          category: 'service',
-          version: '3.0',
-          status: 'active',
-          effectiveDate: '2024-01-01',
-          updateTime: '2024-01-08 09:15',
-          summary: '详细规定保洁、保安、绿化、设备维护等各项服务的具体标准和要求。',
-          viewCount: 1089,
-          downloadCount: 124,
-          isImportant: false,
-          fileSize: '3.2MB',
-          fileType: 'PDF'
-        },
-        {
-          regulationId: 4,
-          regulationName: '消防安全管理制度',
-          category: 'safety',
-          version: '2.0',
-          status: 'active',
-          effectiveDate: '2024-01-01',
-          updateTime: '2024-01-05 16:45',
-          summary: '建立完善的消防安全管理体系，预防火灾事故，保障生命财产安全。',
-          viewCount: 756,
-          downloadCount: 45,
-          isImportant: true,
-          fileSize: '2.1MB',
-          fileType: 'PDF'
-        },
-        {
-          regulationId: 5,
-          regulationName: '专项维修资金使用管理办法',
-          category: 'finance',
-          version: '1.5',
-          status: 'active',
-          effectiveDate: '2024-01-01',
-          updateTime: '2024-01-03 11:30',
-          summary: '规范专项维修资金的申请、审批、使用和监督管理流程。',
-          viewCount: 634,
-          downloadCount: 78,
-          isImportant: false,
-          fileSize: '1.6MB',
-          fileType: 'PDF'
-        },
-        {
-          regulationId: 6,
-          regulationName: '停车管理规定',
-          category: 'management',
-          version: '1.2',
-          status: 'active',
-          effectiveDate: '2023-12-01',
-          updateTime: '2023-12-15 13:20',
-          summary: '规范小区内机动车停放秩序，合理分配停车资源，维护停车环境。',
-          viewCount: 945,
-          downloadCount: 56,
-          isImportant: false,
-          fileSize: '1.3MB',
-          fileType: 'PDF'
-        }
-      ]
+    /** 获取制度分类列表 */
+    getCategoryList() {
+      listCategory().then(response => {
+        this.categoryList = [{ categoryId: 'all', categoryName: '全部制度' }]
+        this.categoryList = this.categoryList.concat(response.data)
+      })
     },
-    
-    loadRecentUpdates() {
-      // 获取最近更新的制度（最近30天）
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-      
-      this.recentUpdates = this.regulationList
-        .filter(item => new Date(item.updateTime) > thirtyDaysAgo)
-        .sort((a, b) => new Date(b.updateTime) - new Date(a.updateTime))
-        .slice(0, 3)
+    /** 获取制度列表 */
+    getList() {
+      this.loading = true
+      // 同步搜索关键词到查询参数
+      this.queryParams.regulationName = this.searchKeyword
+      listRegulation(this.queryParams).then(response => {
+        this.regulationList = response.rows
+        this.total = response.total
+        this.loading = false
+      })
     },
-    
-    loadStats() {
-      // 计算统计数据
-      const total = this.regulationList.length
-      const active = this.regulationList.filter(item => item.status === 'active').length
-      const updated = this.recentUpdates.length
-      const totalViews = this.regulationList.reduce((sum, item) => sum + item.viewCount, 0)
-      
-      this.stats = { total, active, updated, totalViews }
+    /** 切换分类 */
+    switchCategory(categoryId) {
+      this.activeCategoryId = categoryId
+      this.queryParams.categoryId = categoryId === 'all' ? undefined : categoryId
+      this.handleQuery()
     },
-    
-    switchCategory(category) {
-      this.activeCategory = category
-    },
-    
+    /** 切换排序 */
     changeSortBy(sortBy) {
       this.sortBy = sortBy
+      if (sortBy === 'time') {
+        this.queryParams.orderByColumn = 'update_time'
+      } else if (sortBy === 'views') {
+        this.queryParams.orderByColumn = 'view_count'
+      }
+      this.handleQuery()
     },
-    
+    /** 搜索事件 */
     onSearch() {
-      // 搜索防抖处理
       clearTimeout(this.searchTimer)
       this.searchTimer = setTimeout(() => {
-        // 搜索逻辑在computed中处理
+        this.handleQuery()
       }, 300)
     },
-    
+    /** 清除搜索 */
     clearSearch() {
       this.searchKeyword = ''
+      this.handleQuery()
     },
-    
-    getCategoryText(category) {
-      const categoryMap = {
-        'management': '管理制度',
-        'service': '服务标准',
-        'safety': '安全制度',
-        'finance': '财务制度'
+    /** 搜索按钮操作 */
+    handleQuery() {
+      this.queryParams.pageNum = 1
+      this.getList()
+    },
+    /** 跳转到详情页 */
+    viewRegulation(regulation) {
+      if (!regulation || !regulation.regulationId) {
+        uni.showToast({
+          title: '无效的制度ID',
+          icon: 'error'
+        });
+        return;
       }
-      return categoryMap[category] || '未知分类'
+      // 建议：调用接口增加浏览次数
+      // incrementViewCount(regulation.regulationId)
+      uni.navigateTo({
+        url: `/pages/work/regulation-detail?id=${regulation.regulationId}`
+      })
     },
-    
-    getStatusClass(status) {
-      const classMap = {
-        'active': 'status-active',
-        'draft': 'status-draft',
-        'expired': 'status-expired'
-      }
-      return classMap[status] || 'status-default'
+    // 工具方法，保留UI模板中的调用
+    getCategoryText(categoryId) {
+      const category = this.categoryList.find(item => item.categoryId === categoryId)
+      return category ? category.categoryName : '未知分类'
     },
-    
     getStatusText(status) {
       const textMap = {
         'active': '生效中',
@@ -421,50 +328,28 @@ export default {
       }
       return textMap[status] || '未知状态'
     },
-    
     getEmptyText() {
       if (this.searchKeyword.trim()) {
         return '未找到相关制度文件'
       }
-      if (this.activeCategory !== 'all') {
+      if (this.activeCategoryId !== 'all') {
         return '该分类下暂无制度文件'
       }
       return '暂无制度文件'
     },
-    
-    viewRegulation(regulation) {
-      // 增加浏览量
-      regulation.viewCount++
-      
-      uni.navigateTo({
-        url: `/pages/work/regulation-detail?id=${regulation.regulationId}`
-      })
-    },
-    
+    // 模拟/占位方法
     quickView(regulation) {
       uni.showToast({
         title: '预览功能开发中',
         icon: 'none'
       })
     },
-    
     downloadRegulation(regulation) {
-      // 增加下载量
-      regulation.downloadCount++
-      
-      uni.showLoading({
-        title: '下载中...'
+      uni.showToast({
+        title: '下载功能开发中',
+        icon: 'none'
       })
-      
-      setTimeout(() => {
-        uni.hideLoading()
-        uni.showToast({
-          title: '下载完成',
-          icon: 'success'
-        })
-      }, 2000)
     },
-    
     submitSuggestion() {
       uni.showToast({
         title: '建议提交功能开发中',

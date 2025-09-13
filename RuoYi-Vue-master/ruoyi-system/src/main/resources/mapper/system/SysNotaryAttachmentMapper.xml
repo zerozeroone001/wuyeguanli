@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysNotaryAttachmentMapper">
+    
+    <resultMap type="SysNotaryAttachment" id="SysNotaryAttachmentResult">
+        <result property="attachmentId"    column="attachment_id"    />
+        <result property="notaryId"    column="notary_id"    />
+        <result property="fileName"    column="file_name"    />
+        <result property="fileUrl"    column="file_url"    />
+        <result property="fileType"    column="file_type"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectSysNotaryAttachmentVo">
+        select attachment_id, notary_id, file_name, file_url, file_type, create_by, create_time from sys_notary_attachment
+    </sql>
+
+    <select id="selectSysNotaryAttachmentList" parameterType="SysNotaryAttachment" resultMap="SysNotaryAttachmentResult">
+        <include refid="selectSysNotaryAttachmentVo"/>
+        <where>  
+            <if test="notaryId != null "> and notary_id = #{notaryId}</if>
+            <if test="fileName != null  and fileName != ''"> and file_name like concat('%', #{fileName}, '%')</if>
+            <if test="fileUrl != null  and fileUrl != ''"> and file_url = #{fileUrl}</if>
+            <if test="fileType != null  and fileType != ''"> and file_type = #{fileType}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysNotaryAttachmentByAttachmentId" parameterType="Long" resultMap="SysNotaryAttachmentResult">
+        <include refid="selectSysNotaryAttachmentVo"/>
+        where attachment_id = #{attachmentId}
+    </select>
+
+    <insert id="insertSysNotaryAttachment" parameterType="SysNotaryAttachment" useGeneratedKeys="true" keyProperty="attachmentId">
+        insert into sys_notary_attachment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="notaryId != null">notary_id,</if>
+            <if test="fileName != null">file_name,</if>
+            <if test="fileUrl != null and fileUrl != ''">file_url,</if>
+            <if test="fileType != null">file_type,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="notaryId != null">#{notaryId},</if>
+            <if test="fileName != null">#{fileName},</if>
+            <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
+            <if test="fileType != null">#{fileType},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysNotaryAttachment" parameterType="SysNotaryAttachment">
+        update sys_notary_attachment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="notaryId != null">notary_id = #{notaryId},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>
+            <if test="fileType != null">file_type = #{fileType},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where attachment_id = #{attachmentId}
+    </update>
+
+    <delete id="deleteSysNotaryAttachmentByAttachmentId" parameterType="Long">
+        delete from sys_notary_attachment where attachment_id = #{attachmentId}
+    </delete>
+
+    <delete id="deleteSysNotaryAttachmentByAttachmentIds" parameterType="String">
+        delete from sys_notary_attachment where attachment_id in 
+        <foreach item="attachmentId" collection="array" open="(" separator="," close=")">
+            #{attachmentId}
+        </foreach>
+    </delete>
+</mapper>

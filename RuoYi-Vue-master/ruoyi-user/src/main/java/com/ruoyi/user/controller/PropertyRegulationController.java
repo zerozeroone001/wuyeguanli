@@ -22,7 +22,7 @@ import java.util.List;
  * @date 2025-08-21
  */
 @RestController
-@RequestMapping("/user/regulation")
+@RequestMapping("/regulation")
 public class PropertyRegulationController extends BaseController
 {
     @Autowired
@@ -31,7 +31,6 @@ public class PropertyRegulationController extends BaseController
     /**
      * 查询物业制度管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:regulation:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyRegulation sysPropertyRegulation)
     {
@@ -43,7 +42,6 @@ public class PropertyRegulationController extends BaseController
     /**
      * 导出物业制度管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:regulation:export')")
     @Log(title = "物业制度管理", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyRegulation sysPropertyRegulation)
@@ -56,7 +54,6 @@ public class PropertyRegulationController extends BaseController
     /**
      * 获取物业制度管理详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:regulation:query')")
     @GetMapping(value = "/{regulationId}")
     public AjaxResult getInfo(@PathVariable("regulationId") Long regulationId)
     {
@@ -66,7 +63,6 @@ public class PropertyRegulationController extends BaseController
     /**
      * 新增物业制度管理
      */
-    @PreAuthorize("@ss.hasPermi('system:regulation:add')")
     @Log(title = "物业制度管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyRegulation sysPropertyRegulation)
@@ -77,7 +73,6 @@ public class PropertyRegulationController extends BaseController
     /**
      * 修改物业制度管理
      */
-    @PreAuthorize("@ss.hasPermi('system:regulation:edit')")
     @Log(title = "物业制度管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyRegulation sysPropertyRegulation)
@@ -88,7 +83,6 @@ public class PropertyRegulationController extends BaseController
     /**
      * 删除物业制度管理
      */
-    @PreAuthorize("@ss.hasPermi('system:regulation:remove')")
     @Log(title = "物业制度管理", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{regulationIds}")
     public AjaxResult remove(@PathVariable Long[] regulationIds)

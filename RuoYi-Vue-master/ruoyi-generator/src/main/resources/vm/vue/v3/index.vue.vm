@@ -343,7 +343,7 @@
 </template>
 
 <script setup name="${BusinessName}">
-import { list${BusinessName}, get${BusinessName}, del${BusinessName}, add${BusinessName}, update${BusinessName} } from "@/api/${moduleName}/${businessName}"
+import { list${BusinessName}, get${BusinessName}, del${BusinessName}, add${BusinessName}, update${BusinessName} } from "@/api/${moduleName}/${businessNameCamel}"
 
 const { proxy } = getCurrentInstance()
 #if(${dicts} != '')
@@ -581,7 +581,7 @@ function handle${subClassName}SelectionChange(selection) {
 #end
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('${moduleName}/${businessName}/export', {
+  proxy.download('${moduleName}/${businessNameCamel}/export', {
     ...queryParams.value
   }, `${businessName}_#[[${new Date().getTime()}]]#.xlsx`)
 }

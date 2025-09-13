@@ -51,6 +51,7 @@ public class VelocityUtils
         velocityContext.put("moduleName", genTable.getModuleName());
         velocityContext.put("BusinessName", StringUtils.capitalize(genTable.getBusinessName()));
         velocityContext.put("businessName", genTable.getBusinessName());
+        velocityContext.put("businessNameCamel", genTable.getBusinessNameCamel());
         velocityContext.put("basePackage", getPackagePrefix(packageName));
         velocityContext.put("packageName", packageName);
         velocityContext.put("author", genTable.getFunctionAuthor());
@@ -172,8 +173,8 @@ public class VelocityUtils
         String moduleName = genTable.getModuleName();
         // 大写类名
         String className = genTable.getClassName();
-        // 业务名称
-        String businessName = genTable.getBusinessName();
+        // 无前缀的驼峰业务名
+        String businessNameCamel = genTable.getBusinessNameCamel();
 
         String javaPath = PROJECT_PATH + "/" + StringUtils.replace(packageName, ".", "/");
         String mybatisPath = MYBATIS_PATH + "/" + moduleName;
@@ -209,19 +210,19 @@ public class VelocityUtils
         }
         else if (template.contains("sql.vm"))
         {
-            fileName = businessName + "Menu.sql";
+            fileName = businessNameCamel + "Menu.sql";
         }
         else if (template.contains("api.js.vm"))
         {
-            fileName = StringUtils.format("{}/api/{}/{}.js", vuePath, moduleName, businessName);
+            fileName = StringUtils.format("{}/api/{}/{}.js", vuePath, moduleName, businessNameCamel);
         }
         else if (template.contains("index.vue.vm"))
         {
-            fileName = StringUtils.format("{}/views/{}/{}/index.vue", vuePath, moduleName, businessName);
+            fileName = StringUtils.format("{}/views/{}/{}/index.vue", vuePath, moduleName, businessNameCamel);
         }
         else if (template.contains("index-tree.vue.vm"))
         {
-            fileName = StringUtils.format("{}/views/{}/{}/index.vue", vuePath, moduleName, businessName);
+            fileName = StringUtils.format("{}/views/{}/{}/index.vue", vuePath, moduleName, businessNameCamel);
         }
         return fileName;
     }

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysNotaryOfficeMapper">
+    
+    <resultMap type="SysNotaryOffice" id="SysNotaryOfficeResult">
+        <result property="officeId"    column="office_id"    />
+        <result property="name"    column="name"    />
+        <result property="address"    column="address"    />
+        <result property="phone"    column="phone"    />
+        <result property="officeHours"    column="office_hours"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysNotaryOfficeVo">
+        select office_id, name, address, phone, office_hours, status, create_by, create_time, update_by, update_time, remark from sys_notary_office
+    </sql>
+
+    <select id="selectSysNotaryOfficeList" parameterType="SysNotaryOffice" resultMap="SysNotaryOfficeResult">
+        <include refid="selectSysNotaryOfficeVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="address != null  and address != ''"> and address = #{address}</if>
+            <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
+            <if test="officeHours != null  and officeHours != ''"> and office_hours = #{officeHours}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysNotaryOfficeByOfficeId" parameterType="Long" resultMap="SysNotaryOfficeResult">
+        <include refid="selectSysNotaryOfficeVo"/>
+        where office_id = #{officeId}
+    </select>
+
+    <insert id="insertSysNotaryOffice" parameterType="SysNotaryOffice" useGeneratedKeys="true" keyProperty="officeId">
+        insert into sys_notary_office
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="address != null">address,</if>
+            <if test="phone != null">phone,</if>
+            <if test="officeHours != null">office_hours,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="address != null">#{address},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="officeHours != null">#{officeHours},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysNotaryOffice" parameterType="SysNotaryOffice">
+        update sys_notary_office
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="officeHours != null">office_hours = #{officeHours},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where office_id = #{officeId}
+    </update>
+
+    <delete id="deleteSysNotaryOfficeByOfficeId" parameterType="Long">
+        delete from sys_notary_office where office_id = #{officeId}
+    </delete>
+
+    <delete id="deleteSysNotaryOfficeByOfficeIds" parameterType="String">
+        delete from sys_notary_office where office_id in 
+        <foreach item="officeId" collection="array" open="(" separator="," close=")">
+            #{officeId}
+        </foreach>
+    </delete>
+</mapper>

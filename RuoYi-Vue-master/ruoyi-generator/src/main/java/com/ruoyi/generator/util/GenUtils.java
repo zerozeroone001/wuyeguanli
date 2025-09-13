@@ -24,6 +24,14 @@ public class GenUtils
         genTable.setPackageName(GenConfig.getPackageName());
         genTable.setModuleName(getModuleName(GenConfig.getPackageName()));
         genTable.setBusinessName(getBusinessName(genTable.getTableName()));
+        // 设置无前缀的驼峰业务名
+        String className = genTable.getClassName();
+        String temp = className;
+        if (temp.startsWith("Sys"))
+        {
+            temp = temp.substring(3);
+        }
+        genTable.setBusinessNameCamel(StringUtils.uncapitalize(temp));
         genTable.setFunctionName(replaceText(genTable.getTableComment()));
         genTable.setFunctionAuthor(GenConfig.getAuthor());
         genTable.setCreateBy(operName);

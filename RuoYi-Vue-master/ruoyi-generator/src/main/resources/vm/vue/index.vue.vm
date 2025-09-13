@@ -353,7 +353,7 @@
 </template>
 
 <script>
-import { list${BusinessName}, get${BusinessName}, del${BusinessName}, add${BusinessName}, update${BusinessName} } from "@/api/${moduleName}/${businessName}"
+import { list${BusinessName}, get${BusinessName}, del${BusinessName}, add${BusinessName}, update${BusinessName} } from "@/api/${moduleName}/${businessNameCamel}"
 
 export default {
   name: "${BusinessName}",
@@ -593,7 +593,7 @@ export default {
 #end
     /** 导出按钮操作 */
     handleExport() {
-      this.download('${moduleName}/${businessName}/export', {
+      this.download('${moduleName}/${businessNameCamel}/export', {
         ...this.queryParams
       }, `${businessName}_#[[${new Date().getTime()}]]#.xlsx`)
     }

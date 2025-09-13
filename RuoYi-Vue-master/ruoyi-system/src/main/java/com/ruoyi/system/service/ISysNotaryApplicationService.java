@@ -58,4 +58,12 @@ public interface ISysNotaryApplicationService
      * @return 结果
      */
     public int deleteSysNotaryApplicationByApplicationId(Long applicationId);
+
+    /**
+     * 根据用户ID获取公证统计信息
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    public java.util.Map<String, Object> getNotaryStatsByUserId(Long userId);
 }

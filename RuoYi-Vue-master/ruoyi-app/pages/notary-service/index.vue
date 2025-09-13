@@ -198,15 +198,17 @@
 </template>
 
 <script>
+import { listNotary, getNotaryStats } from '@/api/notary'
+
 export default {
   data() {
     return {
       activeStatus: 'all',
       statsInfo: {
-        totalNotary: 28,
-        pendingNotary: 5,
-        completedNotary: 21,
-        successRate: 98
+        totalNotary: 0,
+        pendingNotary: 0,
+        completedNotary: 0,
+        successRate: 0
       },
       quickServices: [
         {
@@ -284,107 +286,75 @@ export default {
       ],
       statusTabs: [
         { label: '全部', value: 'all', count: 0 },
-        { label: '草稿', value: 'draft', count: 2 },
-        { label: '审核中', value: 'reviewing', count: 1 },
-        { label: '办理中', value: 'processing', count: 2 },
-        { label: '已完成', value: 'completed', count: 21 },
-        { label: '已拒绝', value: 'rejected', count: 2 }
+        { label: '草稿', value: 'draft', count: 0 },
+        { label: '审核中', value: 'reviewing', count: 0 },
+        { label: '办理中', value: 'processing', count: 0 },
+        { label: '已完成', value: 'completed', count: 0 },
+        { label: '已拒绝', value: 'rejected', count: 0 }
       ],
-      notaryList: []
+      notaryList: [],
+      pageNum: 1,
+      pageSize: 10,
+      total: 0
     }
   },
   onLoad() {
+    this.getStatsData()
     this.loadNotaryList()
   },
   onPullDownRefresh() {
+    this.pageNum = 1
+    this.notaryList = []
+    this.getStatsData()
     this.loadNotaryList().then(() => {
       uni.stopPullDownRefresh()
     })
   },
+  onReachBottom() {
+    if (this.notaryList.length < this.total) {
+      this.pageNum++
+      this.loadNotaryList()
+    }
+  },
   methods: {
-    loadNotaryList() {
-      // 模拟公证列表数据
-      const mockData = [
-        {
-          notaryId: 1,
-          notaryNo: 'GZ202412001',
-          title: '房屋买卖合同公证',
-          type: 'document',
-          status: 'completed',
-          applyTime: '2024-12-01 10:30',
-          expectedTime: '2024-12-05 17:00',
-          completedTime: '2024-12-04 15:30',
-          notaryOffice: '北京市朝阳区公证处',
-          progress: 100,
-          fee: 200,
-          urgent: false
-        },
-        {
-          notaryId: 2,
-          notaryNo: 'GZ202412002',
-          title: '委托书签名公证',
-          type: 'signature',
-          status: 'processing',
-          applyTime: '2024-12-10 14:20',
-          expectedTime: '2024-12-15 17:00',
-          notaryOffice: '北京市朝阳区公证处',
-          progress: 65,
-          fee: 150,
-          urgent: false
-        },
-        {
-          notaryId: 3,
-          notaryNo: 'GZ202412003',
-          title: '学历证明公证',
-          type: 'identity',
-          status: 'reviewing',
-          applyTime: '2024-12-12 09:15',
-          expectedTime: '2024-12-18 17:00',
-          notaryOffice: '北京市朝阳区公证处',
-          progress: 25,
-          fee: 100,
-          urgent: true
-        },
-        {
-          notaryId: 4,
-          notaryNo: 'GZ202412004',
-          title: '车辆转让协议公证',
-          type: 'property',
-          status: 'draft',
-          applyTime: '2024-12-13 16:45',
-          expectedTime: '',
-          notaryOffice: '',
-          progress: 0,
-          fee: 180,
-          urgent: false
-        },
-        {
-          notaryId: 5,
-          notaryNo: 'GZ202412005',
-          title: '遗产继承声明公证',
-          type: 'inheritance',
-          status: 'processing',
-          applyTime: '2024-12-08 11:30',
-          expectedTime: '2024-12-20 17:00',
-          notaryOffice: '北京市朝阳区公证处',
-          progress: 80,
-          fee: 300,
-          urgent: false
+    getStatsData() {
+      getNotaryStats().then(res => {
+        if (res.code === 200) {
+          this.statsInfo = res.data
+          // Update statusTabs counts based on statsInfo
+          this.statusTabs.find(tab => tab.value === 'all').count = res.data.totalNotary
+          this.statusTabs.find(tab => tab.value === 'processing').count = res.data.pendingNotary
+          this.statusTabs.find(tab => tab.value === 'completed').count = res.data.completedNotary
+          // For draft, reviewing, rejected, we might need separate calls or backend enhancement
+          // For now, they remain 0 or their mock values if not updated by API
         }
-      ]
-      
-      // 根据状态筛选
-      if (this.activeStatus === 'all') {
-        this.notaryList = mockData
-      } else {
-        this.notaryList = mockData.filter(item => item.status === this.activeStatus)
+      })
+    },
+    loadNotaryList() {
+      uni.showLoading({
+        title: '加载中...'
+      })
+      const query = {
+        pageNum: this.pageNum,
+        pageSize: this.pageSize,
+        status: this.activeStatus === 'all' ? '' : this.activeStatus
       }
-      
+      listNotary(query).then(res => {
+        uni.hideLoading()
+        if (res.code === 200) {
+          this.notaryList = this.notaryList.concat(res.rows)
+          this.total = res.total
+        }
+      }).catch(() => {
+        uni.hideLoading()
+      })
       return Promise.resolve()
     },
     
     switchStatus(status) {
       this.activeStatus = status
+      this.pageNum = 1
+      this.notaryList = []
       this.loadNotaryList()
     },
     
@@ -394,7 +364,8 @@ export default {
         'reviewing': 'status-reviewing',
         'processing': 'status-processing',
         'completed': 'status-completed',
-        'rejected': 'status-rejected'
+        'rejected': 'status-rejected',
+        'cancelled': 'status-rejected' // Assuming cancelled also uses rejected style
       }
       return classMap[status] || 'status-default'
     },
@@ -405,7 +376,8 @@ export default {
         'reviewing': '审核中',
         'processing': '办理中',
         'completed': '已完成',
-        'rejected': '已拒绝'
+        'rejected': '已拒绝',
+        'cancelled': '已取消'
       }
       return textMap[status] || '未知状态'
     },
@@ -458,17 +430,56 @@ export default {
     },
     
     downloadCertificate(notary) {
+      if (!notary.certificateUrl) {
+        uni.showToast({
+          title: '暂无证书可下载',
+          icon: 'none'
+        })
+        return
+      }
       uni.showLoading({
         title: '下载中...'
       })
-      
-      setTimeout(() => {
-        uni.hideLoading()
-        uni.showToast({
-          title: '下载完成',
-          icon: 'success'
-        })
-      }, 2000)
+      uni.downloadFile({
+        url: notary.certificateUrl,
+        success: (res) => {
+          if (res.statusCode === 200) {
+            uni.openDocument({
+              filePath: res.tempFilePath,
+              showMenu: true,
+              success: () => {
+                uni.hideLoading()
+                uni.showToast({
+                  title: '下载完成',
+                  icon: 'success'
+                })
+              },
+              fail: (err) => {
+                uni.hideLoading()
+                uni.showToast({
+                  title: '打开文件失败',
+                  icon: 'none'
+                })
+                console.error('打开文件失败', err)
+              }
+            })
+          } else {
+            uni.hideLoading()
+            uni.showToast({
+              title: '下载失败',
+              icon: 'none'
+            })
+          }
+        },
+        fail: (err) => {
+          uni.hideLoading()
+          uni.showToast({
+            title: '下载失败',
+            icon: 'none'
+          })
+          console.error('下载失败', err)
+        }
+      })
     },
     
     showApplyOptions() {

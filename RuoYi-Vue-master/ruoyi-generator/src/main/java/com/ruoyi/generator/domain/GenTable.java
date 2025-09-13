@@ -56,6 +56,9 @@ public class GenTable extends BaseEntity
     @NotBlank(message = "生成业务名不能为空")
     private String businessName;
 
+    /** 生成业务名（驼峰、无前缀） */
+    private String businessNameCamel;
+
     /** 生成功能名 */
     @NotBlank(message = "生成功能名不能为空")
     private String functionName;
@@ -206,6 +209,16 @@ public class GenTable extends BaseEntity
     public void setBusinessName(String businessName)
     {
         this.businessName = businessName;
+    }
+
+    public String getBusinessNameCamel()
+    {
+        return businessNameCamel;
+    }
+
+    public void setBusinessNameCamel(String businessNameCamel)
+    {
+        this.businessNameCamel = businessNameCamel;
     }
 
     public String getFunctionName()

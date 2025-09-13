@@ -58,4 +58,12 @@ public interface SysNotaryApplicationMapper
      * @return 结果
      */
     public int deleteSysNotaryApplicationByApplicationIds(Long[] applicationIds);
+    
+    /**
+     * 根据用户ID统计各类申请数量
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    public List<java.util.Map<String, Object>> countByStatus(Long userId);
 }

@@ -1,121 +1,115 @@
 package com.ruoyi.user.controller;
 
-import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
-import com.ruoyi.common.enums.BusinessType;
-import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.system.domain.SysNotaryApplication;
+import com.ruoyi.system.domain.SysNotaryOffice;
 import com.ruoyi.system.service.ISysNotaryApplicationService;
+import com.ruoyi.system.service.ISysNotaryOfficeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
- * 公证服务申请Controller
- * 
+ * App端-公证服务接口 (ruoyi-user 模块)
+ *
  * @author ruoyi
- * @date 2025-08-21
  */
 @RestController
-@RequestMapping("/user/notary")
-public class NotaryApplicationController extends BaseController
-{
+@RequestMapping("/app/notary")
+public class NotaryApplicationController extends BaseController {
+
     @Autowired
-    private ISysNotaryApplicationService sysNotaryApplicationService;
+    private ISysNotaryApplicationService notaryApplicationService;
+
+    @Autowired
+    private ISysNotaryOfficeService notaryOfficeService;
 
     /**
-     * 查询公证服务申请列表
+     * 查询我的公证列表
      */
-    @PreAuthorize("@ss.hasPermi('system:application:list')")
     @GetMapping("/list")
-    public TableDataInfo list(SysNotaryApplication sysNotaryApplication)
-    {
+    public TableDataInfo list(SysNotaryApplication sysNotaryApplication) {
+        // 仅查询当前登录用户的申请
+        sysNotaryApplication.setUserId(getUserId());
         startPage();
-        List<SysNotaryApplication> list = sysNotaryApplicationService.selectSysNotaryApplicationList(sysNotaryApplication);
+        List<SysNotaryApplication> list = notaryApplicationService.selectSysNotaryApplicationList(sysNotaryApplication);
         return getDataTable(list);
     }
 
     /**
-     * 导出公证服务申请列表
+     * 获取公证详情
      */
-    @PreAuthorize("@ss.hasPermi('system:application:export')")
-    @Log(title = "公证服务申请", businessType = BusinessType.EXPORT)
-    @PostMapping("/export")
-    public void export(HttpServletResponse response, SysNotaryApplication sysNotaryApplication)
-    {
-        List<SysNotaryApplication> list = sysNotaryApplicationService.selectSysNotaryApplicationList(sysNotaryApplication);
-        ExcelUtil<SysNotaryApplication> util = new ExcelUtil<SysNotaryApplication>(SysNotaryApplication.class);
-        util.exportExcel(response, list, "公证服务申请数据");
+    @GetMapping("/{notaryId}")
+    public AjaxResult getNotaryDetail(@PathVariable("notaryId") Long notaryId) {
+        SysNotaryApplication notary = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        // 安全校验，确保用户只能查看自己的申请
+        if (notary == null || !notary.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权访问");
+        }
+        return AjaxResult.success(notary);
     }
 
     /**
-     * 获取公证服务申请详细信息
+     * 新增公证申请
      */
-    @PreAuthorize("@ss.hasPermi('system:application:query')")
-    @GetMapping(value = "/{applicationId}")
-    public AjaxResult getInfo(@PathVariable("applicationId") Long applicationId)
-    {
-        return success(sysNotaryApplicationService.selectSysNotaryApplicationByApplicationId(applicationId));
+    @PostMapping
+    public AjaxResult addNotary(@RequestBody SysNotaryApplication sysNotaryApplication) {
+        sysNotaryApplication.setUserId(getUserId());
+        sysNotaryApplication.setCreateBy(getUsername());
+        sysNotaryApplication.setApplyTime(new Date());
+        return toAjax(notaryApplicationService.insertSysNotaryApplication(sysNotaryApplication));
     }
 
     /**
-     * 新增公证服务申请
+     * 修改公证申请
      */
-    @PreAuthorize("@ss.hasPermi('system:application:add')")
-    @Log(title = "公证服务申请", businessType = BusinessType.INSERT)
-    @PostMapping("/apply")
-    public AjaxResult apply(@RequestBody SysNotaryApplication sysNotaryApplication)
-    {
-        return toAjax(sysNotaryApplicationService.insertSysNotaryApplication(sysNotaryApplication));
-    }
-
-    /**
-     * 修改公证服务申请
-     */
-    @PreAuthorize("@ss.hasPermi('system:application:edit')")
-    @Log(title = "公证服务申请", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody SysNotaryApplication sysNotaryApplication)
-    {
-        return toAjax(sysNotaryApplicationService.updateSysNotaryApplication(sysNotaryApplication));
+    public AjaxResult updateNotary(@RequestBody SysNotaryApplication sysNotaryApplication) {
+        // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(sysNotaryApplication.getNotaryId());
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权修改");
+        }
+        sysNotaryApplication.setUpdateBy(getUsername());
+        return toAjax(notaryApplicationService.updateSysNotaryApplication(sysNotaryApplication));
     }
 
     /**
-     * 删除公证服务申请
+     * 删除公证申请
      */
-    @PreAuthorize("@ss.hasPermi('system:application:remove')")
-    @Log(title = "公证服务申请", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{applicationIds}")
-    public AjaxResult remove(@PathVariable Long[] applicationIds)
-    {
-        return toAjax(sysNotaryApplicationService.deleteSysNotaryApplicationByApplicationIds(applicationIds));
+    @DeleteMapping("/{notaryId}")
+    public AjaxResult deleteNotary(@PathVariable("notaryId") Long notaryId) {
+         // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权删除");
+        }
+        return toAjax(notaryApplicationService.deleteSysNotaryApplicationByApplicationId(notaryId));
     }
 
+    /**
+     * 获取首页统计数据
+     */
     @GetMapping("/stats")
     public AjaxResult getNotaryStats() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
+        Long userId = getUserId();
+        Map<String, Object> stats = notaryApplicationService.getNotaryStatsByUserId(userId);
+        return AjaxResult.success(stats);
     }
 
-    @GetMapping("/services")
-    public AjaxResult getNotaryServices() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
-    }
-
-    @GetMapping("/certificate/{notaryId}")
-    public void downloadCertificate(@PathVariable("notaryId") Long notaryId, HttpServletResponse response) {
-        // TODO: Implement this method to download the file
-    }
-
-    @GetMapping("/offices")
-    public AjaxResult getNotaryOffices() {
-        // TODO: Implement this method to fetch real data
-        return AjaxResult.success();
+    /**
+     * 获取公证处列表
+     */
+    @GetMapping("/office/list")
+    public AjaxResult getNotaryOfficeList() {
+        SysNotaryOffice filter = new SysNotaryOffice();
+        filter.setStatus("0"); // 只查询状态正常的公证处
+        List<SysNotaryOffice> list = notaryOfficeService.selectSysNotaryOfficeList(filter);
+        return AjaxResult.success(list);
     }
 }

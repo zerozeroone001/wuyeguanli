@@ -3,18 +3,25 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.SysNotaryApplicationMapper">
-    
+
     <resultMap type="SysNotaryApplication" id="SysNotaryApplicationResult">
-        <result property="applicationId"    column="application_id"    />
-        <result property="userId"    column="user_id"    />
-        <result property="fileType"    column="file_type"    />
-        <result property="fileUrl"    column="file_url"    />
-        <result property="applicationInfo"    column="application_info"    />
-        <result property="paymentStatus"    column="payment_status"    />
-        <result property="paymentNo"    column="payment_no"    />
-        <result property="paymentAmount"    column="payment_amount"    />
+        <id property="notaryId"    column="notary_id"    />
+        <result property="notaryNo"    column="notary_no"    />
+        <result property="title"    column="title"    />
+        <result property="type"    column="type"    />
         <result property="status"    column="status"    />
-        <result property="delFlag"    column="del_flag"    />
+        <result property="urgent"    column="urgent"    />
+        <result property="description"    column="description"    />
+        <result property="contactName"    column="contact_name"    />
+        <result property="contactPhone"    column="contact_phone"    />
+        <result property="idCard"    column="id_card"    />
+        <result property="address"    column="address"    />
+        <result property="notaryOfficeId"    column="notary_office_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="progress"    column="progress"    />
+        <result property="certificateUrl"    column="certificate_url"    />
+        <result property="expectedTime"    column="expected_time"    />
+        <result property="applyTime"    column="apply_time"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
@@ -23,60 +30,67 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysNotaryApplicationVo">
-        select application_id, user_id, file_type, file_url, application_info, payment_status, payment_no, payment_amount, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_notary_application
+        select notary_id, notary_no, title, type, status, urgent, description, contact_name, contact_phone, id_card, address, notary_office_id, user_id, progress, certificate_url, expected_time, apply_time, create_by, create_time, update_by, update_time, remark from sys_notary_application
     </sql>
 
     <select id="selectSysNotaryApplicationList" parameterType="SysNotaryApplication" resultMap="SysNotaryApplicationResult">
         <include refid="selectSysNotaryApplicationVo"/>
-        <where>  
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="fileType != null  and fileType != ''"> and file_type = #{fileType}</if>
-            <if test="fileUrl != null  and fileUrl != ''"> and file_url = #{fileUrl}</if>
-            <if test="applicationInfo != null  and applicationInfo != ''"> and application_info = #{applicationInfo}</if>
-            <if test="paymentStatus != null  and paymentStatus != ''"> and payment_status = #{paymentStatus}</if>
-            <if test="paymentNo != null  and paymentNo != ''"> and payment_no = #{paymentNo}</if>
-            <if test="paymentAmount != null "> and payment_amount = #{paymentAmount}</if>
+        <where>
+            <if test="notaryNo != null  and notaryNo != ''"> and notary_no = #{notaryNo}</if>
+            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
         </where>
     </select>
-    
+
     <select id="selectSysNotaryApplicationByApplicationId" parameterType="Long" resultMap="SysNotaryApplicationResult">
         <include refid="selectSysNotaryApplicationVo"/>
-        where application_id = #{applicationId}
+        where notary_id = #{applicationId}
     </select>
 
-    <insert id="insertSysNotaryApplication" parameterType="SysNotaryApplication" useGeneratedKeys="true" keyProperty="applicationId">
+    <insert id="insertSysNotaryApplication" parameterType="SysNotaryApplication" useGeneratedKeys="true" keyProperty="notaryId">
         insert into sys_notary_application
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="notaryNo != null and notaryNo != ''">notary_no,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="type != null and type != ''">type,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="urgent != null">urgent,</if>
+            <if test="description != null">description,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone,</if>
+            <if test="idCard != null and idCard != ''">id_card,</if>
+            <if test="address != null">address,</if>
+            <if test="notaryOfficeId != null">notary_office_id,</if>
             <if test="userId != null">user_id,</if>
-            <if test="fileType != null and fileType != ''">file_type,</if>
-            <if test="fileUrl != null">file_url,</if>
-            <if test="applicationInfo != null">application_info,</if>
-            <if test="paymentStatus != null">payment_status,</if>
-            <if test="paymentNo != null">payment_no,</if>
-            <if test="paymentAmount != null">payment_amount,</if>
-            <if test="status != null">status,</if>
-            <if test="delFlag != null">del_flag,</if>
-            <if test="createBy != null">create_by,</if>
+            <if test="progress != null">progress,</if>
+            <if test="certificateUrl != null">certificate_url,</if>
+            <if test="expectedTime != null">expected_time,</if>
+            <if test="applyTime != null">apply_time,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
             <if test="createTime != null">create_time,</if>
-            <if test="updateBy != null">update_by,</if>
-            <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="notaryNo != null and notaryNo != ''">#{notaryNo},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="type != null and type != ''">#{type},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="urgent != null">#{urgent},</if>
+            <if test="description != null">#{description},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="idCard != null and idCard != ''">#{idCard},</if>
+            <if test="address != null">#{address},</if>
+            <if test="notaryOfficeId != null">#{notaryOfficeId},</if>
             <if test="userId != null">#{userId},</if>
-            <if test="fileType != null and fileType != ''">#{fileType},</if>
-            <if test="fileUrl != null">#{fileUrl},</if>
-            <if test="applicationInfo != null">#{applicationInfo},</if>
-            <if test="paymentStatus != null">#{paymentStatus},</if>
-            <if test="paymentNo != null">#{paymentNo},</if>
-            <if test="paymentAmount != null">#{paymentAmount},</if>
-            <if test="status != null">#{status},</if>
-            <if test="delFlag != null">#{delFlag},</if>
-            <if test="createBy != null">#{createBy},</if>
+            <if test="progress != null">#{progress},</if>
+            <if test="certificateUrl != null">#{certificateUrl},</if>
+            <if test="expectedTime != null">#{expectedTime},</if>
+            <if test="applyTime != null">#{applyTime},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
-            <if test="updateBy != null">#{updateBy},</if>
-            <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
          </trim>
     </insert>
@@ -84,32 +98,45 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateSysNotaryApplication" parameterType="SysNotaryApplication">
         update sys_notary_application
         <trim prefix="SET" suffixOverrides=",">
+            <if test="notaryNo != null and notaryNo != ''">notary_no = #{notaryNo},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="type != null and type != ''">type = #{type},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="urgent != null">urgent = #{urgent},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="contactName != null and contactName != ''">contact_name = #{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone = #{contactPhone},</if>
+            <if test="idCard != null and idCard != ''">id_card = #{idCard},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="notaryOfficeId != null">notary_office_id = #{notaryOfficeId},</if>
             <if test="userId != null">user_id = #{userId},</if>
-            <if test="fileType != null and fileType != ''">file_type = #{fileType},</if>
-            <if test="fileUrl != null">file_url = #{fileUrl},</if>
-            <if test="applicationInfo != null">application_info = #{applicationInfo},</if>
-            <if test="paymentStatus != null">payment_status = #{paymentStatus},</if>
-            <if test="paymentNo != null">payment_no = #{paymentNo},</if>
-            <if test="paymentAmount != null">payment_amount = #{paymentAmount},</if>
-            <if test="status != null">status = #{status},</if>
-            <if test="delFlag != null">del_flag = #{delFlag},</if>
-            <if test="createBy != null">create_by = #{createBy},</if>
-            <if test="createTime != null">create_time = #{createTime},</if>
-            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="progress != null">progress = #{progress},</if>
+            <if test="certificateUrl != null">certificate_url = #{certificateUrl},</if>
+            <if test="expectedTime != null">expected_time = #{expectedTime},</if>
+            <if test="applyTime != null">apply_time = #{applyTime},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
             <if test="remark != null">remark = #{remark},</if>
         </trim>
-        where application_id = #{applicationId}
+        where notary_id = #{notaryId}
     </update>
 
     <delete id="deleteSysNotaryApplicationByApplicationId" parameterType="Long">
-        delete from sys_notary_application where application_id = #{applicationId}
+        delete from sys_notary_application where notary_id = #{applicationId}
     </delete>
 
     <delete id="deleteSysNotaryApplicationByApplicationIds" parameterType="String">
-        delete from sys_notary_application where application_id in 
+        delete from sys_notary_application where notary_id in
         <foreach item="applicationId" collection="array" open="(" separator="," close=")">
             #{applicationId}
         </foreach>
     </delete>
+
+    <select id="countByStatus" parameterType="Long" resultType="java.util.Map">
+        SELECT status, count(*) as count
+        FROM sys_notary_application
+        WHERE user_id = #{userId}
+        GROUP BY status
+    </select>
+
 </mapper>
