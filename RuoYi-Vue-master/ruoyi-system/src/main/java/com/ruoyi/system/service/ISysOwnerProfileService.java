@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.SysOwnerProfile;
  * 业主信息扩展Service接口
  * 
  * @author ruoyi
- * @date 2025-08-21
+ * @date 2025-09-15
  */
 public interface ISysOwnerProfileService 
 {
@@ -46,7 +46,7 @@ public interface ISysOwnerProfileService
     /**
      * 批量删除业主信息扩展
      * 
-     * @param userIds 需要删除的业主信息扩展主键集合
+     * @param userIds 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteSysOwnerProfileByUserIds(Long[] userIds);
@@ -58,4 +58,14 @@ public interface ISysOwnerProfileService
      * @return 结果
      */
     public int deleteSysOwnerProfileByUserId(Long userId);
+
+    /**
+     * 导入业主数据
+     * 
+     * @param ownerList 业主数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @param operName 操作用户
+     * @return 结果
+     */
+    public String importOwner(List<SysOwnerProfile> ownerList, Boolean isUpdateSupport, String operName);
 }

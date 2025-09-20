@@ -25,7 +25,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="投票开始时间" prop="voteStartTime">
+      <el-form-item label="投票开始时间" label-width="120px" prop="voteStartTime">
         <el-date-picker clearable
                         v-model="queryParams.voteStartTime"
                         type="date"
@@ -33,7 +33,7 @@
                         placeholder="请选择投票开始时间">
         </el-date-picker>
       </el-form-item>
-      <el-form-item label="投票结束时间" prop="voteEndTime">
+      <el-form-item label="投票结束时间" label-width="120px" prop="voteEndTime">
         <el-date-picker clearable
                         v-model="queryParams.voteEndTime"
                         type="date"
@@ -41,22 +41,7 @@
                         placeholder="请选择投票结束时间">
         </el-date-picker>
       </el-form-item>
-      <el-form-item label="应参与人数" prop="totalVoters">
-        <el-input
-          v-model="queryParams.totalVoters"
-          placeholder="请输入应参与人数"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="实际参与人数" prop="actualVoters">
-        <el-input
-          v-model="queryParams.actualVoters"
-          placeholder="请输入实际参与人数"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -357,7 +342,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         meetingTitle: null,
-        meetingType: null,
+        meetingType: 1,
         meetingContent: null,
         meetingTime: null,
         meetingLocation: null,

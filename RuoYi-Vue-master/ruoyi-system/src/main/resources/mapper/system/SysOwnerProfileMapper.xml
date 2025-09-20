@@ -7,11 +7,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysOwnerProfile" id="SysOwnerProfileResult">
         <result property="userId"    column="user_id"    />
         <result property="realName"    column="real_name"    />
+        <result property="phonenumber" column="phonenumber"  />
         <result property="idCardNo"    column="id_card_no"    />
         <result property="idCardFrontUrl"    column="id_card_front_url"    />
         <result property="idCardBackUrl"    column="id_card_back_url"    />
         <result property="authStatus"    column="auth_status"    />
-        <result property="authRemark"    column="auth_remark"    />
         <result property="buildingNo"    column="building_no"    />
         <result property="unitNo"    column="unit_no"    />
         <result property="roomNo"    column="room_no"    />
@@ -22,40 +22,41 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
         <result property="remark"    column="remark"    />
+        <result property="authRemark"    column="auth_remark"    />
     </resultMap>
 
     <sql id="selectSysOwnerProfileVo">
-        select user_id, real_name, id_card_no, id_card_front_url, id_card_back_url, auth_status, auth_remark, building_no, unit_no, room_no, is_committee_member, del_flag, create_by, create_time, update_by, update_time, remark from sys_owner_profile
+        select p.user_id, p.real_name, u.phonenumber, p.id_card_no, p.id_card_front_url, p.id_card_back_url, p.auth_status, p.building_no, p.unit_no, p.room_no, p.is_committee_member, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.auth_remark 
+        from sys_owner_profile p
+        left join sys_user u on p.user_id = u.user_id
     </sql>
 
     <select id="selectSysOwnerProfileList" parameterType="SysOwnerProfile" resultMap="SysOwnerProfileResult">
         <include refid="selectSysOwnerProfileVo"/>
-        <where>  
-            <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
-            <if test="idCardNo != null  and idCardNo != ''"> and id_card_no = #{idCardNo}</if>
-            <if test="authStatus != null  and authStatus != ''"> and auth_status = #{authStatus}</if>
-            <if test="buildingNo != null  and buildingNo != ''"> and building_no = #{buildingNo}</if>
-            <if test="unitNo != null  and unitNo != ''"> and unit_no = #{unitNo}</if>
-            <if test="roomNo != null  and roomNo != ''"> and room_no = #{roomNo}</if>
-            <if test="isCommitteeMember != null  and isCommitteeMember != ''"> and is_committee_member = #{isCommitteeMember}</if>
+        <where>
+            <if test="realName != null  and realName != ''">
+                AND p.real_name like concat('%', #{realName}, '%')
+            </if>
+            <if test="phonenumber != null and phonenumber != ''">
+                 AND u.phonenumber like concat('%', #{phonenumber}, '%')
+            </if>
         </where>
     </select>
     
     <select id="selectSysOwnerProfileByUserId" parameterType="Long" resultMap="SysOwnerProfileResult">
         <include refid="selectSysOwnerProfileVo"/>
-        where user_id = #{userId}
+        where p.user_id = #{userId}
     </select>
-
+        
     <insert id="insertSysOwnerProfile" parameterType="SysOwnerProfile">
         insert into sys_owner_profile
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">user_id,</if>
             <if test="realName != null and realName != ''">real_name,</if>
             <if test="idCardNo != null and idCardNo != ''">id_card_no,</if>
-            <if test="idCardFrontUrl != null and idCardFrontUrl != ''">id_card_front_url,</if>
-            <if test="idCardBackUrl != null and idCardBackUrl != ''">id_card_back_url,</if>
-            <if test="authStatus != null and authStatus != ''">auth_status,</if>
-            <if test="authRemark != null and authRemark != ''">auth_remark,</if>
+            <if test="idCardFrontUrl != null">id_card_front_url,</if>
+            <if test="idCardBackUrl != null">id_card_back_url,</if>
+            <if test="authStatus != null">auth_status,</if>
             <if test="buildingNo != null">building_no,</if>
             <if test="unitNo != null">unit_no,</if>
             <if test="roomNo != null">room_no,</if>
@@ -66,15 +67,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
+            <if test="authRemark != null">auth_remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
             <if test="realName != null and realName != ''">#{realName},</if>
             <if test="idCardNo != null and idCardNo != ''">#{idCardNo},</if>
-            <if test="idCardFrontUrl != null and idCardFrontUrl != ''">#{idCardFrontUrl},</if>
-            <if test="idCardBackUrl != null and idCardBackUrl != ''">#{idCardBackUrl},</if>
-            <if test="authStatus != null and authStatus != ''">#{authStatus},</if>
-            <if test="authRemark != null and authRemark != ''">#{authRemark},</if>
+            <if test="idCardFrontUrl != null">#{idCardFrontUrl},</if>
+            <if test="idCardBackUrl != null">#{idCardBackUrl},</if>
+            <if test="authStatus != null">#{authStatus},</if>
             <if test="buildingNo != null">#{buildingNo},</if>
             <if test="unitNo != null">#{unitNo},</if>
             <if test="roomNo != null">#{roomNo},</if>
@@ -85,6 +86,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
+            <if test="authRemark != null">#{authRemark},</if>
          </trim>
     </insert>
 
@@ -93,10 +95,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="realName != null and realName != ''">real_name = #{realName},</if>
             <if test="idCardNo != null and idCardNo != ''">id_card_no = #{idCardNo},</if>
-            <if test="idCardFrontUrl != null and idCardFrontUrl != ''">id_card_front_url = #{idCardFrontUrl},</if>
-            <if test="idCardBackUrl != null and idCardBackUrl != ''">id_card_back_url = #{idCardBackUrl},</if>
-            <if test="authStatus != null and authStatus != ''">auth_status = #{authStatus},</if>
-            <if test="authRemark != null">auth_remark = #{authRemark},</if>
+            <if test="idCardFrontUrl != null">id_card_front_url = #{idCardFrontUrl},</if>
+            <if test="idCardBackUrl != null">id_card_back_url = #{idCardBackUrl},</if>
+            <if test="authStatus != null">auth_status = #{authStatus},</if>
             <if test="buildingNo != null">building_no = #{buildingNo},</if>
             <if test="unitNo != null">unit_no = #{unitNo},</if>
             <if test="roomNo != null">room_no = #{roomNo},</if>
@@ -107,6 +108,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
             <if test="remark != null">remark = #{remark},</if>
+            <if test="authRemark != null">auth_remark = #{authRemark},</if>
         </trim>
         where user_id = #{userId}
     </update>

@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="咨询人用户ID (关联sys_user)" prop="userId">
+      <el-form-item label="咨询人用户" prop="userId">
         <el-input
           v-model="queryParams.userId"
-          placeholder="请输入咨询人用户ID (关联sys_user)"
+          placeholder="请输入咨询人用户"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -17,14 +17,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="关联的自定义表单数据ID" prop="formDataId">
-        <el-input
-          v-model="queryParams.formDataId"
-          placeholder="请输入关联的自定义表单数据ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item label="回复时间" prop="replyTime">
         <el-date-picker clearable
           v-model="queryParams.replyTime"
@@ -33,14 +26,7 @@
           placeholder="请选择回复时间">
         </el-date-picker>
       </el-form-item>
-      <el-form-item label="指派的法律专业人员" prop="assignee">
-        <el-input
-          v-model="queryParams.assignee"
-          placeholder="请输入指派的法律专业人员"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -96,18 +82,10 @@
     <el-table v-loading="loading" :data="consultationList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="咨询ID" align="center" prop="consultationId" />
-      <el-table-column label="咨询人用户ID (关联sys_user)" align="center" prop="userId" />
+      <el-table-column label="咨询人用户" align="center" prop="userId" />
       <el-table-column label="咨询标题" align="center" prop="title" />
       <el-table-column label="咨询内容" align="center" prop="content" />
-      <el-table-column label="关联的自定义表单数据ID" align="center" prop="formDataId" />
-      <el-table-column label="状态" align="center" prop="status" />
-      <el-table-column label="回复内容" align="center" prop="replyContent" />
-      <el-table-column label="回复时间" align="center" prop="replyTime" width="180">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.replyTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="指派的法律专业人员" align="center" prop="assignee" />
+
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -128,7 +106,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"

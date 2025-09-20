@@ -1,84 +1,44 @@
 package com.ruoyi.web.controller.system;
 
+import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.common.core.domain.entity.SysUser;
-import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
-import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.system.domain.SysOwnerProfile;
 import com.ruoyi.system.service.ISysOwnerProfileService;
-import com.ruoyi.system.service.ISysUserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
  * 业主信息扩展Controller
- *
+ * 
  * @author ruoyi
- * @date 2025-08-21
+ * @date 2025-09-15
  */
 @RestController
-@RequestMapping("/system/profile")
+@RequestMapping("/system/owner")
 public class SysOwnerProfileController extends BaseController
 {
     @Autowired
     private ISysOwnerProfileService sysOwnerProfileService;
 
-    @Autowired
-    private ISysUserService userService;
-
     /**
-     * (小程序端) 提交认证申请
+     * 查询业主信息扩展列表
      */
-    @Log(title = "业主认证申请", businessType = BusinessType.INSERT)
-    @PostMapping("/submitAuth")
-    public AjaxResult submitAuth(@RequestBody SysOwnerProfile sysOwnerProfile)
-    {
-        Long userId = SecurityUtils.getUserId();
-        SysOwnerProfile existingProfile = sysOwnerProfileService.selectSysOwnerProfileByUserId(userId);
-        if (existingProfile != null && ("1".equals(existingProfile.getAuthStatus()) || "2".equals(existingProfile.getAuthStatus()))) {
-            return AjaxResult.error("您已提交认证申请或已认证，请勿重复提交");
-        }
-
-        sysOwnerProfile.setUserId(userId);
-        sysOwnerProfile.setAuthStatus("1"); // 1-待审核
-        if (existingProfile != null) {
-            // 如果之前有记录（如认证失败），则更新
-            return toAjax(sysOwnerProfileService.updateSysOwnerProfile(sysOwnerProfile));
-        } else {
-            // 否则，插入新纪录
-            return toAjax(sysOwnerProfileService.insertSysOwnerProfile(sysOwnerProfile));
-        }
-    }
-
-    /**
-     * (小程序端) 获取我的认证信息
-     */
-    @GetMapping("/myProfile")
-    public AjaxResult getMyProfile()
-    {
-        Long userId = SecurityUtils.getUserId();
-        SysOwnerProfile profile = sysOwnerProfileService.selectSysOwnerProfileByUserId(userId);
-        if (profile == null) {
-            // 为了前端处理方便，如果不存在记录，返回一个包含默认状态的对象
-            SysOwnerProfile defaultProfile = new SysOwnerProfile();
-            defaultProfile.setAuthStatus("0"); // 0-未认证
-            return AjaxResult.success(defaultProfile);
-        }
-        return AjaxResult.success(profile);
-    }
-
-
-    /**
-     * (管理端) 查询业主信息扩展列表
-     */
-    @PreAuthorize("@ss.hasPermi('system:profile:list')")
+    @PreAuthorize("@ss.hasPermi('system:owner:list')")
     @GetMapping("/list")
     public TableDataInfo list(SysOwnerProfile sysOwnerProfile)
     {
@@ -88,44 +48,22 @@ public class SysOwnerProfileController extends BaseController
     }
 
     /**
-     * (管理端) 审核认证申请
+     * 导出业主信息扩展列表
      */
-    @PreAuthorize("@ss.hasPermi('system:profile:audit')")
-    @Log(title = "业主认证审核", businessType = BusinessType.UPDATE)
-    @PutMapping("/audit")
-    public AjaxResult audit(@RequestBody SysOwnerProfile profile)
+    @PreAuthorize("@ss.hasPermi('system:owner:export')")
+    @Log(title = "业主信息扩展", businessType = BusinessType.EXPORT)
+    @PostMapping("/export")
+    public void export(HttpServletResponse response, SysOwnerProfile sysOwnerProfile)
     {
-        // 验证关键参数
-        if (profile.getUserId() == null || !StringUtils.hasText(profile.getAuthStatus()))
-        {
-            return error("审核失败，缺少必要参数");
-        }
-
-        SysOwnerProfile ownerProfile = sysOwnerProfileService.selectSysOwnerProfileByUserId(profile.getUserId());
-        if (ownerProfile == null) {
-            return error("审核失败，找不到对应的认证记录");
-        }
-
-        // 更新状态和审核备注
-        ownerProfile.setAuthStatus(profile.getAuthStatus());
-        ownerProfile.setRemark(profile.getRemark()); // 管理员填写的审核备注
-
-        // 如果审核通过，可以同步一些信息到sys_user表
-        if ("2".equals(profile.getAuthStatus())) {
-            SysUser user = new SysUser();
-            user.setUserId(ownerProfile.getUserId());
-            user.setNickName(ownerProfile.getRealName()); // 将昵称同步为真实姓名
-            // 可以在这里添加更多需要同步的字段
-            userService.updateUserProfile(user);
-        }
-
-        return toAjax(sysOwnerProfileService.updateSysOwnerProfile(ownerProfile));
+        List<SysOwnerProfile> list = sysOwnerProfileService.selectSysOwnerProfileList(sysOwnerProfile);
+        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
+        util.exportExcel(response, list, "业主信息扩展数据");
     }
 
     /**
      * 获取业主信息扩展详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:profile:query')")
+    @PreAuthorize("@ss.hasPermi('system:owner:query')")
     @GetMapping(value = "/{userId}")
     public AjaxResult getInfo(@PathVariable("userId") Long userId)
     {
@@ -135,7 +73,7 @@ public class SysOwnerProfileController extends BaseController
     /**
      * 新增业主信息扩展
      */
-    @PreAuthorize("@ss.hasPermi('system:profile:add')")
+    @PreAuthorize("@ss.hasPermi('system:owner:add')")
     @Log(title = "业主信息扩展", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody SysOwnerProfile sysOwnerProfile)
@@ -146,7 +84,7 @@ public class SysOwnerProfileController extends BaseController
     /**
      * 修改业主信息扩展
      */
-    @PreAuthorize("@ss.hasPermi('system:profile:edit')")
+    @PreAuthorize("@ss.hasPermi('system:owner:edit')")
     @Log(title = "业主信息扩展", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody SysOwnerProfile sysOwnerProfile)
@@ -157,11 +95,30 @@ public class SysOwnerProfileController extends BaseController
     /**
      * 删除业主信息扩展
      */
-    @PreAuthorize("@ss.hasPermi('system:profile:remove')")
+    @PreAuthorize("@ss.hasPermi('system:owner:remove')")
     @Log(title = "业主信息扩展", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{userIds}")
     public AjaxResult remove(@PathVariable Long[] userIds)
     {
         return toAjax(sysOwnerProfileService.deleteSysOwnerProfileByUserIds(userIds));
+    }
+
+    @Log(title = "业主信息", businessType = BusinessType.IMPORT)
+    @PreAuthorize("@ss.hasPermi('system:owner:import')")
+    @PostMapping("/importData")
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
+    {
+        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
+        List<SysOwnerProfile> ownerList = util.importExcel(file.getInputStream());
+        String operName = getUsername();
+        String message = sysOwnerProfileService.importOwner(ownerList, updateSupport, operName);
+        return success(message);
+    }
+
+    @PostMapping("/importTemplate")
+    public void importTemplate(HttpServletResponse response)
+    {
+        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
+        util.importTemplateExcel(response, "业主数据");
     }
 }

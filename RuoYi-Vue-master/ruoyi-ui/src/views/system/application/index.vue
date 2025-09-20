@@ -1,30 +1,16 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="申请人用户ID (关联sys_user)" prop="userId">
+      <el-form-item label="申请人 (关联sys_user)" prop="userId">
         <el-input
           v-model="queryParams.userId"
-          placeholder="请输入申请人用户ID (关联sys_user)"
+          placeholder="请输入申请人用户"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="相关文件URL (可选)" prop="fileUrl">
-        <el-input
-          v-model="queryParams.fileUrl"
-          placeholder="请输入相关文件URL (可选)"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="支付单号 (关联微信支付)" prop="paymentNo">
-        <el-input
-          v-model="queryParams.paymentNo"
-          placeholder="请输入支付单号 (关联微信支付)"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
+
       <el-form-item label="支付金额" prop="paymentAmount">
         <el-input
           v-model="queryParams.paymentAmount"
@@ -88,12 +74,12 @@
     <el-table v-loading="loading" :data="applicationList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="申请ID" align="center" prop="applicationId" />
-      <el-table-column label="申请人用户ID (关联sys_user)" align="center" prop="userId" />
-      <el-table-column label="申请公证的文件类型或名称" align="center" prop="fileType" />
-      <el-table-column label="相关文件URL (可选)" align="center" prop="fileUrl" />
-      <el-table-column label="申请信息 (JSON格式)" align="center" prop="applicationInfo" />
+      <el-table-column label="申请人用户" align="center" prop="userId" />
+      <el-table-column label="申请公证的文件类型" align="center" prop="fileType" />
+      <el-table-column label="相关文件" align="center" prop="fileUrl" />
+      <el-table-column label="申请信息" align="center" prop="applicationInfo" />
       <el-table-column label="支付状态" align="center" prop="paymentStatus" />
-      <el-table-column label="支付单号 (关联微信支付)" align="center" prop="paymentNo" />
+      <el-table-column label="支付单号" align="center" prop="paymentNo" />
       <el-table-column label="支付金额" align="center" prop="paymentAmount" />
       <el-table-column label="办理状态" align="center" prop="status" />
       <el-table-column label="备注或驳回原因" align="center" prop="remark" />
@@ -116,7 +102,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"

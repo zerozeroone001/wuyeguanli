@@ -33,30 +33,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="紧急程度(1-紧急,2-普通,3-一般)" prop="urgency">
-        <el-input
-          v-model="queryParams.urgency"
-          placeholder="请输入紧急程度(1-紧急,2-普通,3-一般)"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="期望处理时间(1-立即,2-3天内,3-1周内,4-1月内)" prop="expectedTime">
-        <el-input
-          v-model="queryParams.expectedTime"
-          placeholder="请输入期望处理时间(1-立即,2-3天内,3-1周内,4-1月内)"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="处理人ID" prop="handlerId">
-        <el-input
-          v-model="queryParams.handlerId"
-          placeholder="请输入处理人ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+
       <el-form-item label="处理时间" prop="handleTime">
         <el-date-picker clearable
           v-model="queryParams.handleTime"
@@ -138,13 +115,11 @@
       <el-table-column label="投诉ID" align="center" prop="complaintId" />
       <el-table-column label="投诉编号" align="center" prop="complaintNo" />
       <el-table-column label="投诉人ID" align="center" prop="userId" />
-      <el-table-column label="投诉类型(1-物业服务,2-设施设备,3-环境卫生,4-安全管理,5-收费争议,6-其他)" align="center" prop="complaintType" />
+      <el-table-column label="投诉类型" align="center" prop="complaintType" />
       <el-table-column label="投诉标题" align="center" prop="complaintTitle" />
       <el-table-column label="投诉内容" align="center" prop="complaintContent" />
       <el-table-column label="联系电话" align="center" prop="contactPhone" />
-      <el-table-column label="紧急程度(1-紧急,2-普通,3-一般)" align="center" prop="urgency" />
-      <el-table-column label="期望处理时间(1-立即,2-3天内,3-1周内,4-1月内)" align="center" prop="expectedTime" />
-      <el-table-column label="状态(0-待处理,1-处理中,2-已完成,3-已关闭)" align="center" prop="status" />
+      <el-table-column label="状态" align="center" prop="status" />
       <el-table-column label="处理人ID" align="center" prop="handlerId" />
       <el-table-column label="处理时间" align="center" prop="handleTime" width="180">
         <template slot-scope="scope">

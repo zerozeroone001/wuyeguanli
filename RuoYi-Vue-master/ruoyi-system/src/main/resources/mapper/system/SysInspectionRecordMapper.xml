@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysInspectionRecordMapper">
+    
+    <resultMap type="com.ruoyi.system.domain.SysInspectionRecord" id="SysInspectionRecordResult">
+        <result property="recordId" column="record_id"/>
+        <result property="planId" column="plan_id"/>
+        <result property="location" column="location"/>
+        <result property="inspectionDate" column="inspection_date"/>
+        <result property="items" column="items"/>
+        <result property="results" column="results"/>
+        <result property="conclusion" column="conclusion"/>
+        <result property="attachments" column="attachments"/>
+        <result property="reportContent" column="report_content"/>
+        <result property="rectificationNotice" column="rectification_notice"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectSysInspectionRecordVo">
+        select record_id, plan_id, location, inspection_date, items, results, conclusion, attachments, report_content, rectification_notice, status, create_by, create_time, update_by, update_time, remark from sys_inspection_record
+    </sql>
+
+    <select id="selectSysInspectionRecordList" parameterType="com.ruoyi.system.domain.SysInspectionRecord" resultMap="SysInspectionRecordResult">
+        <include refid="selectSysInspectionRecordVo"/>
+        <where>
+            <if test="planId != null "> and plan_id = #{planId}</if>
+            <if test="location != null and location != ''"> and location like concat('%', #{location}, '%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectSysInspectionRecordByRecordId" parameterType="Long" resultMap="SysInspectionRecordResult">
+        <include refid="selectSysInspectionRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+        
+    <insert id="insertSysInspectionRecord" parameterType="com.ruoyi.system.domain.SysInspectionRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into sys_inspection_record (plan_id, location, inspection_date, items, results, conclusion, attachments, report_content, rectification_notice, status, create_by, create_time, update_by, update_time, remark)
+        values (#{planId}, #{location}, #{inspectionDate}, #{items}, #{results}, #{conclusion}, #{attachments}, #{reportContent}, #{rectificationNotice}, #{status}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark})
+    </insert>
+
+    <update id="updateSysInspectionRecord" parameterType="com.ruoyi.system.domain.SysInspectionRecord">
+        update sys_inspection_record
+        <set>
+            <if test="planId != null">plan_id = #{planId},</if>
+            <if test="location != null and location != ''">location = #{location},</if>
+            <if test="inspectionDate != null">inspection_date = #{inspectionDate},</if>
+            <if test="items != null">items = #{items},</if>
+            <if test="results != null">results = #{results},</if>
+            <if test="conclusion != null">conclusion = #{conclusion},</if>
+            <if test="attachments != null">attachments = #{attachments},</if>
+            <if test="reportContent != null">report_content = #{reportContent},</if>
+            <if test="rectificationNotice != null">rectification_notice = #{rectificationNotice},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteSysInspectionRecordByRecordIds" parameterType="String">
+        delete from sys_inspection_record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>

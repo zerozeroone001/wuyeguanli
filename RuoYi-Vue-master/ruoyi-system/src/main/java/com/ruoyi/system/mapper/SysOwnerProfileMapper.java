@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.SysOwnerProfile;
  * 业主信息扩展Mapper接口
  * 
  * @author ruoyi
- * @date 2025-08-21
+ * @date 2025-09-15
  */
 public interface SysOwnerProfileMapper 
 {

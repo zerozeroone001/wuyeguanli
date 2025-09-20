@@ -94,7 +94,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -125,7 +125,7 @@
 </template>
 
 <script>
-import { listCategory, getCategory, delCategory, addCategory, updateCategory } from "@/api/system/category"
+import { listCategory, getCategory, delCategory, addCategory, updateCategory } from "@/api/system/regulationCategory"
 
 export default {
   name: "Category",
