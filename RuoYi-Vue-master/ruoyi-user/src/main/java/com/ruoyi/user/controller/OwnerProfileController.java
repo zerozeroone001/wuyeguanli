@@ -48,6 +48,8 @@ public class OwnerProfileController extends BaseController
         sysOwnerProfile.setAuthStatus("1"); // 1-待审核
         if (existingProfile != null) {
             // 如果之前有记录（如认证失败），则更新
+            // 需要把之前的ownerId设置进去，否则更新会失败
+            sysOwnerProfile.setOwnerId(existingProfile.getOwnerId());
             return toAjax(sysOwnerProfileService.updateSysOwnerProfile(sysOwnerProfile));
         } else {
             // 否则，插入新纪录

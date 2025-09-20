@@ -58,6 +58,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectSysOwnerProfileVo"/>
         where p.id_card_no = #{idCardNo}
     </select>
+
+    <select id="selectSysOwnerProfileByUserId" parameterType="Long" resultMap="SysOwnerProfileResult">
+        <include refid="selectSysOwnerProfileVo"/>
+        where p.user_id = #{userId}
+    </select>
         
     <insert id="insertSysOwnerProfile" parameterType="SysOwnerProfile" useGeneratedKeys="true" keyProperty="ownerId">
         insert into sys_owner_profile
@@ -136,6 +141,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         delete from sys_owner_profile where owner_id in 
         <foreach item="ownerId" collection="array" open="(" separator="," close=")">
             #{ownerId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteSysOwnerProfileByUserIds" parameterType="String">
+        delete from sys_owner_profile where user_id in
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
         </foreach>
     </delete>
 </mapper>

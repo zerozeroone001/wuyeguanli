@@ -213,8 +213,8 @@ export default {
         confirmText: '确认',
         cancelText: '取消'
       });
-
-      if (!confirm.confirm) return;
+console.log(confirm[1].confirm)
+      if (!confirm[1].confirm) return;
 
       uni.showLoading({ title: '提交中...' });
 
@@ -225,17 +225,9 @@ export default {
           choice: choice
         };
 
-        // 假设API成功后会返回更新后的议题信息（包含最新票数）
-        const updatedTopic = await submitVote(submissionData);
+        await submitVote(submissionData);
 
-        // 更新前端数据
-        const topicIndex = this.topicList.findIndex(t => t.topicId === topic.topicId);
-        if (topicIndex !== -1) {
-          // 使用API返回的最新数据更新议题
-          this.topicList.splice(topicIndex, 1, { ...this.topicList[topicIndex], ...updatedTopic.data });
-        }
-        
-        // 更新我的投票状态
+        // 更新我的投票状态，立即反馈到UI
         this.$set(this.voteData, topic.topicId, choice);
 
         uni.hideLoading();

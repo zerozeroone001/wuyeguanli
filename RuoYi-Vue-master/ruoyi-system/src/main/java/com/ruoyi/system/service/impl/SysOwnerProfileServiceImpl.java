@@ -36,6 +36,12 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     }
 
     @Override
+    public SysOwnerProfile selectSysOwnerProfileByUserId(Long userId)
+    {
+        return sysOwnerProfileMapper.selectSysOwnerProfileByUserId(userId);
+    }
+
+    @Override
     public List<SysOwnerProfile> selectSysOwnerProfileList(SysOwnerProfile sysOwnerProfile)
     {
         return sysOwnerProfileMapper.selectSysOwnerProfileList(sysOwnerProfile);
@@ -62,6 +68,13 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     public int deleteSysOwnerProfileByOwnerIds(Long[] ownerIds)
     {
         return sysOwnerProfileMapper.deleteSysOwnerProfileByOwnerIds(ownerIds);
+    }
+
+    @Override
+    @Transactional
+    public int deleteSysOwnerProfileByUserIds(Long[] userIds)
+    {
+        return sysOwnerProfileMapper.deleteSysOwnerProfileByUserIds(userIds);
     }
 
     @Override
