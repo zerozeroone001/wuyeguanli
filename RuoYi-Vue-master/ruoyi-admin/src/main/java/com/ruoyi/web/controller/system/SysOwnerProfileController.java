@@ -18,6 +18,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SysOwnerProfile;
+import com.ruoyi.system.domain.dto.OwnerProfileImportDto;
 import com.ruoyi.system.service.ISysOwnerProfileService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
@@ -64,10 +65,10 @@ public class SysOwnerProfileController extends BaseController
      * 获取业主信息扩展详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:owner:query')")
-    @GetMapping(value = "/{userId}")
-    public AjaxResult getInfo(@PathVariable("userId") Long userId)
+    @GetMapping(value = "/{ownerId}")
+    public AjaxResult getInfo(@PathVariable("ownerId") Long ownerId)
     {
-        return success(sysOwnerProfileService.selectSysOwnerProfileByUserId(userId));
+        return success(sysOwnerProfileService.selectSysOwnerProfileByOwnerId(ownerId));
     }
 
     /**
@@ -97,10 +98,10 @@ public class SysOwnerProfileController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('system:owner:remove')")
     @Log(title = "业主信息扩展", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{userIds}")
-    public AjaxResult remove(@PathVariable Long[] userIds)
+	@DeleteMapping("/{ownerIds}")
+    public AjaxResult remove(@PathVariable Long[] ownerIds)
     {
-        return toAjax(sysOwnerProfileService.deleteSysOwnerProfileByUserIds(userIds));
+        return toAjax(sysOwnerProfileService.deleteSysOwnerProfileByOwnerIds(ownerIds));
     }
 
     @Log(title = "业主信息", businessType = BusinessType.IMPORT)
@@ -108,8 +109,8 @@ public class SysOwnerProfileController extends BaseController
     @PostMapping("/importData")
     public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
     {
-        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
-        List<SysOwnerProfile> ownerList = util.importExcel(file.getInputStream());
+        ExcelUtil<OwnerProfileImportDto> util = new ExcelUtil<OwnerProfileImportDto>(OwnerProfileImportDto.class);
+        List<OwnerProfileImportDto> ownerList = util.importExcel(file.getInputStream());
         String operName = getUsername();
         String message = sysOwnerProfileService.importOwner(ownerList, updateSupport, operName);
         return success(message);
@@ -118,7 +119,7 @@ public class SysOwnerProfileController extends BaseController
     @PostMapping("/importTemplate")
     public void importTemplate(HttpServletResponse response)
     {
-        ExcelUtil<SysOwnerProfile> util = new ExcelUtil<SysOwnerProfile>(SysOwnerProfile.class);
+        ExcelUtil<OwnerProfileImportDto> util = new ExcelUtil<OwnerProfileImportDto>(OwnerProfileImportDto.class);
         util.importTemplateExcel(response, "业主数据");
     }
 }

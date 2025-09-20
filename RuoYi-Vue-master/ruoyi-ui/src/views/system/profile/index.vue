@@ -59,7 +59,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -130,7 +130,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         realName: null,
-        authStatus: null,
+        authStatus:'NOT',
       },
       // 表单参数
       form: {},

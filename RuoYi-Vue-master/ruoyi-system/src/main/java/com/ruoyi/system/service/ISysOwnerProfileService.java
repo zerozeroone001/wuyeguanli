@@ -2,6 +2,7 @@ package com.ruoyi.system.service;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysOwnerProfile;
+import com.ruoyi.system.domain.dto.OwnerProfileImportDto;
 
 /**
  * 业主信息扩展Service接口
@@ -14,10 +15,10 @@ public interface ISysOwnerProfileService
     /**
      * 查询业主信息扩展
      * 
-     * @param userId 业主信息扩展主键
+     * @param ownerId 业主信息扩展主键
      * @return 业主信息扩展
      */
-    public SysOwnerProfile selectSysOwnerProfileByUserId(Long userId);
+    public SysOwnerProfile selectSysOwnerProfileByOwnerId(Long ownerId);
 
     /**
      * 查询业主信息扩展列表
@@ -46,18 +47,18 @@ public interface ISysOwnerProfileService
     /**
      * 批量删除业主信息扩展
      * 
-     * @param userIds 需要删除的数据主键集合
+     * @param ownerIds 需要删除的数据主键集合
      * @return 结果
      */
-    public int deleteSysOwnerProfileByUserIds(Long[] userIds);
+    public int deleteSysOwnerProfileByOwnerIds(Long[] ownerIds);
 
     /**
      * 删除业主信息扩展信息
      * 
-     * @param userId 业主信息扩展主键
+     * @param ownerId 业主信息扩展主键
      * @return 结果
      */
-    public int deleteSysOwnerProfileByUserId(Long userId);
+    public int deleteSysOwnerProfileByOwnerId(Long ownerId);
 
     /**
      * 导入业主数据
@@ -67,5 +68,5 @@ public interface ISysOwnerProfileService
      * @param operName 操作用户
      * @return 结果
      */
-    public String importOwner(List<SysOwnerProfile> ownerList, Boolean isUpdateSupport, String operName);
+    public String importOwner(List<OwnerProfileImportDto> ownerList, boolean isUpdateSupport, String operName);
 }

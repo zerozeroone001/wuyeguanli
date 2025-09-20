@@ -78,7 +78,7 @@ spring:
     # 密码
     password: 45625852@redis
     # 连接超时时间
-    timeout: 3000
+    timeout: 300000
     lettuce:
       pool:
         # 连接池中的最小空闲连接
@@ -99,7 +99,7 @@ token:
   # 令牌密钥
   secret: abcdefghijklmnopqrstuvwxyz
   # 令牌有效期（默认30分钟）
-  expireTime: 30
+  expireTime: 720
 
 # MyBatis配置
 mybatis:

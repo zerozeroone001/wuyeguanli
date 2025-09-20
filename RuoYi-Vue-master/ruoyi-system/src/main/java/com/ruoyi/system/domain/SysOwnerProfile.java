@@ -1,6 +1,5 @@
 package com.ruoyi.system.domain;
 
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -17,7 +16,10 @@ public class SysOwnerProfile extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 用户ID (主键, 关联sys_user.user_id) */
+    /** 业主ID (主键) */
+    private Long ownerId;
+
+    /** 用户ID (外键, 可选) */
     private Long userId;
 
     /** 真实姓名 */
@@ -29,43 +31,47 @@ public class SysOwnerProfile extends BaseEntity
     private String idCardNo;
 
     /** 身份证正面照片URL */
-    @Excel(name = "身份证正面照片URL")
     private String idCardFrontUrl;
 
     /** 身份证反面照片URL */
-    @Excel(name = "身份证反面照片URL")
     private String idCardBackUrl;
 
     /** 实名认证状态（0未认证 1待审核 2已认证 3认证失败） */
-    @Excel(name = "实名认证状态", readConverterExp = "0=未认证,1=待审核,2=已认证,3=认证失败")
     private String authStatus;
 
     /** 楼栋号 */
-    @Excel(name = "楼栋号")
     private String buildingNo;
 
     /** 单元号 */
-    @Excel(name = "单元号")
     private String unitNo;
 
     /** 房号 */
-    @Excel(name = "房号")
     private String roomNo;
 
     /** 是否为业委会成员（Y是 N否） */
-    @Excel(name = "是否为业委会成员", readConverterExp = "Y=是,N=否")
     private String isCommitteeMember;
 
     /** 删除标志（0存在 2删除） */
     private String delFlag;
 
     /** 审核备注（例如，失败原因） */
-    @Excel(name = "审核备注")
     private String authRemark;
 
     /** 手机号码 */
-    @Excel(name = "手机号码")
     private String phonenumber;
+
+    /** 联系号码 */
+    private String contactNumber;
+
+    public void setOwnerId(Long ownerId) 
+    {
+        this.ownerId = ownerId;
+    }
+
+    public Long getOwnerId() 
+    {
+        return ownerId;
+    }
 
     public void setUserId(Long userId) 
     {
@@ -186,9 +192,20 @@ public class SysOwnerProfile extends BaseEntity
         return phonenumber;
     }
 
+    public void setContactNumber(String contactNumber) 
+    {
+        this.contactNumber = contactNumber;
+    }
+
+    public String getContactNumber() 
+    {
+        return contactNumber;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
+            .append("ownerId", getOwnerId())
             .append("userId", getUserId())
             .append("realName", getRealName())
             .append("idCardNo", getIdCardNo())
@@ -200,6 +217,7 @@ public class SysOwnerProfile extends BaseEntity
             .append("roomNo", getRoomNo())
             .append("isCommitteeMember", getIsCommitteeMember())
             .append("phonenumber", getPhonenumber())
+            .append("contactNumber", getContactNumber())
             .append("delFlag", getDelFlag())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

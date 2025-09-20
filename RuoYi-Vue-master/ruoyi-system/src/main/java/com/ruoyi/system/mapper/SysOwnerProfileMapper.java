@@ -14,10 +14,18 @@ public interface SysOwnerProfileMapper
     /**
      * 查询业主信息扩展
      * 
-     * @param userId 业主信息扩展主键
+     * @param ownerId 业主信息扩展主键
      * @return 业主信息扩展
      */
-    public SysOwnerProfile selectSysOwnerProfileByUserId(Long userId);
+    public SysOwnerProfile selectSysOwnerProfileByOwnerId(Long ownerId);
+
+    /**
+     * 根据身份证号查询业主信息
+     * 
+     * @param idCardNo 身份证号
+     * @return 业主信息扩展
+     */
+    public SysOwnerProfile selectSysOwnerProfileByIdCardNo(String idCardNo);
 
     /**
      * 查询业主信息扩展列表
@@ -44,18 +52,18 @@ public interface SysOwnerProfileMapper
     public int updateSysOwnerProfile(SysOwnerProfile sysOwnerProfile);
 
     /**
-     * 删除业主信息扩展
-     * 
-     * @param userId 业主信息扩展主键
-     * @return 结果
-     */
-    public int deleteSysOwnerProfileByUserId(Long userId);
-
-    /**
      * 批量删除业主信息扩展
      * 
-     * @param userIds 需要删除的数据主键集合
+     * @param ownerIds 需要删除的数据主键集合
      * @return 结果
      */
-    public int deleteSysOwnerProfileByUserIds(Long[] userIds);
+    public int deleteSysOwnerProfileByOwnerIds(Long[] ownerIds);
+
+    /**
+     * 删除业主信息扩展信息
+     * 
+     * @param ownerId 业主信息扩展主键
+     * @return 结果
+     */
+    public int deleteSysOwnerProfileByOwnerId(Long ownerId);
 }

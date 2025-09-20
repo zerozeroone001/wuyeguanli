@@ -5,6 +5,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.ruoyi.system.mapper.SysOwnerProfileMapper">
     
     <resultMap type="SysOwnerProfile" id="SysOwnerProfileResult">
+        <id property="ownerId"    column="owner_id"    />
         <result property="userId"    column="user_id"    />
         <result property="realName"    column="real_name"    />
         <result property="phonenumber" column="phonenumber"  />
@@ -26,9 +27,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysOwnerProfileVo">
-        select p.user_id, p.real_name, u.phonenumber, p.id_card_no, p.id_card_front_url, p.id_card_back_url, p.auth_status, p.building_no, p.unit_no, p.room_no, p.is_committee_member, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.auth_remark 
+        select p.owner_id, p.user_id, p.real_name, p.phonenumber, p.id_card_no, p.id_card_front_url, p.id_card_back_url, p.auth_status, p.building_no, p.unit_no, p.room_no, p.is_committee_member, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.auth_remark 
         from sys_owner_profile p
-        left join sys_user u on p.user_id = u.user_id
     </sql>
 
     <select id="selectSysOwnerProfileList" parameterType="SysOwnerProfile" resultMap="SysOwnerProfileResult">
@@ -38,22 +38,34 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND p.real_name like concat('%', #{realName}, '%')
             </if>
             <if test="phonenumber != null and phonenumber != ''">
-                 AND u.phonenumber like concat('%', #{phonenumber}, '%')
+                 AND p.phonenumber like concat('%', #{phonenumber}, '%')
+            </if>
+            <if test="authStatus != null and authStatus == 'NOT'">
+                AND p.auth_status IN ('0', '2', '3')
+            </if>
+            <if test="authStatus != null and authStatus != 'NOT' and authStatus != ''">
+                AND p.auth_status = #{authStatus}
             </if>
         </where>
     </select>
     
-    <select id="selectSysOwnerProfileByUserId" parameterType="Long" resultMap="SysOwnerProfileResult">
+    <select id="selectSysOwnerProfileByOwnerId" parameterType="Long" resultMap="SysOwnerProfileResult">
         <include refid="selectSysOwnerProfileVo"/>
-        where p.user_id = #{userId}
+        where p.owner_id = #{ownerId}
+    </select>
+
+    <select id="selectSysOwnerProfileByIdCardNo" parameterType="String" resultMap="SysOwnerProfileResult">
+        <include refid="selectSysOwnerProfileVo"/>
+        where p.id_card_no = #{idCardNo}
     </select>
         
-    <insert id="insertSysOwnerProfile" parameterType="SysOwnerProfile">
+    <insert id="insertSysOwnerProfile" parameterType="SysOwnerProfile" useGeneratedKeys="true" keyProperty="ownerId">
         insert into sys_owner_profile
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">user_id,</if>
             <if test="realName != null and realName != ''">real_name,</if>
             <if test="idCardNo != null and idCardNo != ''">id_card_no,</if>
+            <if test="phonenumber != null and phonenumber != ''">phonenumber,</if>
             <if test="idCardFrontUrl != null">id_card_front_url,</if>
             <if test="idCardBackUrl != null">id_card_back_url,</if>
             <if test="authStatus != null">auth_status,</if>
@@ -73,6 +85,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">#{userId},</if>
             <if test="realName != null and realName != ''">#{realName},</if>
             <if test="idCardNo != null and idCardNo != ''">#{idCardNo},</if>
+            <if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
             <if test="idCardFrontUrl != null">#{idCardFrontUrl},</if>
             <if test="idCardBackUrl != null">#{idCardBackUrl},</if>
             <if test="authStatus != null">#{authStatus},</if>
@@ -93,8 +106,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateSysOwnerProfile" parameterType="SysOwnerProfile">
         update sys_owner_profile
         <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
             <if test="realName != null and realName != ''">real_name = #{realName},</if>
             <if test="idCardNo != null and idCardNo != ''">id_card_no = #{idCardNo},</if>
+            <if test="phonenumber != null and phonenumber != ''">phonenumber = #{phonenumber},</if>
             <if test="idCardFrontUrl != null">id_card_front_url = #{idCardFrontUrl},</if>
             <if test="idCardBackUrl != null">id_card_back_url = #{idCardBackUrl},</if>
             <if test="authStatus != null">auth_status = #{authStatus},</if>
@@ -110,17 +125,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">remark = #{remark},</if>
             <if test="authRemark != null">auth_remark = #{authRemark},</if>
         </trim>
-        where user_id = #{userId}
+        where owner_id = #{ownerId}
     </update>
 
-    <delete id="deleteSysOwnerProfileByUserId" parameterType="Long">
-        delete from sys_owner_profile where user_id = #{userId}
+    <delete id="deleteSysOwnerProfileByOwnerId" parameterType="Long">
+        delete from sys_owner_profile where owner_id = #{ownerId}
     </delete>
 
-    <delete id="deleteSysOwnerProfileByUserIds" parameterType="String">
-        delete from sys_owner_profile where user_id in 
-        <foreach item="userId" collection="array" open="(" separator="," close=")">
-            #{userId}
+    <delete id="deleteSysOwnerProfileByOwnerIds" parameterType="String">
+        delete from sys_owner_profile where owner_id in 
+        <foreach item="ownerId" collection="array" open="(" separator="," close=")">
+            #{ownerId}
         </foreach>
     </delete>
 </mapper>
