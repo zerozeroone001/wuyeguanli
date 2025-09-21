@@ -32,9 +32,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="incrementVoteCount">
         update sys_property_meeting_topic
         <set>
-            <if test="choice == '1'">agree_count = agree_count + 1</if>
-            <if test="choice == '2'">oppose_count = oppose_count + 1</if>
-            <if test="choice == '3'">abstain_count = abstain_count + 1</if>
+            <if test='choice == "1"'>agree_count = agree_count + 1,</if>
+            <if test='choice == "2"'>oppose_count = oppose_count + 1,</if>
+            <if test='choice == "3"'>abstain_count = abstain_count + 1,</if>
         </set>
         where topic_id = #{topicId}
     </update>
@@ -42,9 +42,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="decrementVoteCount">
         update sys_property_meeting_topic
         <set>
-            <if test="choice == '1'">agree_count = agree_count - 1</if>
-            <if test="choice == '2'">oppose_count = oppose_count - 1</if>
-            <if test="choice == '3'">abstain_count = abstain_count - 1</if>
+            <if test='choice == "1"'>agree_count = agree_count - 1,</if>
+            <if test='choice == "2"'>oppose_count = oppose_count - 1,</if>
+            <if test='choice == "3"'>abstain_count = abstain_count - 1,</if>
         </set>
         where topic_id = #{topicId}
     </update>
