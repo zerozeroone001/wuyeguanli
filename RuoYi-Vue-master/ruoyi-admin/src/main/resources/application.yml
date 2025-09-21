@@ -145,3 +145,9 @@ aliyun:
     bucketName: zhuote
     # 自定义域名，可选。配置后，返回的URL将使用此域名
     domain:
+  sms:
+    accessKeyId: YOUR_ACCESS_KEY_ID
+    accessKeySecret: YOUR_ACCESS_KEY_SECRET
+    endpoint: dysmsapi.aliyuncs.com
+    signName: YOUR_SIGN_NAME
+    templateCode: YOUR_TEMPLATE_CODE

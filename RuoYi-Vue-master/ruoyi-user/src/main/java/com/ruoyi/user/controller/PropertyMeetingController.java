@@ -6,17 +6,20 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.system.domain.SysMeetingTopic;
 import com.ruoyi.system.domain.SysMeetingVote;
+import com.ruoyi.system.domain.SysOpinionConsultation;
 import com.ruoyi.system.domain.SysPropertyMeeting;
 import com.ruoyi.system.service.ISysMeetingTopicService;
 import com.ruoyi.system.service.ISysMeetingVoteService;
+import com.ruoyi.system.service.ISysOpinionConsultationService;
 import com.ruoyi.system.service.ISysPropertyMeetingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 会议管理Controller
@@ -36,6 +39,9 @@ public class PropertyMeetingController extends BaseController
 
     @Autowired
     private ISysMeetingTopicService meetingTopicService;
+
+    @Autowired
+    private ISysOpinionConsultationService opinionConsultationService;
 
     /**
      * 查询会议管理列表
@@ -104,10 +110,7 @@ public class PropertyMeetingController extends BaseController
         return AjaxResult.success(sysPropertyMeetingService.getMeetingMarks());
     }
 
-
-
-
-        @GetMapping("/{meetingId}/topics")
+    @GetMapping("/{meetingId}/topics")
     public AjaxResult getMeetingTopics(@PathVariable("meetingId") Long meetingId) {
         return AjaxResult.success(meetingTopicService.selectMeetingTopicList(meetingId));
     }
@@ -124,7 +127,25 @@ public class PropertyMeetingController extends BaseController
         return AjaxResult.success(meetingVoteService.submitVote(vote));
     }
 
+    @PostMapping("/opinion")
+    public AjaxResult submitOpinion(@RequestBody Map<String, Object> payload) {
+        Long topicId = Long.valueOf(payload.get("topicId").toString());
+        String opinion = payload.get("opinion").toString();
 
+        SysMeetingTopic topic = meetingTopicService.selectMeetingTopicById(topicId);
+        if (topic == null) {
+            return AjaxResult.error("议题不存在");
+        }
 
+        SysOpinionConsultation consultation = new SysOpinionConsultation();
+        consultation.setUserId(getUserId());
+        consultation.setTitle(topic.getTopicTitle());
+        consultation.setContent(opinion);
+        consultation.setSourceType("MEETING_TOPIC");
+        consultation.setSourceId(topicId);
+        consultation.setCreateBy(getUsername());
+        consultation.setUpdateBy(getUsername());
 
+        return toAjax(opinionConsultationService.insertOpinionConsultation(consultation));
+    }
 }

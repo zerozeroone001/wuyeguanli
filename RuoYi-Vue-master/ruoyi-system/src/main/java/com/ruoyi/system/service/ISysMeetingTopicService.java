@@ -19,4 +19,12 @@ public interface ISysMeetingTopicService
      * @return 会议议题集合
      */
     public List<SysMeetingTopic> selectMeetingTopicList(Long meetingId);
+
+    /**
+     * 根据议题ID查询议题详细信息
+     * 
+     * @param topicId 议题ID
+     * @return 议题对象
+     */
+    public SysMeetingTopic selectMeetingTopicById(Long topicId);
 }

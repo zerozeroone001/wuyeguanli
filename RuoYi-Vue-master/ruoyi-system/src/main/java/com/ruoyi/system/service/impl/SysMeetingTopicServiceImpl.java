@@ -31,4 +31,9 @@ public class SysMeetingTopicServiceImpl implements ISysMeetingTopicService
     {
         return meetingTopicMapper.selectMeetingTopicList(meetingId);
     }
+
+    @Override
+    public SysMeetingTopic selectMeetingTopicById(Long topicId) {
+        return meetingTopicMapper.selectMeetingTopicById(topicId);
+    }
 }

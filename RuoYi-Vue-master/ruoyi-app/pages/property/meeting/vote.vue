@@ -122,11 +122,23 @@
       </view>
     </view>
 
+    <!-- 意见征询弹窗 -->
+    <uni-popup ref="opinionPopup" type="center">
+      <view class="opinion-popup-content">
+        <text class="popup-title">填写意见</text>
+        <textarea class="opinion-textarea" v-model="opinionText" placeholder="请输入您的意见" />
+        <view class="popup-actions">
+          <button class="action-btn cancel" @click="closeOpinionPopup">取消</button>
+          <button class="action-btn confirm" @click="submitOpinionForm">确定</button>
+        </view>
+      </view>
+    </uni-popup>
+
   </view>
 </template>
 
 <script>
-import { getMeeting, getMeetingTopics, getMyVotes, submitVote } from '@/api/meeting.js';
+import { getMeeting, getMeetingTopics, getMyVotes, submitVote, submitOpinion } from '@/api/meeting.js';
 import { formatDate } from '@/utils/common.js';
 
 export default {
@@ -137,7 +149,10 @@ export default {
       topicList: [],
       voteData: {}, // topicId -> choice
       countdown: 0,
-      timer: null
+      timer: null,
+      opinionPopup: null,
+      currentTopicForOpinion: null,
+      opinionText: ''
     }
   },
   onLoad(options) {
@@ -153,6 +168,9 @@ export default {
         }
       });
     }
+  },
+  onReady() {
+    this.opinionPopup = this.$refs.opinionPopup;
   },
   onUnload() {
     if (this.timer) {
@@ -247,14 +265,36 @@ console.log(confirm[1].confirm)
     },
 
     handleConsultation(topic) {
-      // uni.showToast({
-      //   title: `对议题“${topic.topicTitle}”进行意见征询`,
-      //   icon: 'none'
-      // });
-      // 这里可以跳转到意见征询页面，并带上议题ID
-      // uni.navigateTo({
-      //   url: `/pages/property/meeting/consultation?topicId=${topic.topicId}&meetingId=${this.meetingId}`
-      // });
+      this.currentTopicForOpinion = topic;
+      this.opinionText = ''; // Clear previous text
+      this.opinionPopup.open();
+    },
+
+    closeOpinionPopup() {
+      this.opinionPopup.close();
+    },
+
+    async submitOpinionForm() {
+      if (!this.opinionText.trim()) {
+        uni.showToast({ title: '意见不能为空', icon: 'none' });
+        return;
+      }
+
+      uni.showLoading({ title: '提交中...' });
+
+      try {
+        const data = {
+          topicId: this.currentTopicForOpinion.topicId,
+          opinion: this.opinionText
+        };
+        await submitOpinion(data);
+        uni.hideLoading();
+        uni.showToast({ title: '意见提交成功', icon: 'success' });
+        this.closeOpinionPopup();
+      } catch (error) {
+        uni.hideLoading();
+        uni.showToast({ title: error.message || '提交失败', icon: 'none' });
+      }
     },
 
     startCountdown() {
@@ -618,6 +658,56 @@ page {
         background-color: #8C8C8C;
         color: #FFFFFF;
         border-color: #8C8C8C;
+      }
+    }
+  }
+}
+
+.opinion-popup-content {
+  width: 600rpx;
+  background-color: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+
+  .popup-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #262626;
+    text-align: center;
+    display: block;
+    margin-bottom: 30rpx;
+  }
+
+  .opinion-textarea {
+    width: 100%;
+    height: 200rpx;
+    background-color: #F8F9FA;
+    border: 1rpx solid #F0F0F0;
+    border-radius: 16rpx;
+    padding: 20rpx;
+    font-size: 28rpx;
+    box-sizing: border-box;
+    margin-bottom: 30rpx;
+  }
+
+  .popup-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 20rpx;
+
+    .action-btn {
+      flex: 1;
+      font-size: 28rpx;
+      font-weight: 500;
+      border-radius: 16rpx;
+      padding: 16rpx;
+      &.cancel {
+        background-color: #F0F2F5;
+        color: #595959;
+      }
+      &.confirm {
+        background-color: $uni-color-primary;
+        color: #fff;
       }
     }
   }

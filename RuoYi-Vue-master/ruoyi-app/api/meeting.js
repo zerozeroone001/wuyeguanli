@@ -33,3 +33,12 @@ export function submitVote(data) {
         data: data // data is expected to be { meetingId, topicId, choice }
     });
 }
+
+// 提交意见
+export function submitOpinion(data) {
+  return request({
+    url: '/meeting/opinion',
+    method: 'post',
+    data: data // data is expected to be { topicId, opinion }
+  })
+}
