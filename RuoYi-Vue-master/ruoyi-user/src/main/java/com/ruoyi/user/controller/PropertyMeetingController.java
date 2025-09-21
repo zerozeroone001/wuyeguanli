@@ -146,6 +146,6 @@ public class PropertyMeetingController extends BaseController
         consultation.setCreateBy(getUsername());
         consultation.setUpdateBy(getUsername());
 
-        return toAjax(opinionConsultationService.insertOpinionConsultation(consultation));
+        return toAjax(opinionConsultationService.insertSysOpinionConsultation(consultation));
     }
 }

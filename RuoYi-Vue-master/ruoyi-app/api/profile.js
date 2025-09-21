@@ -16,3 +16,21 @@ export function getMyProfile() {
     method: 'get'
   })
 }
+
+// 发送验证码
+export function sendCode(data) {
+  return request({
+    url: '/system/user/profile/sendCode',
+    method: 'post',
+    data: data
+  })
+}
+
+// 绑定手机号
+export function bindPhone(data) {
+  return request({
+    url: '/system/user/profile/bindPhone',
+    method: 'put',
+    data: data
+  })
+}

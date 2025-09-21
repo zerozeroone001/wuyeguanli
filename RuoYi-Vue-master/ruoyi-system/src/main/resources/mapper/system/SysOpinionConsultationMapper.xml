@@ -3,31 +3,95 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.SysOpinionConsultationMapper">
+    
+    <resultMap type="SysOpinionConsultation" id="SysOpinionConsultationResult">
+        <result property="consultationId"    column="consultation_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="sourceType"    column="source_type"    />
+        <result property="sourceId"    column="source_id"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
 
-    <insert id="insertOpinionConsultation" parameterType="SysOpinionConsultation" useGeneratedKeys="true" keyProperty="consultationId">
-        insert into sys_opinion_consultation(
-            user_id,
-            title,
-            content,
-            source_type,
-            source_id,
-            status,
-            create_by,
-            create_time,
-            update_by,
-            update_time
-        ) values(
-            #{userId},
-            #{title},
-            #{content},
-            #{sourceType},
-            #{sourceId},
-            '0',
-            #{createBy},
-            sysdate(),
-            #{updateBy},
-            sysdate()
-        )
+    <sql id="selectSysOpinionConsultationVo">
+        select consultation_id, user_id, title, content, source_type, source_id, status, create_by, create_time, update_by, update_time from sys_opinion_consultation
+    </sql>
+
+    <select id="selectSysOpinionConsultationList" parameterType="SysOpinionConsultation" resultMap="SysOpinionConsultationResult">
+        <include refid="selectSysOpinionConsultationVo"/>
+        <where>
+            <if test="title != null  and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+            <if test="status != null  and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectSysOpinionConsultationByConsultationId" parameterType="Long" resultMap="SysOpinionConsultationResult">
+        <include refid="selectSysOpinionConsultationVo"/>
+        where consultation_id = #{consultationId}
+    </select>
+        
+    <insert id="insertSysOpinionConsultation" parameterType="SysOpinionConsultation" useGeneratedKeys="true" keyProperty="consultationId">
+        insert into sys_opinion_consultation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="sourceType != null and sourceType != ''">source_type,</if>
+            <if test="sourceId != null">source_id,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="sourceType != null and sourceType != ''">#{sourceType},</if>
+            <if test="sourceId != null">#{sourceId},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
     </insert>
 
+    <update id="updateSysOpinionConsultation" parameterType="SysOpinionConsultation">
+        update sys_opinion_consultation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="sourceType != null and sourceType != ''">source_type = #{sourceType},</if>
+            <if test="sourceId != null">source_id = #{sourceId},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where consultation_id = #{consultationId}
+    </update>
+
+    <delete id="deleteSysOpinionConsultationByConsultationId" parameterType="Long">
+        delete from sys_opinion_consultation where consultation_id = #{consultationId}
+    </delete>
+
+    <delete id="deleteSysOpinionConsultationByConsultationIds" parameterType="String">
+        delete from sys_opinion_consultation where consultation_id in 
+        <foreach item="consultationId" collection="array" open="(" separator="," close=")">
+            #{consultationId}
+        </foreach>
+    </delete>
 </mapper>
