@@ -158,6 +158,14 @@
             icon="el-icon-s-promotion"
             @click="handleSendNotification(scope.row)"
           >发送通知</el-button>
+          <el-button
+            v-if="scope.row.meetingStatus == '1'"
+            size="mini"
+            type="text"
+            icon="el-icon-upload2"
+            @click="handleImportVotes(scope.row)"
+            v-hasPermi="['system:meeting:import']"
+          >导入投票</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -322,11 +330,145 @@
       </el-table>
     </el-dialog>
 
+    <!-- 导入投票对话框 -->
+    <el-dialog
+      title="导入投票"
+      :visible.sync="importVoteDialogVisible"
+      width="60%"
+      append-to-body
+      :close-on-click-modal="false">
+      <div class="import-vote-content">
+        <el-steps :active="importVoteForm.isUploading ? 1 : 0" finish-status="success">
+          <el-step title="选择文件" description="选择投票表图片文件"></el-step>
+          <el-step title="上传处理" description="上传并识别投票数据"></el-step>
+          <el-step title="完成导入" description="保存投票结果"></el-step>
+        </el-steps>
+
+        <div class="file-upload-section" style="margin-top: 20px;">
+          <el-alert
+            title="使用说明"
+            type="info"
+            :closable="false"
+            style="margin-bottom: 15px;">
+            <div>
+              <p>• <strong>选择文件夹</strong>：批量导入整个文件夹内的所有投票图片</p>
+              <p>• <strong>选择文件</strong>：手动选择多个投票图片文件</p>
+              <p>• 支持格式：JPG、PNG、JPEG、BMP、GIF</p>
+              <p>• 文件限制：单个文件不超过10MB，总计不超过100MB</p>
+              <p>• 系统将自动识别投票内容并导入数据库</p>
+            </div>
+          </el-alert>
+
+          <div class="upload-area">
+            <input
+              type="file"
+              ref="fileInput"
+              multiple
+              accept="image/*"
+              webkitdirectory
+              @change="handleFileChange"
+              style="display: none;">
+
+            <input
+              type="file"
+              ref="singleFileInput"
+              multiple
+              accept="image/*"
+              @change="handleFileChange"
+              style="display: none;">
+
+            <el-button-group>
+              <el-button
+                type="primary"
+                icon="el-icon-folder-opened"
+                @click="selectFolder"
+                :disabled="importVoteForm.isUploading">
+                选择文件夹
+              </el-button>
+              <el-button
+                type="primary"
+                plain
+                icon="el-icon-document"
+                @click="selectFiles"
+                :disabled="importVoteForm.isUploading">
+                选择文件
+              </el-button>
+            </el-button-group>
+
+            <div v-if="importVoteForm.files.length > 0" class="file-list">
+              <p>已选择 {{ importVoteForm.files.length }} 个文件：</p>
+              <ul>
+                <li v-for="(file, index) in importVoteForm.files" :key="index">
+                  {{ file.name }} ({{ (file.size / 1024 / 1024).toFixed(2) }}MB)
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div v-if="importVoteForm.isUploading" class="upload-progress">
+            <p>正在处理中，请稍候...</p>
+            <el-progress
+              :percentage="importVoteForm.uploadProgress"
+              :stroke-width="10"
+              status="active">
+            </el-progress>
+          </div>
+
+          <div v-if="importVoteForm.processResults.length > 0" class="process-results">
+            <h4>处理结果：</h4>
+            <el-table :data="importVoteForm.processResults" border size="small">
+              <el-table-column label="文件名" prop="fileName" width="200"></el-table-column>
+              <el-table-column label="文件大小" width="100">
+                <template slot-scope="scope">
+                  {{ formatFileSize(scope.row.fileSize) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="状态" width="80">
+                <template slot-scope="scope">
+                  <el-tag :type="scope.row.success ? 'success' : 'danger'">
+                    {{ scope.row.success ? '成功' : '失败' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="投票记录数" width="100">
+                <template slot-scope="scope">
+                  {{ scope.row.voteRecords ? scope.row.voteRecords.length : 0 }}
+                </template>
+              </el-table-column>
+              <el-table-column label="业主信息" width="150">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.ownerInfo">
+                    {{ scope.row.ownerInfo.ownerName }}<br/>
+                    {{ scope.row.ownerInfo.phoneNumber }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column label="处理结果" prop="message"></el-table-column>
+            </el-table>
+          </div>
+        </div>
+      </div>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="closeImportVoteDialog">取消</el-button>
+        <el-button
+          type="primary"
+          @click="startImportVotes"
+          :loading="importVoteForm.isUploading"
+          :disabled="importVoteForm.files.length === 0">
+          {{ importVoteForm.isUploading ? '处理中...' : '开始导入' }}
+        </el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, sendNotification } from "@/api/system/meeting"
+import { importVotes } from "@/api/system/voteImport"
+import { getToken } from "@/utils/auth"
+import axios from 'axios'
 
 export default {
   name: "Meeting",
@@ -400,6 +542,15 @@ export default {
       // 意见反馈列表对话框
       feedbackListDialogVisible: false,
       currentTopicFeedbacks: [],
+      // 导入投票对话框
+      importVoteDialogVisible: false,
+      currentMeeting: {},
+      importVoteForm: {
+        files: [],
+        uploadProgress: 0,
+        isUploading: false,
+        processResults: []
+      }
     }
   },
   created() {
@@ -604,7 +755,191 @@ export default {
           this.resetTopic();
         }
       });
+    },
+    /** 导入投票按钮操作 */
+    handleImportVotes(row) {
+      this.currentMeeting = row;
+      this.importVoteDialogVisible = true;
+      this.resetImportVoteForm();
+    },
+    /** 重置导入投票表单 */
+    resetImportVoteForm() {
+      this.importVoteForm = {
+        files: [],
+        uploadProgress: 0,
+        isUploading: false,
+        processResults: []
+      };
+    },
+    /** 选择文件夹 */
+    selectFolder() {
+      this.$refs.fileInput.click();
+    },
+    /** 选择文件 */
+    selectFiles() {
+      this.$refs.singleFileInput.click();
+    },
+    /** 文件选择处理 */
+    handleFileChange(event) {
+      const files = Array.from(event.target.files);
+      if (files.length === 0) {
+        return;
+      }
+
+      // 验证文件类型
+      const validFiles = files.filter(file => {
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+          this.$message.warning(`文件 ${file.name} 不是图片格式，已跳过`);
+        }
+        return isImage;
+      });
+
+      this.importVoteForm.files = validFiles;
+
+      // 显示选择结果
+      const isFolder = event.target.hasAttribute('webkitdirectory');
+      const message = isFolder
+        ? `已从文件夹选择 ${validFiles.length} 个图片文件`
+        : `已选择 ${validFiles.length} 个图片文件`;
+
+      this.$message.success(message);
+
+      // 重置input值，以便可以重新选择相同文件夹
+      event.target.value = '';
+    },
+    /** 开始导入投票 */
+    async startImportVotes() {
+      if (this.importVoteForm.files.length === 0) {
+        this.$message.warning('请先选择投票图片文件');
+        return;
+      }
+
+      this.importVoteForm.isUploading = true;
+      this.importVoteForm.uploadProgress = 0;
+      this.importVoteForm.processResults = [];
+
+      try {
+        const formData = new FormData();
+        formData.append('meetingId', this.currentMeeting.meetingId);
+
+        // 添加所有文件
+        this.importVoteForm.files.forEach((file, index) => {
+          formData.append('files', file);
+        });
+
+        // 调用后端接口（使用原生axios支持上传进度）
+        const response = await axios.post(
+          `${process.env.VUE_APP_BASE_API}/system/vote/import/${this.currentMeeting.meetingId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + getToken()
+            },
+            onUploadProgress: (progressEvent) => {
+              this.importVoteForm.uploadProgress = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+            }
+          }
+        );
+
+        if (response.data.code === 200) {
+          this.importVoteForm.processResults = response.data.data.results || [];
+          this.$message.success(response.data.data.message || '投票导入完成');
+          this.getList(); // 刷新列表
+
+          // 显示导入摘要
+          if (response.data.data.summary) {
+            const summary = response.data.data.summary;
+            this.$notify({
+              title: '导入完成',
+              message: `成功处理 ${summary.successFiles} 个文件，失败 ${summary.failedFiles} 个文件，共导入 ${summary.totalVoteRecords} 条投票记录`,
+              type: 'success',
+              duration: 5000
+            });
+          }
+        } else {
+          this.$message.error(response.data.msg || '导入失败');
+        }
+      } catch (error) {
+        console.error('导入投票失败:', error);
+        this.$message.error('导入投票失败，请重试');
+      } finally {
+        this.importVoteForm.isUploading = false;
+      }
+    },
+    /** 关闭导入投票对话框 */
+    closeImportVoteDialog() {
+      this.importVoteDialogVisible = false;
+      this.resetImportVoteForm();
+    },
+    /** 格式化文件大小 */
+    formatFileSize(size) {
+      if (!size || size <= 0) {
+        return '0 B';
+      }
+
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let fileSize = size;
+      let unitIndex = 0;
+
+      while (fileSize >= 1024 && unitIndex < units.length - 1) {
+        fileSize /= 1024;
+        unitIndex++;
+      }
+
+      return `${fileSize.toFixed(2)} ${units[unitIndex]}`;
     }
   }
 }
 </script>
+
+<style scoped>
+.import-vote-content {
+  padding: 10px 0;
+}
+
+.upload-area {
+  text-align: center;
+  padding: 20px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  background-color: #fafafa;
+  transition: border-color 0.3s;
+}
+
+.upload-area:hover {
+  border-color: #409EFF;
+}
+
+.file-list {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.file-list ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.file-list li {
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.upload-progress {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.process-results {
+  margin-top: 20px;
+}
+
+.process-results h4 {
+  margin-bottom: 10px;
+  color: #333;
+}
+</style>

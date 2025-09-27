@@ -93,4 +93,16 @@ public class SysPropertyMeetingTopicServiceImpl implements ISysPropertyMeetingTo
     {
         return sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByTopicId(topicId);
     }
+
+    /**
+     * 根据会议ID查询议题列表
+     * 
+     * @param meetingId 会议ID
+     * @return 议题列表
+     */
+    @Override
+    public List<SysPropertyMeetingTopic> selectSysPropertyMeetingTopicListByMeetingId(Long meetingId)
+    {
+        return sysPropertyMeetingTopicMapper.selectSysPropertyMeetingTopicListByMeetingId(meetingId);
+    }
 }

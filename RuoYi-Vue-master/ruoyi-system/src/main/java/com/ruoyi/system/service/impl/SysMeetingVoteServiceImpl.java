@@ -83,4 +83,9 @@ public class SysMeetingVoteServiceImpl implements ISysMeetingVoteService {
     public int deleteSysMeetingVoteByVoteIds(Long[] voteIds) {
         return meetingVoteMapper.deleteSysMeetingVoteByVoteIds(voteIds);
     }
+
+    @Override
+    public SysMeetingVote findVote(Long userId, Long topicId) {
+        return meetingVoteMapper.findVote(userId, topicId);
+    }
 }

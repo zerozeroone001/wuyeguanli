@@ -10,6 +10,15 @@ public class SysMeetingVote extends BaseEntity {
     private Long topicId;
     private Long userId;
     private String choice;
+    
+    /** 原始投票图片URL */
+    private String fileUrl;
+    
+    /** 投票方式（0线上投票 1纸质投票导入） */
+    private Integer voteType;
+    
+    /** 投票人姓名 */
+    private String userName;
 
     // Getters and Setters
     public Long getVoteId() {
@@ -50,5 +59,29 @@ public class SysMeetingVote extends BaseEntity {
 
     public void setChoice(String choice) {
         this.choice = choice;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
+    public Integer getVoteType() {
+        return voteType;
+    }
+
+    public void setVoteType(Integer voteType) {
+        this.voteType = voteType;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

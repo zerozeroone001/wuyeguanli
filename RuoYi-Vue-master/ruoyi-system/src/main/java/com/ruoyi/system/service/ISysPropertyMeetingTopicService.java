@@ -58,4 +58,12 @@ public interface ISysPropertyMeetingTopicService
      * @return 结果
      */
     public int deleteSysPropertyMeetingTopicByTopicId(Long topicId);
+
+    /**
+     * 根据会议ID查询议题列表
+     * 
+     * @param meetingId 会议ID
+     * @return 议题列表
+     */
+    public List<SysPropertyMeetingTopic> selectSysPropertyMeetingTopicListByMeetingId(Long meetingId);
 }

@@ -14,7 +14,6 @@ import com.ruoyi.common.utils.http.HttpUtils;
 import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.framework.manager.AsyncManager;
 import com.ruoyi.framework.manager.factory.AsyncFactory;
-import com.ruoyi.framework.web.service.SysPermissionService;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.user.domain.dto.WechatLoginDto;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -46,9 +44,6 @@ public class WechatLoginServiceImpl implements IWechatLoginService {
 
     @Autowired
     private TokenService tokenService;
-
-    @Autowired
-    private SysPermissionService permissionService;
 
     @Override
     public String wechatLogin(WechatLoginDto wechatLoginDto) {
@@ -81,27 +76,59 @@ public class WechatLoginServiceImpl implements IWechatLoginService {
         // 3. 根据openid查找或创建用户
         SysUser user = userService.selectUserByOpenid(openid);
 
+        // 获取前端传递的用户信息
+        Map<String, Object> userInfo = wechatLoginDto.getUserInfo();
+        String nickName = null;
+        String avatarUrl = null;
+        
+        if (userInfo != null) {
+            nickName = (String) userInfo.get("nickName");
+            avatarUrl = (String) userInfo.get("avatarUrl");
+        }
+
         if (user == null) {
+            // 创建新用户
             user = new SysUser();
             user.setOpenid(openid);
             user.setUserName("wx_user_" + ThreadLocalRandom.current().nextLong(100000, 999999)); // 生成一个唯一的用户名
 
-
-            // 尝试从DTO获取用户信息，如果获取不到则使用默认值
-            Map<String, Object> userInfo = wechatLoginDto.getUserInfo();
-            if (userInfo != null) {
-                user.setNickName((String) userInfo.get("nickName"));
-                user.setAvatar((String) userInfo.get("avatarUrl"));
+            // 设置用户信息
+            if (StringUtils.isNotEmpty(nickName)) {
+                user.setNickName(nickName);
             } else {
                 user.setNickName("微信用户");
-                // 可以设置一个默认头像URL
-                 user.setAvatar("");
             }
+            
+            if (StringUtils.isNotEmpty(avatarUrl)) {
+                user.setAvatar(avatarUrl);
+            } else {
+                user.setAvatar("");
+            }
+            
             // RuoYi需要一个密码，我们设置一个随机的强密码，但登录不使用它
             user.setPassword(String.valueOf(System.currentTimeMillis()));
             userService.insertWxUser(user);
             // 重新查询一次，确保用户信息完整
             user = userService.selectUserByOpenid(openid);
+        } else {
+            // 用户已存在，更新用户信息
+            boolean needUpdate = false;
+            
+            if (StringUtils.isNotEmpty(nickName) && !nickName.equals(user.getNickName())) {
+                user.setNickName(nickName);
+                needUpdate = true;
+            }
+            
+            if (StringUtils.isNotEmpty(avatarUrl) && !avatarUrl.equals(user.getAvatar())) {
+                user.setAvatar(avatarUrl);
+                needUpdate = true;
+            }
+            
+            // 如果有信息更新，则保存到数据库
+            if (needUpdate) {
+                userService.updateUserProfile(user);
+                log.info("更新用户信息 - 用户ID: {}, 昵称: {}, 头像: {}", user.getUserId(), nickName, avatarUrl);
+            }
         }
         System.out.println(user);
         // 4. 生成Token

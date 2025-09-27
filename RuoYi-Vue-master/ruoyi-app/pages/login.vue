@@ -38,7 +38,7 @@
 
 <script>
   import defaultAvatar from '@/static/images/profile.jpg'
-  import upload from '@/utils/upload'
+  import { handleAvatarSelection, getAvatarDisplayUrl } from '@/utils/avatarHandler'
 
   export default {
     data() {
@@ -63,24 +63,20 @@
       onChooseAvatar(e) {
         console.log('微信头像选择:', e)
         if (e.detail && e.detail.avatarUrl) {
-          this.$modal.loading("头像上传中...")
-          
-          upload({ 
-            url: '/common/upload',
-            filePath: e.detail.avatarUrl
-          }).then(res => {
-            this.$modal.closeLoading()
-            if (res.code === 200) {
-              this.avatarUrl = res.url
-              this.$modal.msgSuccess("头像上传成功")
-            } else {
-              this.$modal.msgError(res.msg || "头像上传失败")
+          handleAvatarSelection(
+            e.detail.avatarUrl,
+            (avatarUrl, isTemp) => {
+              this.avatarUrl = avatarUrl
+              if (isTemp) {
+                this.$modal.msgSuccess("头像选择成功（开发环境）")
+              } else {
+                this.$modal.msgSuccess("头像上传成功")
+              }
+            },
+            (error) => {
+              this.$modal.msgError(error)
             }
-          }).catch(err => {
-            this.$modal.closeLoading()
-            console.error('头像上传失败:', err)
-            this.$modal.msgError("头像上传失败")
-          })
+          )
         }
       },
       // 昵称输入框失焦（兼容性处理）
