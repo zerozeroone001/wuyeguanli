@@ -112,4 +112,18 @@ public interface ISysPropertyMeetingService
      * @return 最近投票记录
      */
     public List<Map<String, Object>> getRecentVotes(int limit);
+
+    /**
+     * 发送会议通知（业主委员会会议）
+     * 
+     * @param meetingId 业主委员会会议管理主键
+     */
+    public void sendCommitteeMeetingNotification(Long meetingId);
+
+    /**
+     * 发送会议通知（业主大会会议）
+     * 
+     * @param meetingId 业主大会会议管理主键
+     */
+    public void sendGeneralMeetingNotification(Long meetingId);
 }

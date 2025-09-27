@@ -135,9 +135,12 @@ xss:
 # 阿里云配置
 aliyun:
   ocr:
-    accessKeyId: YOUR_ACCESS_KEY_ID
-    accessKeySecret: YOUR_ACCESS_KEY_SECRET
+    accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
+    accessKeySecret: jW56Mq5BiaCs0SQnmwsDlJfGHc75Vl
     endpoint: ocr-api.cn-hangzhou.aliyuncs.com
+    AppKey: 204146366
+    AppSecret: W7gLfOqHqgHDAY4rakoIUnyefFb1CoxN
+    AppCode: 3a7a058aab824f438c8c6065c9f6a3e0
   oss:
     endpoint: oss-cn-hangzhou.aliyuncs.com
     accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
@@ -146,8 +149,20 @@ aliyun:
     # 自定义域名，可选。配置后，返回的URL将使用此域名
     domain:
   sms:
-    accessKeyId: YOUR_ACCESS_KEY_ID
-    accessKeySecret: YOUR_ACCESS_KEY_SECRET
+    accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
+    accessKeySecret: jW56Mq5BiaCs0SQnmwsDlJfGHc75Vl
     endpoint: dysmsapi.aliyuncs.com
-    signName: YOUR_SIGN_NAME
-    templateCode: YOUR_TEMPLATE_CODE
+    signName: 卓特物业
+    templateCode: SMS_271525319
+
+wx:
+  appid: wx21ec53782018ccef
+  secret: 3b04e482feee7cd0c4a7de81b72b0cee
+  token: e9c2b5a7d0f84a169c3d7b6f2a8e1d0c
+  aesKey: cAYOUmrdRDiIJS4uVn5oKQovmZPV5WynON8BT9fLObN
+  msgDataFormat: JSON
+  subscribe:
+    complaint:
+    meeting: BcUGoFjWAOUra4Js53I-RiH0OejhvAqKH82DxJo6tMc
+    payment:
+    repair:

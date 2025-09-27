@@ -17,6 +17,16 @@
 				"navigationStyle": "custom"
 			}
 		}, {
+			"path": "pages/test/subscribe-demo",
+			"style": {
+				"navigationBarTitleText": "订阅消息演示"
+			}
+		}, {
+			"path": "pages/test/subscribe-test",
+			"style": {
+				"navigationBarTitleText": "订阅消息测试"
+			}
+		}, {
     "path": "pages/index",
     "style": {
       "navigationBarTitleText": "智慧物业管理",
@@ -78,6 +88,11 @@
     "path": "pages/mine/auth",
     "style": {
       "navigationBarTitleText": "实名认证"
+    }
+  }, {
+    "path": "pages/mine/subscribe/index",
+    "style": {
+      "navigationBarTitleText": "订阅消息"
     }
   }, {
     "path": "pages/common/webview/index",

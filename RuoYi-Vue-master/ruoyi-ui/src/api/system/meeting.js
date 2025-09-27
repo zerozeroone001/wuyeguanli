@@ -42,3 +42,11 @@ export function delMeeting(meetingId) {
     method: 'delete'
   })
 }
+
+// 发送会议通知
+export function sendNotification(meetingId) {
+  return request({
+    url: '/system/meeting/notify/' + meetingId,
+    method: 'post'
+  })
+}

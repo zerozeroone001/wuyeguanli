@@ -2,6 +2,7 @@ package com.ruoyi.system.service.impl;
 
 import java.util.List;
 import java.util.Map;
+
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.SysMeetingFeedback;
@@ -10,6 +11,8 @@ import com.ruoyi.system.domain.SysPropertyMeetingTopic;
 import com.ruoyi.system.mapper.SysPropertyMeetingTopicMapper;
 import com.ruoyi.system.service.ISysMeetingFeedbackService;
 import com.ruoyi.system.service.ISysMeetingVoteService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,8 @@ import com.ruoyi.system.service.ISysPropertyMeetingService;
 @Service
 public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService 
 {
+    private static final Logger log = LoggerFactory.getLogger(SysPropertyMeetingServiceImpl.class);
+
     @Autowired
     private SysPropertyMeetingMapper sysPropertyMeetingMapper;
 
@@ -37,6 +42,8 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
     @Autowired
     private ISysMeetingFeedbackService sysMeetingFeedbackService;
+
+
 
     /**
      * 查询会议管理
@@ -186,5 +193,17 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     @Override
     public List<Map<String, Object>> getRecentVotes(int limit) {
         return null;
+    }
+
+    @Override
+    public void sendCommitteeMeetingNotification(Long meetingId) {
+        // TODO: 业主委员会会议通知功能已移除，需要重新实现
+        log.warn("业主委员会会议通知功能已移除，会议ID: {}", meetingId);
+    }
+
+    @Override
+    public void sendGeneralMeetingNotification(Long meetingId) {
+        // TODO: 业主大会会议通知功能已移除，需要重新实现
+        log.warn("业主大会会议通知功能已移除，会议ID: {}", meetingId);
     }
 }

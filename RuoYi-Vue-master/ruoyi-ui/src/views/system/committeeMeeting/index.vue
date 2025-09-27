@@ -110,7 +110,13 @@
         </template>
       </el-table-column>
       <el-table-column label="会议地点" align="center" prop="meetingLocation" />
-      <el-table-column label="会议状态" align="center" prop="meetingStatus" />
+      <el-table-column label="会议状态" align="center" prop="meetingStatus">
+        <template slot-scope="scope">
+          <span v-if="scope.row.meetingStatus === '0'">筹备中</span>
+          <span v-else-if="scope.row.meetingStatus === '1'">进行中</span>
+          <span v-else-if="scope.row.meetingStatus === '2'">已结束</span>
+        </template>
+      </el-table-column>
       <el-table-column label="投票开始时间" align="center" prop="voteStartTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.voteStartTime, '{y}-{m}-{d}') }}</span>
@@ -145,6 +151,13 @@
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:meeting:remove']"
           >删除</el-button>
+          <el-button
+            v-if="scope.row.meetingStatus == '1'"
+            size="mini"
+            type="text"
+            icon="el-icon-s-promotion"
+            @click="handleSendNotification(scope.row)"
+          >发送通知</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -313,7 +326,7 @@
 </template>
 
 <script>
-import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting } from "@/api/system/meeting"
+import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, sendNotification } from "@/api/system/meeting"
 
 export default {
   name: "Meeting",
@@ -483,13 +496,21 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const meetingIds = row.meetingId || this.ids
+      const meetingIds = row.meetingId || this.ids;
       this.$modal.confirm('是否确认删除会议管理编号为"' + meetingIds + '"的数据项？').then(function() {
-        return delMeeting(meetingIds)
+        return delMeeting(meetingIds);
       }).then(() => {
-        this.getList()
-        this.$modal.msgSuccess("删除成功")
-      }).catch(() => {})
+        this.getList();
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
+    },
+    /** 发送通知按钮操作 */
+    handleSendNotification(row) {
+      this.$modal.confirm('是否确认发送【' + row.meetingTitle + '】会议的订阅消息通知？').then(function() {
+        return sendNotification(row.meetingId);
+      }).then(() => {
+        this.$modal.msgSuccess("发送成功");
+      }).catch(() => {});
     },
     /** 导出按钮操作 */
     handleExport() {

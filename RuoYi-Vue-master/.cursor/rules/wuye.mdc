@@ -1,0 +1,268 @@
+---
+description: 若依物业管理系统项目规则
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# 若依物业管理系统项目规则
+
+## 🏗️ 项目架构概览
+
+### 项目类型
+- **框架**: 基于若依(RuoYi)框架的Spring Boot多模块项目
+- **版本**: RuoYi 3.9.0, Spring Boot 2.5.15
+- **JDK版本**: Java 1.8
+- **构建工具**: Maven
+- **数据库**: MySQL 5.7+
+- **缓存**: Redis 6.0+
+
+### 模块结构
+```
+RuoYi-Vue-master/
+├── ruoyi-admin/           # 管理后台模块 (端口8080)
+├── ruoyi-user/            # 用户端API模块 (端口8081)
+├── ruoyi-system/          # 系统核心模块
+├── ruoyi-framework/       # 框架核心模块
+├── ruoyi-common/          # 通用工具模块
+├── ruoyi-generator/       # 代码生成模块
+├── ruoyi-quartz/          # 定时任务模块
+├── ruoyi-ui/              # Vue前端管理界面
+└── ruoyi-app/             # 微信小程序
+```
+
+## 🛠️ 技术栈
+
+### 后端技术栈
+- **核心框架**: Spring Boot 2.5.15
+- **安全框架**: Spring Security 5.7.12
+- **任务调度**: Quartz
+- **持久层框架**: MyBatis
+- **数据库连接池**: Druid 1.2.23
+- **缓存中间件**: Redis
+- **JSON处理**: FastJSON 2.0.57
+- **文档工具**: Swagger3
+- **Excel工具**: Apache POI 4.1.2
+- **模板引擎**: Velocity 2.3
+- **JWT**: jsonwebtoken 0.9.1
+
+### 前端技术栈
+- **主框架**: Vue 2.6.12
+- **UI组件库**: Element UI 2.15.14
+- **状态管理**: Vuex 3.6.0
+- **路由管理**: Vue Router 3.4.9
+- **HTTP客户端**: Axios 0.28.1
+- **图表库**: ECharts 5.4.0
+- **富文本编辑器**: Quill 2.0.2
+
+### 小程序技术栈
+- **框架**: uni-app
+- **UI库**: uni-ui组件库
+- **状态管理**: Vuex
+- **样式框架**: ColorUI
+
+### 第三方服务
+- **阿里云OSS**: 文件存储
+- **阿里云SMS**: 短信服务
+- **阿里云OCR**: 文字识别
+- **微信小程序API**: 用户授权、支付等
+
+## 📊 数据库设计
+
+### 核心业务表
+1. **用户与权限管理**
+   - `sys_user`: 系统用户表
+   - `sys_role`: 角色表
+   - `sys_menu`: 菜单权限表
+   - `sys_dept`: 部门表
+
+2. **物业管理核心表**
+   - `estate_community`: 小区信息表
+   - `estate_property`: 房产信息表
+   - `estate_user_property`: 用户房产关联表
+   - `sys_owner_profile`: 业主信息扩展表
+
+3. **业务功能表**
+   - `sys_property_complaint`: 投诉建议表
+   - `sys_property_meeting`: 业主会议表
+   - `sys_committee_meeting`: 业委会会议表
+   - `sys_general_meeting`: 业主大会表
+   - `sys_property_fund_flow`: 资金流水表
+   - `sys_property_contract`: 物业合同表
+   - `sys_legal_consultation`: 法律咨询表
+   - `sys_notary_application`: 公证申请表
+   - `sys_visitor`: 访客登记表
+   - `sys_warranty`: 设备保修表
+
+4. **监督与检查**
+   - `sys_supervision`: 监督检查表
+   - `sys_inspection_plan`: 检查计划表
+   - `sys_inspection_record`: 检查记录表
+
+5. **文件管理**
+   - `sys_file_info`: 文件信息表
+   - `sys_property_regulation`: 规章制度表
+
+### 数据库字段规范
+- **主键**: 统一使用`bigint(20) AUTO_INCREMENT`
+- **状态字段**: 使用`char(1)`，0-正常，1-停用，2-删除
+- **时间字段**: 使用`datetime`类型
+- **审核状态**: 0-待审核，1-已通过，2-已驳回
+- **删除标志**: 0-存在，2-删除（逻辑删除）
+
+## 🎨 前端开发规范
+
+### Vue组件结构
+```vue
+<template>
+  <!-- 模板内容 -->
+</template>
+
+<script>
+export default {
+  name: 'ComponentName',
+  components: {},
+  data() {
+    return {}
+  },
+  computed: {},
+  methods: {},
+  created() {},
+  mounted() {}
+}
+</script>
+
+<style lang="scss" scoped>
+/* 样式内容 */
+</style>
+```
+
+### API接口规范
+- **基础路径**: `/dev-api` (开发环境)
+- **请求方式**: RESTful风格
+- **响应格式**: 统一使用AjaxResult包装
+- **分页参数**: pageNum, pageSize
+- **排序参数**: orderByColumn, isAsc
+
+### 路由配置
+- **管理端**: `/system/` 前缀
+- **权限控制**: 使用`@PreAuthorize`注解
+- **菜单配置**: 在`sys_menu`表中维护
+
+## 📱 小程序开发规范
+
+### 页面结构
+```
+pages/
+├── index.vue              # 首页
+├── login.vue              # 登录页
+├── mine/                  # 个人中心
+├── property/              # 房产相关
+├── legal-consultation/    # 法律咨询
+├── contract-fulfillment/  # 合同履约
+├── handover/              # 交接管理
+├── supervision/           # 监督检查
+└── work/                  # 工作台
+```
+
+### 组件命名规范
+- 页面组件: PascalCase (如: `PropertyManagement`)
+- 通用组件: kebab-case (如: `uni-section`)
+
+## 🔧 开发配置
+
+### 环境配置
+- **开发环境**: `application.yml`
+- **数据库环境**: `application-druid.yml`
+- **生产环境**: 通过profiles切换
+
+### 端口配置
+- **管理后台**: 8080
+- **用户端API**: 8081
+- **前端开发服务**: 8082
+
+### 文件上传配置
+- **本地存储**: `F:\code\wuyeguanli/uploadPath`
+- **阿里云OSS**: 已配置bucket为`zhuote`
+
+## 📋 编码规范
+
+### Java编码规范
+1. **包命名**: `com.ruoyi.模块名.功能名`
+2. **类命名**: PascalCase，如`SysUserController`
+3. **方法命名**: camelCase，如`getUserList`
+4. **常量命名**: UPPER_SNAKE_CASE，如`DEFAULT_STATUS`
+
+### 数据库命名规范
+1. **表名**: 小写+下划线，如`sys_user`
+2. **字段名**: 小写+下划线，如`user_name`
+3. **索引名**: `idx_表名_字段名`
+
+### 前端编码规范
+1. **组件名**: PascalCase，如`UserManagement`
+2. **方法名**: camelCase，如`handleSubmit`
+3. **CSS类名**: kebab-case，如`.user-info`
+
+## 🚀 部署规范
+
+### 打包命令
+```bash
+# 后端打包
+mvn clean package -DskipTests
+
+# 前端打包
+npm run build:prod
+
+# 小程序打包
+使用HBuilderX或uni-app CLI
+```
+
+### 环境变量
+- **数据库连接**: 通过配置文件管理
+- **Redis连接**: 支持集群配置
+- **文件上传**: 支持本地和OSS双模式
+
+## 🔐 安全规范
+
+### 认证授权
+- **JWT Token**: 有效期720分钟
+- **权限控制**: 基于RBAC模型
+- **接口鉴权**: 使用`@PreAuthorize`注解
+
+### 数据安全
+- **SQL注入防护**: 使用MyBatis参数绑定
+- **XSS防护**: 配置XSS过滤器
+- **文件上传**: 限制文件类型和大小
+
+## 📝 业务流程
+
+### 核心业务流程
+1. **业主认证流程**: 注册 -> 实名认证 -> 房产绑定 -> 审核通过
+2. **投诉处理流程**: 提交投诉 -> 分配处理人 -> 处理 -> 反馈 -> 完结
+3. **会议投票流程**: 创建会议 -> 发布议题 -> 业主投票 -> 统计结果
+4. **资金管理流程**: 收费 -> 记录 -> 审核 -> 财务报表
+
+### 状态管理
+- **通用状态**: 0-正常，1-停用，2-删除
+- **审核状态**: 0-待审核，1-已通过，2-已驳回
+- **处理状态**: 0-待处理，1-处理中，2-已完成
+
+## 🧪 测试规范
+
+### 单元测试
+- **测试覆盖率**: 要求70%以上
+- **命名规范**: `方法名_测试场景_期望结果`
+
+### 接口测试
+- **Swagger文档**: 访问`/swagger-ui.html`
+- **测试数据**: 使用独立的测试数据库
+
+## 📚 文档规范
+
+### 代码注释
+- **类注释**: 说明类的功能和作用
+- **方法注释**: 使用JavaDoc格式
+- **复杂逻辑**: 添加行内注释
+
+
+---
+

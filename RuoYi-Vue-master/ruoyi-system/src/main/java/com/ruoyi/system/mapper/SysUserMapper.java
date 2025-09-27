@@ -136,5 +136,12 @@ public interface SysUserMapper
      */
     public SysUser checkEmailUnique(String email);
 
+    /**
+     * 查询包含 openid 的用户列表
+     * 
+     * @return 用户信息集合信息
+     */
+    public List<SysUser> selectUserListWithOpenId();
+
     Long countMonthNewUsers();
 }

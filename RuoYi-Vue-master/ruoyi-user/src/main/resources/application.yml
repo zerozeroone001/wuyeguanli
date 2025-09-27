@@ -118,6 +118,16 @@ pagehelper:
 wx:
   appid: wx21ec53782018ccef
   secret: 3b04e482feee7cd0c4a7de81b72b0cee
+  # 订阅消息模板ID配置
+  subscribe:
+    # 投诉处理通知模板
+    complaint: "您的投诉处理模板ID"
+    # 会议通知模板
+    meeting: "您的会议通知模板ID"
+    # 缴费提醒模板
+    payment: "您的缴费提醒模板ID"
+    # 维修进度通知模板
+    repair: "您的维修进度模板ID"
 
 
 # 防止XSS攻击
@@ -132,8 +142,8 @@ xss:
 # 阿里云配置
 aliyun:
   ocr:
-    accessKeyId: YOUR_ACCESS_KEY_ID
-    accessKeySecret: YOUR_ACCESS_KEY_SECRET
+    accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
+    accessKeySecret: jW56Mq5BiaCs0SQnmwsDlJfGHc75Vl
     endpoint: ocr-api.cn-hangzhou.aliyuncs.com
   oss:
     endpoint: oss-cn-hangzhou.aliyuncs.com
@@ -143,8 +153,8 @@ aliyun:
     # 自定义域名，可选。配置后，返回的URL将使用此域名
     domain:
   sms:
-    accessKeyId: YOUR_ACCESS_KEY_ID
-    accessKeySecret: YOUR_ACCESS_KEY_SECRET
+    accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
+    accessKeySecret: jW56Mq5BiaCs0SQnmwsDlJfGHc75Vl
     endpoint: dysmsapi.aliyuncs.com
-    signName: YOUR_SIGN_NAME
-    templateCode: YOUR_TEMPLATE_CODE
+    signName: 卓特物业
+    templateCode: SMS_271525319

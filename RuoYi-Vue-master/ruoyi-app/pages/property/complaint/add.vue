@@ -144,6 +144,8 @@
 
 <script>
 import { addComplaint } from '@/api/complaint'
+import SubscribeMessageUtils from '@/utils/subscribeMessage'
+import SubscribeConfig from '@/utils/subscribeConfig'
 
 export default {
   data() {
@@ -270,8 +272,16 @@ export default {
         
         // TODO: aihaitao, 图片上传功能
         
-        addComplaint(this.formData).then(res => {
+        addComplaint(this.formData).then(async res => {
           uni.hideLoading()
+          
+          // 请求订阅消息授权
+          try {
+            await this.requestComplaintSubscribe()
+          } catch (error) {
+            console.log('订阅消息授权失败:', error)
+          }
+          
           uni.showModal({
             title: '提交成功',
             content: `投诉已提交成功！\n投诉编号：${res.data.complaintNo}\n我们将尽快处理您的投诉`,
@@ -287,6 +297,31 @@ export default {
           title: error.message || '提交失败，请重试',
           icon: 'none'
         })
+      }
+    },
+    
+    // 请求投诉处理订阅消息授权
+    async requestComplaintSubscribe() {
+      try {
+        const templateId = SubscribeConfig.getTemplateId('complaint')
+        
+        // 检查模板ID是否已配置
+        if (!SubscribeConfig.isTemplateConfigured('complaint')) {
+          console.log('投诉处理模板ID未配置，跳过订阅授权')
+          return
+        }
+        
+        const result = await SubscribeMessageUtils.requestSubscribe(templateId, 'complaint_submit')
+        
+        if (result) {
+          uni.showToast({
+            title: '已开启处理通知',
+            icon: 'success',
+            duration: 2000
+          })
+        }
+      } catch (error) {
+        console.error('订阅消息授权失败:', error)
       }
     }
   }

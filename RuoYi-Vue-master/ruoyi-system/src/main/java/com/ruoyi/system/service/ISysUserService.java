@@ -51,6 +51,13 @@ public interface ISysUserService
     public SysUser selectUserByOpenid(String openid);
 
     /**
+     * 查询所有有openId的用户列表
+     * 
+     * @return 用户信息集合
+     */
+    public List<SysUser> selectUserListWithOpenId();
+
+    /**
      * 通过用户ID查询用户
      * 
      * @param userId 用户ID

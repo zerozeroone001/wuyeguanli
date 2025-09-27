@@ -149,10 +149,10 @@ export default {
           path: '/pages/property/index'
         },
         {
-          name: '消息设置',
+          name: '订阅消息',
           icon: 'email',
           bgColor: '#096DD9',
-          path: '/pages/mine/message-settings'
+          path: '/pages/mine/subscribe/index'
         },
         {
           name: '隐私设置',
@@ -255,13 +255,13 @@ export default {
     
     handleMenuClick(item) {
       if (item.path) {
-        uni.navigateTo({ url: item.path })
+        uni.navigateTo({ url: item.path });
       } else {
         uni.showToast({
-          title: `${action.name}功能开发中`,
+          title: `${item.name}功能开发中`,
           icon: 'none',
           duration: 2000
-        })
+        });
       }
     },
     

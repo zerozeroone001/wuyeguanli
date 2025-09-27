@@ -10,10 +10,7 @@ import com.ruoyi.system.domain.SysMeetingTopic;
 import com.ruoyi.system.domain.SysMeetingVote;
 import com.ruoyi.system.domain.SysOpinionConsultation;
 import com.ruoyi.system.domain.SysPropertyMeeting;
-import com.ruoyi.system.service.ISysMeetingTopicService;
-import com.ruoyi.system.service.ISysMeetingVoteService;
-import com.ruoyi.system.service.ISysOpinionConsultationService;
-import com.ruoyi.system.service.ISysPropertyMeetingService;
+import com.ruoyi.system.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +28,10 @@ import java.util.Map;
 @RequestMapping("/meeting")
 public class PropertyMeetingController extends BaseController
 {
+
+    @Autowired
+    private WechatService wechatService;
+
     @Autowired
     private ISysPropertyMeetingService sysPropertyMeetingService;
 

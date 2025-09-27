@@ -20,7 +20,7 @@ export function getMyProfile() {
 // 发送验证码
 export function sendCode(data) {
   return request({
-    url: '/system/user/profile/sendCode',
+    url: '/user/info/sendCode',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function sendCode(data) {
 // 绑定手机号
 export function bindPhone(data) {
   return request({
-    url: '/system/user/profile/bindPhone',
+    url: '/user/info/bindPhone',
     method: 'put',
     data: data
   })

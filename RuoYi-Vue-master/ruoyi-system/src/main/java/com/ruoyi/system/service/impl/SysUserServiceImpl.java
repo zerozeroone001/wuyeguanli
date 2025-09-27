@@ -600,4 +600,15 @@ public class SysUserServiceImpl implements ISysUserService
         // 模拟数据，实际应该从数据库查询
         return 8L;
     }
+
+    /**
+     * 查询所有有openId的用户列表
+     *
+     * @return 用户信息集合
+     */
+    @Override
+    public List<SysUser> selectUserListWithOpenId()
+    {
+        return userMapper.selectUserListWithOpenId();
+    }
 }
