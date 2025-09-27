@@ -13,6 +13,7 @@
           <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
             <image :src="avatarUrl" class="avatar-img"></image>
           </button>
+          <view class="avatar-tips">点击选择头像</view>
         </view>
         <view class="input-item flex align-center">
           <view class="iconfont icon-user icon"></view>
@@ -58,21 +59,29 @@
         let site = this.globalConfig.appInfo.agreements[1]
         this.$tab.navigateTo(`/pages/common/webview/index?title=${site.title}&url=${site.url}`)
       },
-      // 获取用户头像
+      // 获取用户头像（微信自带头像选择组件）
       onChooseAvatar(e) {
-        this.$modal.loading("头像上传中...")
-		console.log(e)
-        // upload({ 
-        //   url: '/common/upload',
-        //   filePath: e.detail.avatarUrl
-        // }).then(res => {
-        //   this.$modal.closeLoading()
-        //   this.avatarUrl = res.url
-        // }).catch(err => {
-        //   this.$modal.closeLoading()
-        //   this.$modal.msgError("头像上传失败")
-        // })
-		this.$modal.closeLoading()
+        console.log('微信头像选择:', e)
+        if (e.detail && e.detail.avatarUrl) {
+          this.$modal.loading("头像上传中...")
+          
+          upload({ 
+            url: '/common/upload',
+            filePath: e.detail.avatarUrl
+          }).then(res => {
+            this.$modal.closeLoading()
+            if (res.code === 200) {
+              this.avatarUrl = res.url
+              this.$modal.msgSuccess("头像上传成功")
+            } else {
+              this.$modal.msgError(res.msg || "头像上传失败")
+            }
+          }).catch(err => {
+            this.$modal.closeLoading()
+            console.error('头像上传失败:', err)
+            this.$modal.msgError("头像上传失败")
+          })
+        }
       },
       // 昵称输入框失焦（兼容性处理）
       onNicknameBlur(e) {
@@ -87,14 +96,10 @@
       },
       // 微信登录
       handleWechatLogin() {
-        // if (!this.nickname) {
-        //   this.$modal.msgError("请输入昵称")
-        //   return
-        // }
-        // if (this.avatarUrl === defaultAvatar) {
-        //   this.$modal.msgError("请选择头像")
-        //   return
-        // }
+        if (!this.nickname) {
+          this.$modal.msgError("请输入昵称")
+          return
+        }
 
         this.$modal.loading("登录中，请耐心等待...")
 
@@ -164,11 +169,18 @@
             height: 180rpx;
             padding: 0;
             border-radius: 50%;
+            background-color: #f5f6f7;
+            border: 2px dashed #ddd;
             .avatar-img {
               width: 100%;
               height: 100%;
               border-radius: 50%;
             }
+          }
+          .avatar-tips {
+            font-size: 24rpx;
+            color: #999;
+            margin-top: 10px;
           }
         }
       }

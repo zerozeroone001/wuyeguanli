@@ -70,4 +70,5 @@ const request = config => {
   })
 }
 
+request.baseUrl = baseUrl
 export default request

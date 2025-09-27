@@ -57,6 +57,17 @@
           <button @click="testRegulationList" class="test-btn">制度列表</button>
         </view>
       </view>
+      
+      <view class="test-section">
+        <view class="section-title">文件上传接口</view>
+        <view class="test-buttons">
+          <button @click="testUploadFile" class="test-btn">测试文件上传</button>
+          <button @click="chooseImage" class="test-btn">选择图片上传</button>
+        </view>
+        <view v-if="uploadResult" class="upload-result">
+          <text>上传结果: {{ uploadResult }}</text>
+        </view>
+      </view>
     </view>
     
     <!-- 结果显示区域 -->
@@ -74,11 +85,13 @@ import { listMyComplaint, addComplaint } from '@/api/property/complaint'
 import { listMeeting, getMeeting } from '@/api/property/meeting'
 import { getFundOverview, listFundFlow } from '@/api/property/fund'
 import { listRegulation } from '@/api/property/regulation'
+import { uploadFile } from '@/api/common'
 
 export default {
   data() {
     return {
-      testResult: ''
+      testResult: '',
+      uploadResult: ''
     }
   },
   methods: {
@@ -215,6 +228,47 @@ export default {
       }
     },
     
+    // 文件上传接口测试
+    async testUploadFile() {
+      try {
+        // 创建一个测试文件
+        const testFilePath = '/static/logo.png'
+        const result = await uploadFile(testFilePath)
+        this.showResult('文件上传', result)
+        this.uploadResult = JSON.stringify(result, null, 2)
+      } catch (error) {
+        this.showError('文件上传', error)
+        this.uploadResult = '上传失败: ' + JSON.stringify(error, null, 2)
+      }
+    },
+    
+    // 选择图片上传
+    chooseImage() {
+      uni.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+        success: async (res) => {
+          try {
+            const filePath = res.tempFilePaths[0]
+            const result = await uploadFile(filePath)
+            this.showResult('图片上传', result)
+            this.uploadResult = JSON.stringify(result, null, 2)
+          } catch (error) {
+            this.showError('图片上传', error)
+            this.uploadResult = '上传失败: ' + JSON.stringify(error, null, 2)
+          }
+        },
+        fail: (err) => {
+          console.error('选择图片失败:', err)
+          uni.showToast({
+            title: '选择图片失败',
+            icon: 'error'
+          })
+        }
+      })
+    },
+    
     // 显示成功结果
     showResult(apiName, result) {
       this.testResult = `${apiName} - 成功:\n${JSON.stringify(result, null, 2)}`
@@ -315,5 +369,17 @@ export default {
   padding: 20rpx;
   border-radius: 8rpx;
   border: 1rpx solid #e9ecef;
+}
+
+.upload-result {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 8rpx;
+  border: 1rpx solid #e9ecef;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 </style>
