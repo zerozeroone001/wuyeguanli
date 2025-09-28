@@ -105,6 +105,16 @@
           <dict-tag :options="dict.type.sys_yes_no" :value="scope.row.isCommitteeMember"/>
         </template>
       </el-table-column>
+      <el-table-column label="业委会/业主" align="center" prop="isOwner">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.sys_owner_type" :value="scope.row.isOwner"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="账号状态" align="center" prop="status">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -115,6 +125,30 @@
             @click="handleUpdate(scope.row)"
             v-hasPermi="['system:owner:edit']"
           >修改</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            :icon="scope.row.status == '0' ? 'el-icon-lock' : 'el-icon-unlock'"
+            :class="scope.row.status == '0' ? 'text-danger' : 'text-success'"
+            @click="handleStatusChange(scope.row)"
+            v-hasPermi="['system:owner:edit']"
+          >{{ scope.row.status == '0' ? '禁用' : '恢复' }}</el-button>
+          <el-dropdown size="mini" @command="(command) => handleIdentityChange(scope.row, command)" v-hasPermi="['system:owner:edit']">
+            <el-button size="mini" type="text" icon="el-icon-user">
+              设置身份<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="1" :disabled="scope.row.isOwner == 1">
+                <i class="el-icon-user-solid"></i>设为业主
+              </el-dropdown-item>
+              <el-dropdown-item command="2" :disabled="scope.row.isOwner == 2">
+                <i class="el-icon-s-custom"></i>设为业委会
+              </el-dropdown-item>
+              <el-dropdown-item command="0" :disabled="scope.row.isOwner == 0">
+                <i class="el-icon-user"></i>取消身份
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
           <el-button
             size="mini"
             type="text"
@@ -211,12 +245,12 @@
 </template>
 
 <script>
-import { listOwner, getOwner, delOwner, addOwner, updateOwner } from "@/api/system/owner";
+import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity } from "@/api/system/owner";
 import { getToken } from "@/utils/auth";
 
 export default {
   name: "Owner",
-  dicts: ['sys_yes_no', 'sys_auth_status'],
+  dicts: ['sys_yes_no', 'sys_auth_status', 'sys_owner_type', 'sys_normal_disable'],
   data() {
     return {
       // 遮罩层
@@ -412,6 +446,36 @@ export default {
     // 提交上传文件
     submitFileForm() {
       this.$refs.upload.submit();
+    },
+    /** 状态修改按钮操作 */
+    handleStatusChange(row) {
+      const text = row.status === "0" ? "禁用" : "恢复";
+      const newStatus = row.status === "0" ? "1" : "0";
+      this.$modal.confirm('确认要"' + text + '""' + row.realName + '"用户吗？').then(function() {
+        return changeUserStatus(row.userId, newStatus);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess(text + "成功");
+      }).catch(function() {
+        // 操作失败时不需要修改状态，因为getList会重新获取数据
+      });
+    },
+    /** 身份设置按钮操作 */
+    handleIdentityChange(row, command) {
+      const identityMap = {
+        '0': '取消身份',
+        '1': '设为业主',
+        '2': '设为业委会'
+      };
+      const text = identityMap[command];
+      this.$modal.confirm('确认要将"' + row.realName + '"' + text + '吗？').then(function() {
+        return changeUserIdentity(row.userId, command);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess(text + "成功");
+      }).catch(function() {
+        // 操作失败时不需要修改状态，因为getList会重新获取数据
+      });
     }
   }
 };

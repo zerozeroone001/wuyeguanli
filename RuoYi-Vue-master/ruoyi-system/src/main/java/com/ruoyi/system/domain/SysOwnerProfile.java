@@ -71,6 +71,9 @@ public class SysOwnerProfile extends BaseEntity
     /** 用户昵称 */
     private String nickName;
 
+    /** 账号状态（0正常 1停用） */
+    private String status;
+
     public void setOwnerId(Long ownerId) 
     {
         this.ownerId = ownerId;
@@ -240,6 +243,16 @@ public class SysOwnerProfile extends BaseEntity
         return nickName;
     }
 
+    public void setStatus(String status)
+    {
+        this.status = status;
+    }
+
+    public String getStatus()
+    {
+        return status;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -259,6 +272,7 @@ public class SysOwnerProfile extends BaseEntity
             .append("isOwner", getIsOwner())
             .append("avatar", getAvatar())
             .append("nickName", getNickName())
+            .append("status", getStatus())
             .append("delFlag", getDelFlag())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

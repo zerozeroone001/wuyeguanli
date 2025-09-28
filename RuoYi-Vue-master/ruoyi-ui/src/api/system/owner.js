@@ -42,3 +42,29 @@ export function delOwner(userId) {
     method: 'delete'
   })
 }
+
+// 修改用户状态
+export function changeUserStatus(userId, status) {
+  const data = {
+    userId,
+    status
+  }
+  return request({
+    url: '/system/owner/changeStatus',
+    method: 'put',
+    data: data
+  })
+}
+
+// 修改用户身份
+export function changeUserIdentity(userId, isOwner) {
+  const data = {
+    userId,
+    isOwner
+  }
+  return request({
+    url: '/system/owner/changeIdentity',
+    method: 'put',
+    data: data
+  })
+}

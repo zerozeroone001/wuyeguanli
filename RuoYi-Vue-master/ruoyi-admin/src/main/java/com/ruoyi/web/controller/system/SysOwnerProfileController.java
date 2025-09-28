@@ -20,8 +20,10 @@ import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SysOwnerProfile;
 import com.ruoyi.system.domain.dto.OwnerProfileImportDto;
 import com.ruoyi.system.service.ISysOwnerProfileService;
+import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.core.domain.entity.SysUser;
 
 /**
  * 业主信息扩展Controller
@@ -35,6 +37,9 @@ public class SysOwnerProfileController extends BaseController
 {
     @Autowired
     private ISysOwnerProfileService sysOwnerProfileService;
+
+    @Autowired
+    private ISysUserService userService;
 
     /**
      * 查询业主信息扩展列表
@@ -137,5 +142,33 @@ public class SysOwnerProfileController extends BaseController
             sysOwnerProfileService.clearUserCache(sysOwnerProfile.getUserId());
         }
         return toAjax(result);
+    }
+
+    /**
+     * 状态修改
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:edit')")
+    @Log(title = "业主状态修改", businessType = BusinessType.UPDATE)
+    @PutMapping("/changeStatus")
+    public AjaxResult changeStatus(@RequestBody SysUser user)
+    {
+        userService.checkUserAllowed(user);
+        userService.checkUserDataScope(user.getUserId());
+        user.setUpdateBy(getUsername());
+        return toAjax(userService.updateUserStatus(user));
+    }
+
+    /**
+     * 身份修改
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:edit')")
+    @Log(title = "业主身份修改", businessType = BusinessType.UPDATE)
+    @PutMapping("/changeIdentity")
+    public AjaxResult changeIdentity(@RequestBody SysUser user)
+    {
+        userService.checkUserAllowed(user);
+        userService.checkUserDataScope(user.getUserId());
+        user.setUpdateBy(getUsername());
+        return toAjax(userService.updateUser(user));
     }
 }
