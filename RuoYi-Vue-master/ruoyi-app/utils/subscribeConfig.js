@@ -20,7 +20,22 @@ const SubscribeConfig = {
   // 检查模板ID是否已配置
   isTemplateConfigured(type) {
     const templateId = this.getTemplateId(type)
-    return templateId && templateId !== `您的${type}模板ID`
+    // 检查模板ID是否存在且不是占位符
+    return templateId && 
+           templateId !== `您的${type}模板ID` && 
+           templateId !== `您的${this.getTemplateName(type)}模板ID` &&
+           templateId.length > 10 // 微信模板ID通常比较长
+  },
+  
+  // 获取模板名称
+  getTemplateName(type) {
+    const names = {
+      complaint: '投诉处理',
+      meeting: '会议通知',
+      payment: '缴费提醒',
+      repair: '维修进度'
+    }
+    return names[type] || type
   }
 }
 

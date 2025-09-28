@@ -8,6 +8,7 @@
         </view>
         <switch 
           :checked="item.enabled" 
+          :disabled="!isTemplateConfigured(item.id)"
           @change="onSwitchChange(item)"
           color="#1890FF"
         />
@@ -68,16 +69,37 @@ export default {
     async checkSubscribeStatus() {
       try {
         for (let item of this.subscribeList) {
+          // 检查模板ID是否已配置
+          if (!this.isTemplateConfigured(item.id)) {
+            item.enabled = false
+            continue
+          }
+          
           const status = await SubscribeMessageUtils.checkSubscribeStatus(item.templateId)
+          // 微信小程序的订阅消息状态判断
+          // 'granted' 表示已授权，'deny' 表示被拒绝，'undetermined' 表示未确定
           item.enabled = status.status === 'granted'
         }
       } catch (error) {
         console.error('检查订阅状态失败:', error)
+        // 如果检查失败，将所有状态设为false
+        this.subscribeList.forEach(item => {
+          item.enabled = false
+        })
       }
     },
     
     // 开关变化处理
     async onSwitchChange(item) {
+      // 检查模板ID是否已配置
+      if (!this.isTemplateConfigured(item.id)) {
+        uni.showToast({
+          title: '该功能暂未配置',
+          icon: 'none'
+        })
+        return
+      }
+      
       if (item.enabled) {
         // 如果当前是开启状态，点击后关闭
         item.enabled = false
@@ -109,6 +131,11 @@ export default {
           })
         }
       }
+    },
+    
+    // 检查模板ID是否已配置
+    isTemplateConfigured(type) {
+      return SubscribeConfig.isTemplateConfigured(type)
     }
   }
 }

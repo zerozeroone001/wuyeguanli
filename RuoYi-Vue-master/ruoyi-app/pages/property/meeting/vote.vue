@@ -261,7 +261,7 @@ console.log(confirm[1].confirm)
       } catch (error) {
         uni.hideLoading();
         uni.showToast({
-          title: error.message || '投票失败',
+          title: error.msg || '投票失败',
           icon: 'none'
         });
       }

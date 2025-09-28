@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 提交投诉
 export function addComplaint(data) {
   return request({
-    url: '/property/complaint',
+    url: '/userapi/complaint',
     method: 'post',
     data: data
   })
@@ -12,7 +12,7 @@ export function addComplaint(data) {
 // 获取我的投诉列表
 export function listMyComplaint(query) {
   return request({
-    url: '/property/complaint/my',
+    url: '/userapi/complaint/my',
     method: 'get',
     params: query
   })
@@ -21,7 +21,7 @@ export function listMyComplaint(query) {
 // 获取投诉详情
 export function getComplaint(complaintId) {
   return request({
-    url: '/property/complaint/' + complaintId,
+    url: '/userapi/complaint/' + complaintId,
     method: 'get'
   })
 }
@@ -29,7 +29,7 @@ export function getComplaint(complaintId) {
 // 获取处理记录
 export function listComplaintHandle(complaintId) {
   return request({
-    url: '/property/complaint/handle/' + complaintId,
+    url: '/userapi/complaint/handle/' + complaintId,
     method: 'get'
   })
 }
@@ -37,7 +37,7 @@ export function listComplaintHandle(complaintId) {
 // 评价投诉处理
 export function evaluateComplaint(data) {
   return request({
-    url: '/property/complaint/evaluate',
+    url: '/userapi/complaint/evaluate',
     method: 'post',
     data: data
   })

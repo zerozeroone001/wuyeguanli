@@ -89,16 +89,18 @@
 <script>
 import { mapGetters } from 'vuex'
 import { isAuthenticated, getAuthStatusText, getAuthStatusColor, getAuthStatusIcon } from '@/utils/authHelper'
+import { getMyVoteRecords } from '@/api/property/meeting'
+import { listMyComplaint } from '@/api/property/complaint'
 
 export default {
   data() {
     return {
       // 统计数据
       stats: {
-        orders: 3,
-        complaints: 1,
-        votes: 5,
-        messages: 2
+        orders: 0,
+        complaints: 0,
+        votes: 0,
+        messages: 0
       },
       // 快捷功能
       quickActions: [
@@ -106,13 +108,13 @@ export default {
           name: '我的合同',
           icon: 'list',
           bgColor: '#1890FF',
-          path: '/pages/repair/my-orders'
+          path: '/pages/property/contract/index'
         },
         {
           name: '缴费记录',
           icon: 'wallet',
           bgColor: '#52C41A',
-          path: '/pages/payment/records'
+          path: '/pages/fund-management/index'
         },
         {
           name: '投票记录',
@@ -197,6 +199,8 @@ export default {
   onShow() {
     // 每次页面显示时，都主动刷新一次认证信息
     this.$store.dispatch('GetProfileInfo');
+    // 加载统计数据
+    this.loadStats();
   },
   methods: {
     handleAuthStatusClick() {
@@ -220,30 +224,49 @@ export default {
       })
     },
     
+    // 加载统计数据
+    async loadStats() {
+      try {
+        // 并行加载投票记录和投诉记录数量
+        const [voteResponse, complaintResponse] = await Promise.all([
+          getMyVoteRecords({ pageNum: 1, pageSize: 1 }),
+          listMyComplaint({ pageNum: 1, pageSize: 1 })
+        ]);
+        
+        // 更新投票记录数量
+        if (voteResponse.code === 200) {
+          this.stats.votes = voteResponse.total || 0;
+        }
+        
+        // 更新投诉记录数量
+        if (complaintResponse.code === 200) {
+          this.stats.complaints = complaintResponse.total || 0;
+        }
+        
+        // 这里可以添加其他统计数据的加载
+        // 例如合同数量、消息数量等
+        
+      } catch (error) {
+        console.error('加载统计数据失败:', error);
+        // 失败时使用默认值，不影响页面显示
+      }
+    },
+    
     // 统计数据点击事件
     goToOrders() {
-      this.updateStats('orders')
-      uni.showToast({ title: '我的工单功能开发中', icon: 'none' })
+      uni.showToast({ title: '我的合同功能开发中', icon: 'none' })
     },
     
     goToComplaints() {
-      this.updateStats('complaints')
       uni.navigateTo({ url: '/pages/complaints/my-complaints' })
     },
     
     goToVotes() {
-      this.updateStats('votes')
       uni.navigateTo({ url: '/pages/property/meeting/my-votes' })
     },
     
     goToMessages() {
-      this.updateStats('messages')
       uni.showToast({ title: '消息中心功能开发中', icon: 'none' })
-    },
-    
-    updateStats(type) {
-      // 演示功能：点击后随机更新数据
-      this.stats[type] = Math.floor(Math.random() * 10)
     },
     
     handleActionClick(action) {
@@ -276,26 +299,9 @@ export default {
       uni.navigateTo({ url: '/pages/mine/avatar/index' })
     },
     handleMessageSettings() {
-      // 微信小程序消息通知授权
-      wx.requestSubscribeMessage({
-        // 这里需要换成你自己的模板id
-        tmplIds: ['yours_template_id_1'],
-        success(res) {
-          if (res.errMsg === 'requestSubscribeMessage:ok') {
-            //可以处理 res 中各项的订阅结果
-            uni.showToast({
-              title: '订阅成功',
-              icon: 'success'
-            });
-          }
-        },
-        fail(err) {
-          console.error(err);
-          uni.showToast({
-            title: '订阅失败',
-            icon: 'none'
-          });
-        }
+      // 跳转到订阅消息设置页面
+      uni.navigateTo({
+        url: '/pages/mine/subscribe/index'
       });
     }
   }

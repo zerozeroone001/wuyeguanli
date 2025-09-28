@@ -33,7 +33,7 @@ public interface SysMeetingTopicMapper
      * 增加投票计数
      * 
      * @param topicId 议题ID
-     * @param choice 选项 (1, 2, 3)
+     * @param choice 选项 (0-同意, 1-反对, 2-弃权)
      */
     public void incrementVoteCount(@Param("topicId") Long topicId, @Param("choice") String choice);
 
@@ -41,7 +41,7 @@ public interface SysMeetingTopicMapper
      * 减少投票计数
      * 
      * @param topicId 议题ID
-     * @param choice 选项 (1, 2, 3)
+     * @param choice 选项 (0-同意, 1-反对, 2-弃权)
      */
     public void decrementVoteCount(@Param("topicId") Long topicId, @Param("choice") String choice);
 }

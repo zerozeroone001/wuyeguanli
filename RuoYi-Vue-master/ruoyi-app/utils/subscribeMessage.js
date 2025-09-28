@@ -57,12 +57,26 @@ const SubscribeMessageUtils = {
    */
   checkSubscribeStatus(templateId) {
     return new Promise((resolve, reject) => {
+      // 首先检查全局订阅消息权限
       uni.getSetting({
         success: (res) => {
           const subscribeAuthSetting = res.authSetting['scope.subscribeMessage'];
+          
+          // 如果全局权限被拒绝，直接返回拒绝状态
+          if (subscribeAuthSetting === 'deny') {
+            resolve({
+              templateId,
+              status: 'deny'
+            });
+            return;
+          }
+          
+          // 如果全局权限未设置或被拒绝，尝试检查具体模板状态
+          // 注意：微信小程序无法直接查询具体模板的订阅状态
+          // 只能通过尝试发送订阅消息来检查
           resolve({
             templateId,
-            status: subscribeAuthSetting
+            status: subscribeAuthSetting || 'undetermined'
           });
         },
         fail: reject

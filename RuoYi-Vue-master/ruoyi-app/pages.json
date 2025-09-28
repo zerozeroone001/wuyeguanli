@@ -21,7 +21,7 @@
 			"style": {
 				"navigationBarTitleText": "订阅消息演示"
 			}
-		}, {
+		}, 		{
 			"path": "pages/test/subscribe-test",
 			"style": {
 				"navigationBarTitleText": "订阅消息测试"
@@ -130,6 +130,13 @@
       "navigationBarTitleText": "投票结果"
     }
   }, {
+    "path": "pages/property/meeting/my-votes",
+    "style": {
+      "navigationBarTitleText": "我的投票记录",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
     "path": "pages/property/complaint/index",
     "style": {
       "navigationBarTitleText": "意见征询",
@@ -145,6 +152,13 @@
     "path": "pages/property/complaint/detail",
     "style": {
       "navigationBarTitleText": "投诉详情"
+    }
+  }, {
+    "path": "pages/complaints/my-complaints",
+    "style": {
+      "navigationBarTitleText": "我的投诉",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
     }
   }, {
     "path": "pages/property/contract/index",
