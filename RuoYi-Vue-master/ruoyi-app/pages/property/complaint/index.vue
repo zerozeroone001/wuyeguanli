@@ -64,11 +64,11 @@
           <view class="complaint-info">
             <text class="complaint-title">{{ complaint.complaintTitle }}</text>
             <view class="complaint-meta">
-              <text class="complaint-no">编号：{{ complaint.complaintNo }}</text>
+              <text class="complaint-no">编号：{{ complaint.complaintNo || '未生成' }}</text>
               <text class="complaint-time">{{ complaint.createTime }}</text>
             </view>
           </view>
-          <view class="complaint-status" :class="[complaint.status === 'pending' ? 'status-pending' : complaint.status === 'processing' ? 'status-processing' : complaint.status === 'completed' ? 'status-completed' : complaint.status === 'closed' ? 'status-closed' : 'status-default']">
+          <view class="complaint-status" :class="getStatusClass(complaint.status)">
             {{ getStatusText(complaint.status) }}
           </view>
         </view>

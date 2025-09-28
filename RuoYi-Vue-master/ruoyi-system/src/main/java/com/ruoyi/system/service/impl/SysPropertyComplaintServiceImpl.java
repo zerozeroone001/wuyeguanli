@@ -95,34 +95,44 @@ public class SysPropertyComplaintServiceImpl implements ISysPropertyComplaintSer
         return sysPropertyComplaintMapper.deleteSysPropertyComplaintByComplaintId(complaintId);
     }
 
-        @Override
+    @Override
     public Map<String, Object> getComplaintStats() {
         return sysPropertyComplaintMapper.getComplaintStats();
     }
 
     @Override
     public Long countPendingComplaints() {
-        return null;
+        return sysPropertyComplaintMapper.countPendingComplaints();
     }
 
     @Override
     public Long countUrgentComplaints() {
-        return null;
+        return sysPropertyComplaintMapper.countUrgentComplaints();
     }
 
     @Override
     public Double getComplaintGrowthRate() {
-        return null;
+        return sysPropertyComplaintMapper.getComplaintGrowthRate();
     }
 
     @Override
     public List<Map<String, Object>> getComplaintTrend() {
-        return null;
+        return sysPropertyComplaintMapper.getComplaintTrend();
     }
 
     @Override
     public List<Map<String, Object>> getRecentComplaints(int limit) {
-        return null;
+        return sysPropertyComplaintMapper.getRecentComplaints(limit);
+    }
+
+    @Override
+    public List<Map<String, Object>> getComplaintTypeStats() {
+        return sysPropertyComplaintMapper.getComplaintTypeStats();
+    }
+
+    @Override
+    public List<Map<String, Object>> getComplaintStatusStats() {
+        return sysPropertyComplaintMapper.getComplaintStatusStats();
     }
 
 }

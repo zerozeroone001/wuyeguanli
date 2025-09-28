@@ -70,4 +70,54 @@ public interface SysPropertyComplaintMapper
      * @return 结果
      */
     public int deleteSysPropertyComplaintByComplaintIds(Long[] complaintIds);
+
+    /**
+     * 统计待处理投诉数量
+     * 
+     * @return 待处理投诉数量
+     */
+    public Long countPendingComplaints();
+
+    /**
+     * 统计紧急投诉数量
+     * 
+     * @return 紧急投诉数量
+     */
+    public Long countUrgentComplaints();
+
+    /**
+     * 获取投诉增长率
+     * 
+     * @return 投诉增长率
+     */
+    public Double getComplaintGrowthRate();
+
+    /**
+     * 获取投诉趋势数据
+     * 
+     * @return 投诉趋势数据
+     */
+    public List<Map<String, Object>> getComplaintTrend();
+
+    /**
+     * 获取最近投诉记录
+     * 
+     * @param limit 限制数量
+     * @return 最近投诉记录
+     */
+    public List<Map<String, Object>> getRecentComplaints(int limit);
+
+    /**
+     * 按类型统计投诉
+     * 
+     * @return 按类型统计结果
+     */
+    public List<Map<String, Object>> getComplaintTypeStats();
+
+    /**
+     * 按状态统计投诉
+     * 
+     * @return 按状态统计结果
+     */
+    public List<Map<String, Object>> getComplaintStatusStats();
 }

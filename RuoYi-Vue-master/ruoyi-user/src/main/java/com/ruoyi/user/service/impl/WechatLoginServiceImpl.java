@@ -119,7 +119,7 @@ public class WechatLoginServiceImpl implements IWechatLoginService {
                 needUpdate = true;
             }
             
-            if (StringUtils.isNotEmpty(avatarUrl) && !avatarUrl.equals(user.getAvatar())) {
+            if (StringUtils.isNotEmpty(avatarUrl) && !avatarUrl.equals(user.getAvatar()) && StringUtils.isEmpty(user.getAvatar())) {
                 user.setAvatar(avatarUrl);
                 needUpdate = true;
             }
@@ -136,7 +136,7 @@ public class WechatLoginServiceImpl implements IWechatLoginService {
 
         LoginUser loginUser = new LoginUser(user.getUserId(), user.getDeptId(), user,new HashSet<>());
         
-        recordLoginInfo(loginUser.getUserId());
+//        recordLoginInfo(loginUser.getUserId());
         
         return tokenService.createToken(loginUser);
     }

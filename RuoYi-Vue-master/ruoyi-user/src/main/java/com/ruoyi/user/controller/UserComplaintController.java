@@ -3,6 +3,8 @@ package com.ruoyi.user.controller;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.ComplaintNoUtils;
 //import com.ruoyi.common.utils.ShiroUtils;
 import com.ruoyi.system.domain.SysPropertyComplaint;
 import com.ruoyi.system.service.ISysPropertyComplaintService;
@@ -27,7 +29,17 @@ public class UserComplaintController extends BaseController {
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyComplaint complaint) {
 //        complaint.setUserId(ShiroUtils.getUserId());
-        complaint.setStatus("0"); // 待处理
+        
+        // 自动生成投诉编号
+        if (StringUtils.isEmpty(complaint.getComplaintNo())) {
+            complaint.setComplaintNo(ComplaintNoUtils.generateComplaintNo());
+        }
+        
+        // 设置默认状态为待处理
+        if (StringUtils.isEmpty(complaint.getStatus())) {
+            complaint.setStatus("0"); // 待处理
+        }
+        
         complaintService.insertSysPropertyComplaint(complaint);
         return AjaxResult.success(complaint);
     }

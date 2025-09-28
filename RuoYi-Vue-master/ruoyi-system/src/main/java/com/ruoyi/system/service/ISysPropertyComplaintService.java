@@ -103,4 +103,18 @@ public interface ISysPropertyComplaintService
      * @return 最近投诉记录
      */
     public List<Map<String, Object>> getRecentComplaints(int limit);
+
+    /**
+     * 按类型统计投诉
+     * 
+     * @return 按类型统计结果
+     */
+    public List<Map<String, Object>> getComplaintTypeStats();
+
+    /**
+     * 按状态统计投诉
+     * 
+     * @return 按状态统计结果
+     */
+    public List<Map<String, Object>> getComplaintStatusStats();
 }

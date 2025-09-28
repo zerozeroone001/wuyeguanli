@@ -135,7 +135,91 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             count(*) as total,
             count(case when status = '0' then 1 end) as pending,
             count(case when status = '1' then 1 end) as processing,
-            count(case when status = '2' then 1 end) as completed
+            count(case when status = '2' then 1 end) as completed,
+            count(case when status = '3' then 1 end) as closed
         from sys_property_complaint
+    </select>
+
+    <select id="countPendingComplaints" resultType="java.lang.Long">
+        select count(*) from sys_property_complaint where status = '0'
+    </select>
+
+    <select id="countUrgentComplaints" resultType="java.lang.Long">
+        select count(*) from sys_property_complaint where urgency = '1'
+    </select>
+
+    <select id="getComplaintGrowthRate" resultType="java.lang.Double">
+        select 
+            case 
+                when last_month_count = 0 then 0
+                else round((this_month_count - last_month_count) * 100.0 / last_month_count, 2)
+            end as growth_rate
+        from (
+            select 
+                count(*) as this_month_count,
+                (select count(*) from sys_property_complaint 
+                 where DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m')) as last_month_count
+            from sys_property_complaint 
+            where DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+        ) t
+    </select>
+
+    <select id="getComplaintTrend" resultType="java.util.Map">
+        select 
+            DATE_FORMAT(create_time, '%Y-%m-%d') as date,
+            count(*) as count
+        from sys_property_complaint 
+        where create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        group by DATE_FORMAT(create_time, '%Y-%m-%d')
+        order by date
+    </select>
+
+    <select id="getRecentComplaints" resultType="java.util.Map">
+        select 
+            complaint_id,
+            complaint_no,
+            complaint_title,
+            complaint_type,
+            urgency,
+            status,
+            create_time,
+            user_id
+        from sys_property_complaint 
+        order by create_time desc 
+        limit #{limit}
+    </select>
+
+    <select id="getComplaintTypeStats" resultType="java.util.Map">
+        select 
+            complaint_type,
+            case complaint_type
+                when '1' then '物业服务'
+                when '2' then '设施设备'
+                when '3' then '环境卫生'
+                when '4' then '安全管理'
+                when '5' then '收费争议'
+                when '6' then '其他'
+                else '未知'
+            end as type_name,
+            count(*) as count
+        from sys_property_complaint 
+        group by complaint_type
+        order by count desc
+    </select>
+
+    <select id="getComplaintStatusStats" resultType="java.util.Map">
+        select 
+            status,
+            case status
+                when '0' then '待处理'
+                when '1' then '处理中'
+                when '2' then '已完成'
+                when '3' then '已关闭'
+                else '未知'
+            end as status_name,
+            count(*) as count
+        from sys_property_complaint 
+        group by status
+        order by status
     </select>
 </mapper>

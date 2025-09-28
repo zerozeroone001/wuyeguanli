@@ -1,17 +1,17 @@
 <template>
   <view class="my-complaints-container">
     <!-- 页面标题 -->
-    <view class="page-header">
-      <view class="header-content">
-        <view class="header-left" @click="goBack">
-          <uni-icons type="left" size="20" color="#333" />
-        </view>
-        <text class="header-title">我的投诉</text>
-        <view class="header-right" @click="addComplaint">
-          <uni-icons type="plus" size="20" color="#1890FF" />
-        </view>
-      </view>
-    </view>
+<!--    <view class="page-header">-->
+<!--      <view class="header-content">-->
+<!--        <view class="header-left" @click="goBack">-->
+<!--          <uni-icons type="left" size="20" color="#333" />-->
+<!--        </view>-->
+<!--        <text class="header-title">我的投诉</text>-->
+<!--        <view class="header-right" @click="addComplaint">-->
+<!--          <uni-icons type="plus" size="20" color="#1890FF" />-->
+<!--        </view>-->
+<!--      </view>-->
+<!--    </view>-->
 
     <!-- 筛选条件 -->
     <view class="filter-section">
@@ -69,7 +69,7 @@
         >
           <view class="complaint-header">
             <view class="complaint-title-section">
-              <text class="complaint-title">{{ item.title }}</text>
+              <text class="complaint-title">{{ item.complaintTitle || item.title || '未知' }}</text>
               <view class="complaint-status" :class="'status-' + item.status">
                 <text class="status-text">{{ getStatusText(item.status) }}</text>
               </view>
@@ -80,12 +80,12 @@
           </view>
           
           <view class="complaint-content">
-            <text class="complaint-desc">{{ item.description }}</text>
+            <text class="complaint-desc">{{ item.complaintContent || item.description || '暂无描述' }}</text>
           </view>
           
           <view class="complaint-footer">
             <view class="complaint-info">
-              <text class="info-text">投诉编号：{{ item.complaintNo }}</text>
+              <text class="info-text">投诉编号：{{ item.complaintNo || '未生成' }}</text>
             </view>
             <view class="complaint-actions">
               <text class="action-text">查看详情</text>
@@ -208,6 +208,10 @@ export default {
     
     getStatusText(status) {
       const statusMap = {
+        '0': '待处理',
+        '1': '处理中', 
+        '2': '已完成',
+        '3': '已关闭',
         'pending': '待处理',
         'processing': '处理中',
         'completed': '已完成',
@@ -219,6 +223,10 @@ export default {
     
     getProgressWidth(status) {
       const progressMap = {
+        '0': '0%',
+        '1': '50%',
+        '2': '100%',
+        '3': '100%',
         'pending': '0%',
         'processing': '50%',
         'completed': '100%',
@@ -229,6 +237,10 @@ export default {
     
     getProgressText(status) {
       const textMap = {
+        '0': '等待处理',
+        '1': '正在处理中',
+        '2': '处理完成',
+        '3': '已关闭',
         'pending': '等待处理',
         'processing': '正在处理中',
         'completed': '处理完成',
