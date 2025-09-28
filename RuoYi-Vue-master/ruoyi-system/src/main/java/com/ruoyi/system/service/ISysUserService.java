@@ -281,4 +281,12 @@ public interface ISysUserService
      * @return 结果
      */
     public int removeCommitteeMember(Long userId);
+
+    /**
+     * 查询可绑定的用户列表（user_type为10且未绑定业主信息的用户）
+     * 
+     * @param user 用户信息
+     * @return 用户信息集合信息
+     */
+    public List<SysUser> selectUnboundUsers(SysUser user);
 }

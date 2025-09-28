@@ -174,6 +174,16 @@
         <el-form-item label="真实姓名" prop="realName">
           <el-input v-model="form.realName" placeholder="请输入真实姓名" />
         </el-form-item>
+        <el-form-item label="绑定用户" prop="userId">
+          <el-input
+            v-model="selectedUserName"
+            placeholder="请选择要绑定的用户"
+            readonly
+            @click="showUserSelectDialog"
+          >
+            <el-button slot="append" icon="el-icon-search" @click="showUserSelectDialog">选择用户</el-button>
+          </el-input>
+        </el-form-item>
         <el-form-item label="手机号码" prop="phonenumber">
           <el-input v-model="form.phonenumber" placeholder="请输入手机号码" />
         </el-form-item>
@@ -241,15 +251,25 @@
       </div>
     </el-dialog>
 
+    <!-- 用户选择弹窗 -->
+    <user-select-dialog
+      :visible.sync="userSelectVisible"
+      @confirm="handleUserSelect"
+    />
+
   </div>
 </template>
 
 <script>
 import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity } from "@/api/system/owner";
 import { getToken } from "@/utils/auth";
+import UserSelectDialog from "@/components/UserSelectDialog";
 
 export default {
   name: "Owner",
+  components: {
+    UserSelectDialog
+  },
   dicts: ['sys_yes_no', 'sys_auth_status', 'sys_owner_type', 'sys_normal_disable'],
   data() {
     return {
@@ -271,6 +291,10 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 用户选择弹窗显示状态
+      userSelectVisible: false,
+      // 选中的用户名（用于显示）
+      selectedUserName: null,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -349,6 +373,7 @@ export default {
         phonenumber: null,
         contactNumber: null
       };
+      this.selectedUserName = null;
       this.resetForm("form");
     },
     /** 搜索按钮操作 */
@@ -476,6 +501,20 @@ export default {
       }).catch(function() {
         // 操作失败时不需要修改状态，因为getList会重新获取数据
       });
+    },
+    /** 显示用户选择弹窗 */
+    showUserSelectDialog() {
+      this.userSelectVisible = true;
+    },
+    /** 处理用户选择 */
+    handleUserSelect(user) {
+      this.form.userId = user.userId;
+      this.selectedUserName = user.userName;
+      this.form.phonenumber = user.phonenumber;
+      // 如果真实姓名为空，使用昵称填充
+      if (!this.form.realName && user.nickName) {
+        this.form.realName = user.nickName;
+      }
     }
   }
 };

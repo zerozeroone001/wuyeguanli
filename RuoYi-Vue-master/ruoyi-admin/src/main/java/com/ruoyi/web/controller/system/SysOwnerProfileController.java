@@ -171,4 +171,16 @@ public class SysOwnerProfileController extends BaseController
         user.setUpdateBy(getUsername());
         return toAjax(userService.updateUser(user));
     }
+
+    /**
+     * 查询可绑定的用户列表（user_type为10且未绑定业主信息的用户）
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:add')")
+    @GetMapping("/unboundUsers")
+    public TableDataInfo getUnboundUsers(SysUser user)
+    {
+        startPage();
+        List<SysUser> list = userService.selectUnboundUsers(user);
+        return getDataTable(list);
+    }
 }

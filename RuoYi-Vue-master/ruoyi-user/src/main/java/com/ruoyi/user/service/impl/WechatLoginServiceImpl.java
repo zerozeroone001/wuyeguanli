@@ -90,6 +90,7 @@ public class WechatLoginServiceImpl implements IWechatLoginService {
             // 创建新用户
             user = new SysUser();
             user.setOpenid(openid);
+
             user.setUserName("wx_user_" + ThreadLocalRandom.current().nextLong(100000, 999999)); // 生成一个唯一的用户名
 
             // 设置用户信息

@@ -53,7 +53,7 @@
     </view>
 
     <!-- 快捷功能 -->
-    <view class="quick-actions">
+  <!--  <view class="quick-actions">
       <view class="action-grid">
         <view class="action-item" v-for="(action, index) in quickActions" :key="index" @click="handleActionClick(action)">
           <view class="action-icon" :style="{ backgroundColor: action.bgColor }">
@@ -62,7 +62,7 @@
           <text class="action-name">{{ action.name }}</text>
         </view>
       </view>
-    </view>
+    </view> -->
 
     <!-- 设置菜单 -->
     <view class="settings-menu">

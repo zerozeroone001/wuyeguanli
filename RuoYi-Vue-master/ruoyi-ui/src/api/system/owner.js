@@ -68,3 +68,12 @@ export function changeUserIdentity(userId, isOwner) {
     data: data
   })
 }
+
+// 查询可绑定的用户列表
+export function getUnboundUsers(query) {
+  return request({
+    url: '/system/owner/unboundUsers',
+    method: 'get',
+    params: query
+  })
+}

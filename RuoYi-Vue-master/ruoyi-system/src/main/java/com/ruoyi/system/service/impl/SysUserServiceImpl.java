@@ -635,6 +635,18 @@ public class SysUserServiceImpl implements ISysUserService
     }
 
     /**
+     * 查询可绑定的用户列表（user_type为10且未绑定业主信息的用户）
+     *
+     * @param user 用户信息
+     * @return 用户信息集合信息
+     */
+    @Override
+    public List<SysUser> selectUnboundUsers(SysUser user)
+    {
+        return userMapper.selectUnboundUsers(user);
+    }
+
+    /**
      * 查询所有有openId的用户列表
      *
      * @return 用户信息集合
