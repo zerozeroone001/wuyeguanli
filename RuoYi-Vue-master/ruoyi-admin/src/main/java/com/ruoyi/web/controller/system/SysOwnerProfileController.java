@@ -122,4 +122,20 @@ public class SysOwnerProfileController extends BaseController
         ExcelUtil<OwnerProfileImportDto> util = new ExcelUtil<OwnerProfileImportDto>(OwnerProfileImportDto.class);
         util.importTemplateExcel(response, "业主数据");
     }
+
+    /**
+     * 审核业主认证
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:audit')")
+    @Log(title = "业主认证审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody SysOwnerProfile sysOwnerProfile)
+    {
+        int result = sysOwnerProfileService.auditOwnerProfile(sysOwnerProfile);
+        if (result > 0) {
+            // 审核成功后，清除用户端缓存（通过清除Redis中的用户信息缓存）
+            sysOwnerProfileService.clearUserCache(sysOwnerProfile.getUserId());
+        }
+        return toAjax(result);
+    }
 }

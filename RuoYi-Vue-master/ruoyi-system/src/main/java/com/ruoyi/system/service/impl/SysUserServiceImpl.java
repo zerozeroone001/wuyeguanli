@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Validator;
@@ -611,6 +612,26 @@ public class SysUserServiceImpl implements ISysUserService
     {
         // 模拟数据，实际应该从数据库查询
         return 8L;
+    }
+
+    @Override
+    public List<SysUser> selectCommitteeMembers() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isCommitteeMember(Long userId) {
+        return false;
+    }
+
+    @Override
+    public int setCommitteeMember(Long userId) {
+        return 0;
+    }
+
+    @Override
+    public int removeCommitteeMember(Long userId) {
+        return 0;
     }
 
     /**

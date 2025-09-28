@@ -25,7 +25,8 @@ const user = {
     unit: storage.get(constant.unit),
     room: storage.get(constant.room),
     ownerType: storage.get(constant.ownerType) || '1', // 1-业主,2-租户,3-其他
-    ownerProfile: storage.get(constant.ownerProfile) || {}
+    ownerProfile: storage.get(constant.ownerProfile) || {},
+    isOwner: storage.get(constant.isOwner) || 0 // 0-未认证，1-业主，2-业委会
   },
 
   mutations: {
@@ -86,6 +87,10 @@ const user = {
     SET_OWNER_TYPE: (state, ownerType) => {
       state.ownerType = ownerType
       storage.set(constant.ownerType, ownerType)
+    },
+    SET_IS_OWNER: (state, isOwner) => {
+      state.isOwner = isOwner
+      storage.set(constant.isOwner, isOwner)
     }
   },
 
@@ -144,7 +149,7 @@ const user = {
           commit('SET_NICKNAME', nickName)
           commit('SET_AVATAR', avatar)
           // 更新认证状态和其他物业信息
-          commit('SET_AUTH_STATUS', user.authFlag === '1')
+          commit('SET_AUTH_STATUS', res.is_owner > 0) // 使用新的is_owner字段
           commit('SET_PHONE', user.phonenumber)
           commit('SET_PROPERTY_INFO', {
             building: user.building,
@@ -152,6 +157,8 @@ const user = {
             room: user.room
           })
           commit('SET_OWNER_TYPE', user.ownerType)
+          // 保存is_owner字段
+          commit('SET_IS_OWNER', res.is_owner)
           resolve(res)
         }).catch(error => {
           reject(error)

@@ -250,4 +250,35 @@ public interface ISysUserService
      * @return 本月新增业主数
      */
     public Long countMonthNewOwners();
+
+    /**
+     * 获取业委会成员列表
+     * 
+     * @return 业委会成员列表
+     */
+    public List<SysUser> selectCommitteeMembers();
+
+    /**
+     * 检查用户是否为业委会成员
+     * 
+     * @param userId 用户ID
+     * @return 是否为业委会成员
+     */
+    public boolean isCommitteeMember(Long userId);
+
+    /**
+     * 设置用户为业委会成员
+     * 
+     * @param userId 用户ID
+     * @return 结果
+     */
+    public int setCommitteeMember(Long userId);
+
+    /**
+     * 取消用户业委会成员身份
+     * 
+     * @param userId 用户ID
+     * @return 结果
+     */
+    public int removeCommitteeMember(Long userId);
 }

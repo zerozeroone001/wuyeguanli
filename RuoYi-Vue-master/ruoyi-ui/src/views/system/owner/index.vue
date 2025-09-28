@@ -241,7 +241,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        authStatus:1,
+        authStatus:2,
         realName: null,
         phonenumber: null,
         contactNumber: null,
@@ -300,7 +300,7 @@ export default {
         idCardNo: null,
         idCardFrontUrl: null,
         idCardBackUrl: null,
-        authStatus: "0",
+        authStatus: "2",
         buildingNo: null,
         unitNo: null,
         roomNo: null,

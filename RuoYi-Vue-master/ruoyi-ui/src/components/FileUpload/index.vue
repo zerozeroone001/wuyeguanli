@@ -189,7 +189,14 @@ export default {
     // 上传成功回调
     handleUploadSuccess(res, file) {
       if (res.code === 200) {
-        this.uploadList.push({ name: res.fileName, url: res.fileName })
+        // 后端已经返回了完整的文件URL，直接使用
+        const fileUrl = res.url; // 后端buildUrl方法已经构建了完整URL
+        const fileName = res.originalFilename || res.fileName;
+
+        this.uploadList.push({
+          name: fileName,
+          url: fileUrl  // 直接使用后端返回的完整URL
+        });
         this.uploadedSuccessfully()
       } else {
         this.number--

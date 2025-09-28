@@ -186,6 +186,9 @@
 </template>
 
 <script>
+import { previewFile, getFileIcon } from '@/utils/filePreview.js';
+import config from '@/config.js';
+
 export default {
   data() {
     return {
@@ -317,68 +320,11 @@ export default {
     },
 
     getIconByFileName(fileName) {
-      const ext = fileName.split('.').pop().toLowerCase();
-      // 使用一组基础且通用的图标
-      if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
-        return 'image';
-      }
-      if (['zip', 'rar', '7z'].includes(ext)) {
-        return 'folder';
-      }
-      if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(ext)) {
-        return 'paperclip';
-      }
-      return 'document'; // 默认图标
+      return getFileIcon(fileName);
     },
     
     previewFile(file) {
-      if (!file || !file.fileUrl) {
-        uni.showToast({
-          title: '无效的文件信息',
-          icon: 'none'
-        });
-        return;
-      }
-      
-      uni.showLoading({
-        title: '文件加载中...'
-      });
-
-      // 注意：这里的 this.config.baseUrl 来自项目根目录的 config.js 文件
-      // 它已在 main.js 中挂载到 Vue.prototype.config
-      const fileUrl = this.config.baseUrl + file.fileUrl;
-
-      uni.downloadFile({
-        url: fileUrl,
-        success: (res) => {
-          if (res.statusCode === 200) {
-            uni.openDocument({
-              filePath: res.tempFilePath,
-              showMenu: true, // 允许用户转发、保存等操作
-              fail: () => {
-                uni.showToast({
-                  title: '不支持预览该文件格式',
-                  icon: 'none'
-                });
-              }
-            });
-          } else {
-            uni.showToast({
-              title: '文件下载失败',
-              icon: 'none'
-            });
-          }
-        },
-        fail: () => {
-          uni.showToast({
-            title: '文件下载失败',
-            icon: 'none'
-          });
-        },
-        complete: () => {
-          uni.hideLoading();
-        }
-      });
+      previewFile(file, config.baseUrl);
     }
   }
 }

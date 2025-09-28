@@ -42,7 +42,7 @@ public class VoteUserQueryServiceImpl implements IVoteUserQueryService {
         }
         
         // 先从sys_user表查询
-        SysUser user = userService.selectUserByPhonenumber("13873593663");
+        SysUser user = userService.selectUserByPhonenumber(cleanPhone);
         if (user != null) {
             log.info("通过电话号码 {} 在sys_user表中找到用户ID: {}", cleanPhone, user.getUserId());
             return user.getUserId();

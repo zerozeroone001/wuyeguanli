@@ -1,6 +1,5 @@
 package com.ruoyi.system.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -37,7 +36,7 @@ public class SysOwnerProfile extends BaseEntity
     private String idCardBackUrl;
 
     /** 实名认证状态（0未认证 1待审核 2已认证 3认证失败） */
-    private String authStatus;
+    private int authStatus;
 
     /** 楼栋号 */
     private String buildingNo;
@@ -62,6 +61,15 @@ public class SysOwnerProfile extends BaseEntity
 
     /** 联系号码 */
     private String contactNumber;
+
+    /** 是否业主（0否 1业主 2业委会） */
+    private int isOwner;
+
+    /** 用户头像 */
+    private String avatar;
+
+    /** 用户昵称 */
+    private String nickName;
 
     public void setOwnerId(Long ownerId) 
     {
@@ -118,12 +126,12 @@ public class SysOwnerProfile extends BaseEntity
     {
         return idCardBackUrl;
     }
-    public void setAuthStatus(String authStatus) 
+    public void setAuthStatus(int authStatus)
     {
         this.authStatus = authStatus;
     }
 
-    public String getAuthStatus() 
+    public int getAuthStatus()
     {
         return authStatus;
     }
@@ -202,6 +210,36 @@ public class SysOwnerProfile extends BaseEntity
         return contactNumber;
     }
 
+    public void setIsOwner(int isOwner)
+    {
+        this.isOwner = isOwner;
+    }
+
+    public int getIsOwner()
+    {
+        return isOwner;
+    }
+
+    public void setAvatar(String avatar)
+    {
+        this.avatar = avatar;
+    }
+
+    public String getAvatar()
+    {
+        return avatar;
+    }
+
+    public void setNickName(String nickName)
+    {
+        this.nickName = nickName;
+    }
+
+    public String getNickName()
+    {
+        return nickName;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -218,6 +256,9 @@ public class SysOwnerProfile extends BaseEntity
             .append("isCommitteeMember", getIsCommitteeMember())
             .append("phonenumber", getPhonenumber())
             .append("contactNumber", getContactNumber())
+            .append("isOwner", getIsOwner())
+            .append("avatar", getAvatar())
+            .append("nickName", getNickName())
             .append("delFlag", getDelFlag())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

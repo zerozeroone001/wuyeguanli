@@ -355,6 +355,8 @@
 <script>
 import { getNotaryDetail, addNotary, updateNotary, getNotaryOfficeList } from '@/api/notary'
 import { uploadFile } from '@/api/common' // Assuming a common upload API
+import { previewFile, getFileIcon } from '@/utils/filePreview.js';
+import config from '@/config.js';
 
 export default {
   data() {
@@ -621,9 +623,7 @@ export default {
     },
     
     previewFile(file) {
-      uni.previewImage({
-        urls: [file.fileUrl] // Use fileUrl for preview
-      })
+      previewFile(file, config.baseUrl);
     },
     
     deleteFile(index) {

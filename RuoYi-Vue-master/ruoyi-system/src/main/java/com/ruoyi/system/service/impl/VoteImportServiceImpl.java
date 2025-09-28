@@ -1,11 +1,9 @@
 package com.ruoyi.system.service.impl;
 
-import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.SysMeetingVote;
 import com.ruoyi.system.domain.vo.OcrVoteData;
 import com.ruoyi.system.domain.vo.OwnerInfo;
-import com.ruoyi.system.domain.vo.VoteFileInfo;
 import com.ruoyi.system.domain.vo.VoteItem;
 import com.ruoyi.system.service.*;
 import org.slf4j.Logger;
@@ -138,7 +136,7 @@ public class VoteImportServiceImpl implements IVoteImportService {
         // 按文件URL分组处理
         Map<String, List<SysMeetingVote>> votesByFile = new HashMap<>();
         for (SysMeetingVote vote : votes) {
-            String fileUrl = vote.getFileUrl();
+            String fileUrl = vote.getFlieUrl();
             votesByFile.computeIfAbsent(fileUrl, k -> new ArrayList<>()).add(vote);
         }
         
@@ -263,9 +261,17 @@ public class VoteImportServiceImpl implements IVoteImportService {
             vote.setTopicId(topicId);
             vote.setUserId(userId);
             vote.setUserName(ocrData.getOwnerInfo().getOwnerName());
-            vote.setChoice(String.valueOf(voteItem.getVoteOption().getCode()));
+            
+            // 安全处理voteOption，避免NullPointerException
+            if (voteItem.getVoteOption() != null) {
+                vote.setVoteOption(voteItem.getVoteOption().getCode());
+            } else {
+                log.warn("投票选项为空，议题：{}，用户：{}", voteItem.getTopicTitle(), userId);
+                vote.setVoteOption(2); // 默认设为弃权
+            }
+            
             vote.setVoteType(1); // 纸质投票导入
-            vote.setFileUrl(fileUrl);
+            vote.setFlieUrl(fileUrl);
             
             if (existingVote != null) {
                 // 如果已投票，更新投票记录

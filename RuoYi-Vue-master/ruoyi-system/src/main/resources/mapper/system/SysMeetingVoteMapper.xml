@@ -10,9 +10,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="topicId" column="topic_id"/>
         <result property="userId" column="user_id"/>
         <result property="userName" column="user_name"/>
-        <result property="choice" column="choice"/>
+        <result property="voteOption" column="vote_option"/>
         <result property="voteType" column="vote_type"/>
-        <result property="fileUrl" column="file_url"/>
+        <result property="flieUrl" column="flie_url"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
@@ -22,19 +22,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <insert id="insertVote" parameterType="SysMeetingVote">
-        insert into sys_meeting_vote(meeting_id, topic_id, user_id, choice, create_time, update_time)
-        values(#{meetingId}, #{topicId}, #{userId}, #{choice}, sysdate(), sysdate())
+        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, create_time, update_time)
+        values(#{meetingId}, #{topicId}, #{userId}, #{userName}, #{voteOption}, #{voteType}, #{flieUrl}, now(), now())
     </insert>
 
     <update id="updateVote" parameterType="SysMeetingVote">
         update sys_meeting_vote
-        set choice = #{choice},
-            update_time = sysdate()
+        set vote_option = #{voteOption},
+            vote_type = #{voteType},
+            flie_url = #{flieUrl},
+            update_time = now()
         where vote_id = #{voteId}
     </update>
 
     <select id="selectUserVotesInMeeting" resultMap="SysMeetingVoteResult">
-        select topic_id, choice from sys_meeting_vote
+        select topic_id, vote_option from sys_meeting_vote
         where user_id = #{userId} and meeting_id = #{meetingId}
     </select>
 
@@ -52,7 +54,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="meetingId != null "> and meeting_id = #{meetingId}</if>
             <if test="topicId != null "> and topic_id = #{topicId}</if>
             <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="choice != null  and choice != ''"> and choice = #{choice}</if>
+            <if test="voteOption != null"> and vote_option = #{voteOption}</if>
+            <if test="voteType != null"> and vote_type = #{voteType}</if>
         </where>
     </select>
 
@@ -63,9 +66,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="topicId != null">topic_id,</if>
             <if test="userId != null">user_id,</if>
             <if test="userName != null and userName != ''">user_name,</if>
-            <if test="choice != null and choice != ''">choice,</if>
+            <if test="voteOption != null">vote_option,</if>
             <if test="voteType != null">vote_type,</if>
-            <if test="fileUrl != null and fileUrl != ''">file_url,</if>
+            <if test="flieUrl != null and flieUrl != ''">flie_url,</if>
             <if test="createTime != null">create_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -73,9 +76,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="topicId != null">#{topicId},</if>
             <if test="userId != null">#{userId},</if>
             <if test="userName != null and userName != ''">#{userName},</if>
-            <if test="choice != null and choice != ''">#{choice},</if>
+            <if test="voteOption != null">#{voteOption},</if>
             <if test="voteType != null">#{voteType},</if>
-            <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
+            <if test="flieUrl != null and flieUrl != ''">#{flieUrl},</if>
             <if test="createTime != null">#{createTime},</if>
          </trim>
     </insert>
@@ -87,9 +90,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="topicId != null">topic_id = #{topicId},</if>
             <if test="userId != null">user_id = #{userId},</if>
             <if test="userName != null and userName != ''">user_name = #{userName},</if>
-            <if test="choice != null and choice != ''">choice = #{choice},</if>
+            <if test="voteOption != null">vote_option = #{voteOption},</if>
             <if test="voteType != null">vote_type = #{voteType},</if>
-            <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>
+            <if test="flieUrl != null and flieUrl != ''">flie_url = #{flieUrl},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
         where vote_id = #{voteId}

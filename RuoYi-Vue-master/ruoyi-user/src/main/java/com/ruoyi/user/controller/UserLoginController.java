@@ -12,6 +12,9 @@ import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.framework.web.service.SysPermissionService;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.service.ISysConfigService;
+import com.ruoyi.system.service.ISysOwnerProfileService;
+import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.domain.SysOwnerProfile;
 import com.ruoyi.user.domain.dto.WechatLoginDto;
 import com.ruoyi.user.service.IWechatLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,12 @@ public class UserLoginController {
 
     @Autowired
     private SysLoginService loginService;
+
+    @Autowired
+    private ISysOwnerProfileService ownerProfileService;
+
+    @Autowired
+    private ISysUserService userService;
 
     @PostMapping("/wx-login")
     public AjaxResult wechatLogin(@RequestBody WechatLoginDto wechatLoginDto) {
@@ -99,4 +108,5 @@ public class UserLoginController {
         }
         return false;
     }
+
 }

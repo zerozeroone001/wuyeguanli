@@ -2,10 +2,13 @@ package com.ruoyi.system.service.impl;
 
 import java.util.List;
 
+import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.system.domain.dto.OwnerProfileImportDto;
+import com.ruoyi.common.core.redis.RedisCache;
+import com.ruoyi.system.service.ISysUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,12 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
 
     @Autowired
     private SysOwnerProfileMapper sysOwnerProfileMapper;
+
+    @Autowired
+    private ISysUserService userService;
+
+    @Autowired
+    private RedisCache redisCache;
 
     @Override
     public SysOwnerProfile selectSysOwnerProfileByOwnerId(Long ownerId)
@@ -142,5 +151,45 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条。");
         }
         return successMsg.toString();
+    }
+
+    @Override
+    public int auditOwnerProfile(SysOwnerProfile sysOwnerProfile)
+    {
+        // 设置审核时间
+        sysOwnerProfile.setUpdateTime(DateUtils.getNowDate());
+        // 设置审核人（从SecurityUtils获取当前登录用户）
+        sysOwnerProfile.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
+
+        //判断审核状态，审核通过修改用户信息
+        if (sysOwnerProfile.getAuthStatus() == 2) {
+            SysUser user = userService.selectUserById(sysOwnerProfile.getUserId());
+            if (user != null) {
+                user.setIsOwner(1);
+
+                userService.updateUser(user);
+            }
+        }
+
+        // 执行审核更新
+        return sysOwnerProfileMapper.updateSysOwnerProfile(sysOwnerProfile);
+    }
+
+    @Override
+    public void clearUserCache(Long userId)
+    {
+        try {
+            // 清除用户信息缓存
+            String userInfoKey = "login_user:" + userId;
+            redisCache.deleteObject(userInfoKey);
+            
+            // 清除用户权限缓存
+            String permissionKey = "login_permissions:" + userId;
+            redisCache.deleteObject(permissionKey);
+            
+            log.info("已清除用户ID为 {} 的缓存信息", userId);
+        } catch (Exception e) {
+            log.error("清除用户缓存失败，用户ID: {}", userId, e);
+        }
     }
 }

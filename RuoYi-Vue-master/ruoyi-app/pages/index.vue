@@ -35,12 +35,12 @@
             </view>
           </view>
           <view class="auth-status" v-if="!authStatus" @click="goAuth">
-            <text class="status-text">未认证业主</text>
+            <text class="status-text">{{ ownerStatusText }}</text>
             <text class="auth-link">去认证 ></text>
           </view>
           <view class="auth-status verified" v-else>
             <uni-icons type="home-filled" size="16" color="#52C41A" />
-            <text class="verified-text">{{ propertyAddress || '已认证业主' }}</text>
+            <text class="verified-text">{{ ownerStatusText || ownerStatusText }}</text>
           </view>
         </view>
       </view>
@@ -172,6 +172,7 @@
 import { mapGetters } from 'vuex'
 import config from '@/config'
 import { listNotice } from '@/api/notice.js'
+import { isAuthenticated, getAuthStatusText, getAuthStatusColor, getAuthStatusIcon } from '@/utils/authHelper'
 
 export default {
   data() {
@@ -273,11 +274,17 @@ export default {
     ...mapGetters([
         'nickName',
         'avatar',
-        'ownerProfile' // 直接获取ownerProfile对象
+        'ownerProfile', // 直接获取ownerProfile对象
+        'isOwner', // 获取业主状态
+		'user'
     ]),
-    // 从ownerProfile中派生出认证状态
+    // 从isOwner字段派生出认证状态
     authStatus() {
-      return this.ownerProfile && this.ownerProfile.authStatus === '2'; // 2-已认证
+      return isAuthenticated(this.ownerProfile.isOwner)
+    },
+    // 业主状态文本
+    ownerStatusText() {
+      return getAuthStatusText(this.ownerProfile.isOwner)
     },
     // 新增：从业主信息中拼接地址
     propertyAddress() {

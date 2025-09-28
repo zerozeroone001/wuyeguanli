@@ -107,7 +107,14 @@
       <el-table-column label="所属会议ID" align="center" prop="meetingId" />
       <el-table-column label="议题标题" align="center" prop="topicTitle" />
       <el-table-column label="议题内容" align="center" prop="topicContent" />
-      <el-table-column label="附件URL列表" align="center" prop="files" />
+      <el-table-column label="附件" align="center" prop="files" width="150">
+        <template slot-scope="scope">
+          <span v-if="scope.row.files">
+            {{ getFileNames(scope.row.files) }}
+          </span>
+          <span v-else>无</span>
+        </template>
+      </el-table-column>
       <el-table-column label="同意票数" align="center" prop="agreeCount" />
       <el-table-column label="反对票数" align="center" prop="opposeCount" />
       <el-table-column label="弃权票数" align="center" prop="abstainCount" />
@@ -132,7 +139,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -153,8 +160,8 @@
         <el-form-item label="议题内容">
           <editor v-model="form.topicContent" :min-height="192"/>
         </el-form-item>
-        <el-form-item label="附件URL列表" prop="files">
-          <el-input v-model="form.files" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="附件" prop="files">
+          <file-upload v-model="form.files"/>
         </el-form-item>
         <el-form-item label="同意票数" prop="agreeCount">
           <el-input v-model="form.agreeCount" placeholder="请输入同意票数" />
@@ -336,6 +343,17 @@ export default {
       this.download('system/topic/export', {
         ...this.queryParams
       }, `topic_${new Date().getTime()}.xlsx`)
+    },
+    /** 获取文件名列表 */
+    getFileNames(files) {
+      if (!files) return '无';
+      const fileList = files.split(',');
+      const fileNames = fileList.map(file => {
+        // 提取文件名（去除路径）
+        const fileName = file.substring(file.lastIndexOf('/') + 1);
+        return fileName;
+      });
+      return fileNames.length > 2 ? `${fileNames.slice(0, 2).join(', ')}等${fileNames.length}个文件` : fileNames.join(', ');
     }
   }
 }

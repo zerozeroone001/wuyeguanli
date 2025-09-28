@@ -85,4 +85,19 @@ public interface ISysOwnerProfileService
      * @return 结果
      */
     public String importOwner(List<OwnerProfileImportDto> ownerList, boolean isUpdateSupport, String operName);
+
+    /**
+     * 审核业主认证
+     * 
+     * @param sysOwnerProfile 业主信息扩展
+     * @return 结果
+     */
+    public int auditOwnerProfile(SysOwnerProfile sysOwnerProfile);
+
+    /**
+     * 清除用户缓存
+     * 
+     * @param userId 用户ID
+     */
+    public void clearUserCache(Long userId);
 }

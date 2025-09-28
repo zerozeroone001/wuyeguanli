@@ -18,13 +18,11 @@
           <text class="user-name">{{ nickName }}</text>
           <view class="user-status" @click="handleAuthStatusClick">
             <text class="status-text" :class="{ verified: authStatus }">
-              {{ authStatus ? '已认证业主' : '未认证业主' }}
+              {{ ownerStatusText }}
             </text>
             <uni-icons type="right" size="14" color="#8C8C8C" />
           </view>
-          <view class="property-info">
-            <text class="property-text">{{ propertyAddress }}</text>
-          </view>
+          
         </view>
         <view class="qr-code" @click="showQRCode">
           <uni-icons type="scan" size="24" color="white" />
@@ -90,6 +88,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { isAuthenticated, getAuthStatusText, getAuthStatusColor, getAuthStatusIcon } from '@/utils/authHelper'
 
 export default {
   data() {
@@ -149,10 +148,10 @@ export default {
           path: '/pages/property/index'
         },
         {
-          name: '订阅消息',
+          name: '消息设置',
           icon: 'email',
           bgColor: '#096DD9',
-          path: '/pages/mine/subscribe/index'
+          action: 'subscribe'
         },
         {
           name: '隐私设置',
@@ -175,9 +174,15 @@ export default {
         'avatar',
         'ownerProfile' // 直接获取ownerProfile对象
     ]),
+	
+	// 从isOwner字段派生出认证状态
+	authStatus() {
+	  return isAuthenticated(this.ownerProfile.isOwner)
+	},
+	
     // 从ownerProfile中派生出认证状态
-    authStatus() {
-      return this.ownerProfile && this.ownerProfile.authStatus === '2'; // 2-已认证
+    ownerStatusText() {
+      return getAuthStatusText(this.ownerProfile.isOwner)
     },
     propertyAddress() {
       if (this.ownerProfile && (this.ownerProfile.buildingNo || this.ownerProfile.unitNo || this.ownerProfile.roomNo)) {
@@ -256,6 +261,8 @@ export default {
     handleMenuClick(item) {
       if (item.path) {
         uni.navigateTo({ url: item.path });
+      } else if (item.action === 'subscribe') {
+        this.handleMessageSettings();
       } else {
         uni.showToast({
           title: `${item.name}功能开发中`,
@@ -267,6 +274,29 @@ export default {
     
     handleToAvatar() {
       uni.navigateTo({ url: '/pages/mine/avatar/index' })
+    },
+    handleMessageSettings() {
+      // 微信小程序消息通知授权
+      wx.requestSubscribeMessage({
+        // 这里需要换成你自己的模板id
+        tmplIds: ['yours_template_id_1'],
+        success(res) {
+          if (res.errMsg === 'requestSubscribeMessage:ok') {
+            //可以处理 res 中各项的订阅结果
+            uni.showToast({
+              title: '订阅成功',
+              icon: 'success'
+            });
+          }
+        },
+        fail(err) {
+          console.error(err);
+          uni.showToast({
+            title: '订阅失败',
+            icon: 'none'
+          });
+        }
+      });
     }
   }
 }

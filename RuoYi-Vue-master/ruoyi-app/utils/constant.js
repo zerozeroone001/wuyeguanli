@@ -11,7 +11,8 @@ const constant = {
   building: 'user_building',
   unit: 'user_unit',
   room: 'user_room',
-  ownerType: 'user_owner_type'
+  ownerType: 'user_owner_type',
+  isOwner: 'user_is_owner'
  }
 
  export default constant

@@ -273,6 +273,9 @@
 </template>
 
 <script>
+import { previewAttachment } from '@/utils/filePreview.js';
+import config from '@/config.js';
+
 export default {
   data() {
     return {
@@ -530,16 +533,7 @@ export default {
     },
     
     previewAttachment(attachment) {
-      // 根据文件类型进行预览
-      if (attachment.name.includes('.pdf')) {
-        uni.navigateTo({
-          url: `/pages/common/webview/webview?title=${attachment.name}&url=${attachment.url}`
-        })
-      } else {
-        uni.previewImage({
-          urls: [attachment.url]
-        })
-      }
+      previewAttachment(attachment, config.baseUrl);
     },
     
     addRecord() {

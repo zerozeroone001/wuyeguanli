@@ -95,6 +95,10 @@ public class SysUser extends BaseEntity
     /** openid */
     private String openid;
 
+    /** 是否业委会成员（0否 1是） */
+    @Excel(name = "是否业委会成员", readConverterExp = "0=否,1=业主，2=业委会")
+    private int isOwner;
+
     public SysUser()
     {
 
@@ -321,6 +325,14 @@ public class SysUser extends BaseEntity
         this.openid = openid;
     }
 
+    public int getIsOwner() {
+        return isOwner;
+    }
+
+    public void setIsOwner(int isOwner) {
+        this.isOwner = isOwner;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -343,6 +355,8 @@ public class SysUser extends BaseEntity
             .append("updateBy", getUpdateBy())
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
+            .append("openid", getOpenid())
+            .append("isOwner", getIsOwner())
             .append("dept", getDept())
             .toString();
     }

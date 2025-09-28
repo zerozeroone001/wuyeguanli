@@ -94,25 +94,25 @@
           <button 
             size="mini"
             class="vote-btn agree"
-            :class="{ selected: voteData[topic.topicId] === '1' }"
-            @click="handleTopicVote(topic, '1')">
-            <uni-icons type="checkmarkempty" size="16" :color="voteData[topic.topicId] === '1' ? '#FFFFFF' : '#52C41A'" />
+            :class="{ selected: voteData[topic.topicId] === 0 }"
+            @click="handleTopicVote(topic, 0)">
+            <uni-icons type="checkmarkempty" size="16" :color="voteData[topic.topicId] === 0 ? '#FFFFFF' : '#52C41A'" />
             <text>同意</text>
           </button>
           <button 
             size="mini"
             class="vote-btn oppose"
-            :class="{ selected: voteData[topic.topicId] === '2' }"
-            @click="handleTopicVote(topic, '2')">
-            <uni-icons type="clear" size="16" :color="voteData[topic.topicId] === '2' ? '#FFFFFF' : '#FF4D4F'" />
+            :class="{ selected: voteData[topic.topicId] === 1 }"
+            @click="handleTopicVote(topic, 1)">
+            <uni-icons type="clear" size="16" :color="voteData[topic.topicId] === 1 ? '#FFFFFF' : '#FF4D4F'" />
             <text>反对</text>
           </button>
           <button 
             size="mini"
             class="vote-btn abstain"
-            :class="{ selected: voteData[topic.topicId] === '3' }"
-            @click="handleTopicVote(topic, '3')">
-            <uni-icons type="minus" size="16" :color="voteData[topic.topicId] === '3' ? '#FFFFFF' : '#8C8C8C'" />
+            :class="{ selected: voteData[topic.topicId] === 2 }"
+            @click="handleTopicVote(topic, 2)">
+            <uni-icons type="minus" size="16" :color="voteData[topic.topicId] === 2 ? '#FFFFFF' : '#8C8C8C'" />
             <text>弃权</text>
           </button>
         </view>
@@ -140,6 +140,8 @@
 <script>
 import { getMeeting, getMeetingTopics, getMyVotes, submitVote, submitOpinion } from '@/api/meeting.js';
 import { formatDate } from '@/utils/common.js';
+import { previewFile, getFileIcon } from '@/utils/filePreview.js';
+import config from '@/config.js';
 
 export default {
   data() {
@@ -218,7 +220,7 @@ export default {
     },
     
     async handleTopicVote(topic, choice) {
-      const choiceText = {'1': '同意', '2': '反对', '3': '弃权'};
+      const choiceText = {0: '同意', 1: '反对', 2: '弃权'};
 
       // 如果重复点击同一个选项，则不处理
       if (this.voteData[topic.topicId] === choice) {
@@ -227,7 +229,7 @@ export default {
 
       const confirm = await uni.showModal({
         title: '确认投票',
-        content: `您确定要为“${topic.topicTitle}”投【${choiceText[choice]}】票吗？`,
+        content: `您确定要为"${topic.topicTitle}"投【${choiceText[choice]}】票吗？`,
         confirmText: '确认',
         cancelText: '取消'
       });
@@ -240,7 +242,8 @@ console.log(confirm[1].confirm)
         const submissionData = {
           meetingId: this.meetingId,
           topicId: topic.topicId,
-          choice: choice
+          voteOption: choice,
+          voteType: 0 // 0小程序投票
         };
 
         await submitVote(submissionData);
@@ -332,53 +335,12 @@ console.log(confirm[1].confirm)
     },
 
     getIconByFileName(fileName) {
-      if (!fileName) return 'document';
-      const ext = fileName.split('.').pop().toLowerCase();
-      if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
-        return 'image';
-      }
-      if (['zip', 'rar', '7z'].includes(ext)) {
-        return 'folder';
-      }
-      if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(ext)) {
-        return 'paperclip';
-      }
-      return 'document';
+      return getFileIcon(fileName);
     },
     
-    previewFile(file) {
-      if (!file || !file.fileUrl) {
-        uni.showToast({ title: '无效的文件信息', icon: 'none' });
-        return;
+      previewFile(file) {
+        previewFile(file, config.baseUrl);
       }
-      
-      uni.showLoading({ title: '文件加载中...' });
-
-      const fileUrl = this.config.baseUrl + file.fileUrl;
-
-      uni.downloadFile({
-        url: fileUrl,
-        success: (res) => {
-          if (res.statusCode === 200) {
-            uni.openDocument({
-              filePath: res.tempFilePath,
-              showMenu: true,
-              fail: () => {
-                uni.showToast({ title: '不支持预览该文件格式', icon: 'none' });
-              }
-            });
-          } else {
-            uni.showToast({ title: '文件下载失败', icon: 'none' });
-          }
-        },
-        fail: () => {
-          uni.showToast({ title: '文件下载失败', icon: 'none' });
-        },
-        complete: () => {
-          uni.hideLoading();
-        }
-      });
-    }
   }
 }
 </script>

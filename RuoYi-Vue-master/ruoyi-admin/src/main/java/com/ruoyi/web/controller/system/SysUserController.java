@@ -253,4 +253,50 @@ public class SysUserController extends BaseController
     {
         return success(deptService.selectDeptTreeList(dept));
     }
+
+    /**
+     * 获取业委会成员列表
+     */
+    @PreAuthorize("@ss.hasPermi('system:user:list')")
+    @GetMapping("/committeeMembers")
+    public TableDataInfo getCommitteeMembers(SysUser user)
+    {
+        startPage();
+        // 设置查询条件为业委会成员
+        user.setIsOwner(1);
+        List<SysUser> list = userService.selectUserList(user);
+        return getDataTable(list);
+    }
+
+    /**
+     * 设置用户为业委会成员
+     */
+    @PreAuthorize("@ss.hasPermi('system:user:edit')")
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/setCommitteeMember/{userId}")
+    public AjaxResult setCommitteeMember(@PathVariable("userId") Long userId)
+    {
+        userService.checkUserDataScope(userId);
+        SysUser user = new SysUser();
+        user.setUserId(userId);
+        user.setIsOwner(2);
+        user.setUpdateBy(getUsername());
+        return toAjax(userService.updateUser(user));
+    }
+
+    /**
+     * 取消用户业委会成员身份
+     */
+    @PreAuthorize("@ss.hasPermi('system:user:edit')")
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/removeCommitteeMember/{userId}")
+    public AjaxResult removeCommitteeMember(@PathVariable("userId") Long userId)
+    {
+        userService.checkUserDataScope(userId);
+        SysUser user = new SysUser();
+        user.setUserId(userId);
+        user.setIsOwner(0);
+        user.setUpdateBy(getUsername());
+        return toAjax(userService.updateUser(user));
+    }
 }

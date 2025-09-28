@@ -1,53 +1,51 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="关联的业主大会ID" prop="meetingId">
+      <el-form-item label="会议ID" prop="meetingId">
         <el-input
           v-model="queryParams.meetingId"
-          placeholder="请输入关联的业主大会ID"
+          placeholder="请输入会议ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="投票的业主用户ID (关联sys_user)" prop="userId">
+      <el-form-item label="议题ID" prop="topicId">
+        <el-input
+          v-model="queryParams.topicId"
+          placeholder="请输入议题ID"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="用户ID" prop="userId">
         <el-input
           v-model="queryParams.userId"
-          placeholder="请输入投票的业主用户ID (关联sys_user)"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="表决票编号 (唯一)" prop="voteTicketNo">
-        <el-input
-          v-model="queryParams.voteTicketNo"
-          placeholder="请输入表决票编号 (唯一)"
+          placeholder="请输入用户ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
       <el-form-item label="投票选项" prop="voteOption">
-        <el-input
+        <el-select
           v-model="queryParams.voteOption"
-          placeholder="请输入投票选项"
+          placeholder="请选择投票选项"
           clearable
-          @keyup.enter.native="handleQuery"
-        />
+        >
+          <el-option label="同意" value="0" />
+          <el-option label="反对" value="1" />
+          <el-option label="弃权" value="2" />
+        </el-select>
       </el-form-item>
-      <el-form-item label="投票来源" prop="voteSource">
-        <el-input
-          v-model="queryParams.voteSource"
-          placeholder="请输入投票来源"
+      <el-form-item label="投票方式" prop="voteType">
+        <el-select
+          v-model="queryParams.voteType"
+          placeholder="请选择投票方式"
           clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="投票时间" prop="voteTime">
-        <el-date-picker clearable
-          v-model="queryParams.voteTime"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="请选择投票时间">
-        </el-date-picker>
+        >
+          <el-option label="小程序投票" value="0" />
+          <el-option label="纸质投票" value="1" />
+          <el-option label="语音投票" value="2" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -104,17 +102,32 @@
     <el-table v-loading="loading" :data="voteList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="投票ID" align="center" prop="voteId" />
-      <el-table-column label="关联的业主大会ID" align="center" prop="meetingId" />
-      <el-table-column label="投票的业主用户ID (关联sys_user)" align="center" prop="userId" />
-      <el-table-column label="表决票编号 (唯一)" align="center" prop="voteTicketNo" />
-      <el-table-column label="投票选项" align="center" prop="voteOption" />
-      <el-table-column label="投票来源" align="center" prop="voteSource" />
-      <el-table-column label="投票时间" align="center" prop="voteTime" width="180">
+      <el-table-column label="会议ID" align="center" prop="meetingId" />
+      <el-table-column label="议题ID" align="center" prop="topicId" />
+      <el-table-column label="用户ID" align="center" prop="userId" />
+      <el-table-column label="用户昵称" align="center" prop="userName" />
+      <el-table-column label="投票选项" align="center" prop="voteOption" width="100">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.voteTime, '{y}-{m}-{d}') }}</span>
+          <el-tag v-if="scope.row.voteOption === 0" type="success">同意</el-tag>
+          <el-tag v-else-if="scope.row.voteOption === 1" type="danger">反对</el-tag>
+          <el-tag v-else-if="scope.row.voteOption === 2" type="info">弃权</el-tag>
+          <span v-else>{{ scope.row.voteOption }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="投票方式" align="center" prop="voteType" width="120">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.voteType === 0" type="primary">小程序投票</el-tag>
+          <el-tag v-else-if="scope.row.voteType === 1" type="warning">纸质投票</el-tag>
+          <el-tag v-else-if="scope.row.voteType === 2" type="success">语音投票</el-tag>
+          <span v-else>{{ scope.row.voteType }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="文件地址" align="center" prop="flieUrl" show-overflow-tooltip />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -134,7 +147,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -146,30 +159,35 @@
     <!-- 添加或修改业主大会投票对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="关联的业主大会ID" prop="meetingId">
-          <el-input v-model="form.meetingId" placeholder="请输入关联的业主大会ID" />
+        <el-form-item label="会议ID" prop="meetingId">
+          <el-input v-model="form.meetingId" placeholder="请输入会议ID" />
         </el-form-item>
-        <el-form-item label="投票的业主用户ID (关联sys_user)" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入投票的业主用户ID (关联sys_user)" />
+        <el-form-item label="议题ID" prop="topicId">
+          <el-input v-model="form.topicId" placeholder="请输入议题ID" />
         </el-form-item>
-        <el-form-item label="表决票编号 (唯一)" prop="voteTicketNo">
-          <el-input v-model="form.voteTicketNo" placeholder="请输入表决票编号 (唯一)" />
+        <el-form-item label="用户ID" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户ID" />
+        </el-form-item>
+        <el-form-item label="用户昵称" prop="userName">
+          <el-input v-model="form.userName" placeholder="请输入用户昵称" />
         </el-form-item>
         <el-form-item label="投票选项" prop="voteOption">
-          <el-input v-model="form.voteOption" placeholder="请输入投票选项" />
+          <el-select v-model="form.voteOption" placeholder="请选择投票选项">
+            <el-option label="同意" value="0" />
+            <el-option label="反对" value="1" />
+            <el-option label="弃权" value="2" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="投票来源" prop="voteSource">
-          <el-input v-model="form.voteSource" placeholder="请输入投票来源" />
+        <el-form-item label="投票方式" prop="voteType">
+          <el-select v-model="form.voteType" placeholder="请选择投票方式">
+            <el-option label="小程序投票" value="0" />
+            <el-option label="纸质投票" value="1" />
+            <el-option label="语音投票" value="2" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="投票时间" prop="voteTime">
-          <el-date-picker clearable
-            v-model="form.voteTime"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择投票时间">
-          </el-date-picker>
+        <el-form-item label="文件地址" prop="flieUrl">
+          <el-input v-model="form.flieUrl" placeholder="请输入文件地址" />
         </el-form-item>
-        <el-form-item label="删除标志" prop="delFlag">
           <el-input v-model="form.delFlag" placeholder="请输入删除标志" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -214,27 +232,26 @@ export default {
         pageNum: 1,
         pageSize: 10,
         meetingId: null,
+        topicId: null,
         userId: null,
-        voteTicketNo: null,
         voteOption: null,
-        voteSource: null,
-        voteTime: null,
+        voteType: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
         meetingId: [
-          { required: true, message: "关联的业主大会ID不能为空", trigger: "blur" }
+          { required: true, message: "会议ID不能为空", trigger: "blur" }
+        ],
+        topicId: [
+          { required: true, message: "议题ID不能为空", trigger: "blur" }
         ],
         userId: [
-          { required: true, message: "投票的业主用户ID (关联sys_user)不能为空", trigger: "blur" }
-        ],
-        voteTicketNo: [
-          { required: true, message: "表决票编号 (唯一)不能为空", trigger: "blur" }
+          { required: true, message: "用户ID不能为空", trigger: "blur" }
         ],
         voteOption: [
-          { required: true, message: "投票选项不能为空", trigger: "blur" }
+          { required: true, message: "投票选项不能为空", trigger: "change" }
         ],
       }
     }
@@ -262,15 +279,13 @@ export default {
       this.form = {
         voteId: null,
         meetingId: null,
+        topicId: null,
         userId: null,
-        voteTicketNo: null,
+        userName: null,
         voteOption: null,
-        voteSource: null,
-        voteTime: null,
-        delFlag: null,
-        createBy: null,
+        voteType: null,
+        flieUrl: null,
         createTime: null,
-        updateBy: null,
         updateTime: null,
         remark: null
       }

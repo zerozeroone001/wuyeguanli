@@ -24,11 +24,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateTime"    column="update_time"    />
         <result property="remark"    column="remark"    />
         <result property="authRemark"    column="auth_remark"    />
+        <result property="isOwner"    column="is_owner"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="nickName"    column="nick_name"    />
     </resultMap>
 
     <sql id="selectSysOwnerProfileVo">
-        select p.owner_id, p.user_id, p.real_name, p.phonenumber, p.id_card_no, p.id_card_front_url, p.id_card_back_url, p.auth_status, p.building_no, p.unit_no, p.room_no, p.is_committee_member, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.auth_remark 
+        select p.owner_id, p.user_id, p.real_name, p.phonenumber, p.id_card_no, p.id_card_front_url, p.id_card_back_url, p.auth_status, p.building_no, p.unit_no, p.room_no, p.is_committee_member, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.auth_remark,
+               u.is_owner, u.avatar, u.nick_name
         from sys_owner_profile p
+        left join sys_user u on p.user_id = u.user_id
     </sql>
 
     <select id="selectSysOwnerProfileList" parameterType="SysOwnerProfile" resultMap="SysOwnerProfileResult">
@@ -40,10 +45,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="phonenumber != null and phonenumber != ''">
                  AND p.phonenumber like concat('%', #{phonenumber}, '%')
             </if>
-            <if test="authStatus != null and authStatus == 'NOT'">
-                AND p.auth_status IN ('0', '2', '3')
-            </if>
-            <if test="authStatus != null and authStatus != 'NOT' and authStatus != ''">
+
+            <if test="authStatus != null and authStatus != ''">
                 AND p.auth_status = #{authStatus}
             </if>
         </where>

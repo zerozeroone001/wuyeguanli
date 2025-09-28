@@ -45,7 +45,7 @@ public class OwnerProfileController extends BaseController
         }
 
         sysOwnerProfile.setUserId(userId);
-        sysOwnerProfile.setAuthStatus("1"); // 1-待审核
+        sysOwnerProfile.setAuthStatus(1); // 1-待审核
         if (existingProfile != null) {
             // 如果之前有记录（如认证失败），则更新
             // 需要把之前的ownerId设置进去，否则更新会失败
@@ -68,7 +68,7 @@ public class OwnerProfileController extends BaseController
         if (profile == null) {
             // 为了前端处理方便，如果不存在记录，返回一个包含默认状态的对象
             SysOwnerProfile defaultProfile = new SysOwnerProfile();
-            defaultProfile.setAuthStatus("0"); // 0-未认证
+            defaultProfile.setAuthStatus(0); // 0-未认证
             return AjaxResult.success(defaultProfile);
         }
         return AjaxResult.success(profile);
