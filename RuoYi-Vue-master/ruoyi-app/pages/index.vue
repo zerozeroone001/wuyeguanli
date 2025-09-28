@@ -275,8 +275,7 @@ export default {
         'nickName',
         'avatar',
         'ownerProfile', // 直接获取ownerProfile对象
-        'isOwner', // 获取业主状态
-		'user'
+        
     ]),
     // 从isOwner字段派生出认证状态
     authStatus() {

@@ -137,6 +137,35 @@
       "backgroundTextStyle": "dark"
     }
   }, {
+    "path": "pages/property/committee-meeting/index",
+    "style": {
+      "navigationBarTitleText": "业委会会议",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/property/committee-meeting/detail",
+    "style": {
+      "navigationBarTitleText": "会议详情"
+    }
+  }, {
+    "path": "pages/property/committee-meeting/vote",
+    "style": {
+      "navigationBarTitleText": "参与投票"
+    }
+  }, {
+    "path": "pages/property/committee-meeting/result",
+    "style": {
+      "navigationBarTitleText": "投票结果"
+    }
+  }, {
+    "path": "pages/property/committee-meeting/my-votes",
+    "style": {
+      "navigationBarTitleText": "我的投票记录",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
     "path": "pages/property/complaint/index",
     "style": {
       "navigationBarTitleText": "意见征询",

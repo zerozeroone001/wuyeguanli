@@ -22,7 +22,7 @@
       <!-- 主要服务 -->
       <view class="main-services">
         <uni-grid :column="3" :showBorder="false" :square="false">
-          <uni-grid-item v-for="(service, index) in mainServices" :key="index">
+          <uni-grid-item v-for="(service, index) in filteredMainServices" :key="index">
             <view class="service-item main-service" @click="handleServiceClick(service)">
               <view class="service-icon" :style="{ backgroundColor: service.bgColor }">
                 <uni-icons :type="service.icon" size="28" color="white" />
@@ -95,8 +95,28 @@
 
 <script>
 import config from '@/config'
+import { mapGetters } from 'vuex'
 
 export default {
+  computed: {
+    ...mapGetters([
+        'ownerProfile', // 直接获取ownerProfile对象
+        
+    ]),
+    // 过滤后的主要服务列表（根据用户身份过滤）
+    filteredMainServices() {
+		console.log('-------------')
+		console.log(this.ownerProfile)
+		console.log('-------------')
+      return this.mainServices.filter(service => {
+        // 如果是业委会会议，需要检查用户是否为业委会成员
+        if (service.name === '业委会会议') {
+          return this.ownerProfile.isOwner === 2 // 2表示业委会成员
+        }
+        return true // 其他服务都显示
+      })
+    }
+  },
   data() {
     return {
       communityInfo: config.property.communityInfo,
@@ -110,11 +130,11 @@ export default {
           path: '/pages/property/meeting/index'
         },
         {
-          name: '意见征询',
-          desc: '问题反馈',
-          icon: 'chat',
+          name: '业委会会议',
+          desc: '会议投票',
+          icon: 'compose',
           bgColor: '#52C41A',
-          path: '/pages/property/complaint/index'
+          path: '/pages/property/committee-meeting/index'
         },
         {
           name: '合同查阅',
@@ -249,6 +269,18 @@ export default {
   methods: {
     handleServiceClick(service) {
       console.log('点击了服务:', service.name, service.path)
+      
+      // 检查业委会会议权限
+      if (service.name === '业委会会议' && this.ownerProfile.isOwner !== 2) {
+        uni.showModal({
+          title: '权限不足',
+          content: '您不是业委会成员，无法访问业委会会议功能',
+          showCancel: false,
+          confirmText: '我知道了'
+        })
+        return
+      }
+      
       if (service.path) {
         uni.navigateTo({ 
           url: service.path,

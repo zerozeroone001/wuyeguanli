@@ -51,12 +51,6 @@
       </view>
       
       <view v-else class="vote-items">
-        <!-- 调试按钮 -->
-        <view class="debug-section" style="padding: 20rpx; background: #f0f0f0; margin-bottom: 20rpx;">
-          <button @click="debugTest" style="margin: 10rpx; padding: 20rpx; background: #1890FF; color: white; border: none; border-radius: 8rpx;">调试测试</button>
-          <text style="display: block; margin-top: 10rpx; font-size: 24rpx;">数据长度: {{ voteList.length }}</text>
-        </view>
-        
         <view 
           class="vote-item" 
           v-for="(item, index) in voteList" 
@@ -132,13 +126,6 @@ export default {
   },
   
   onLoad() {
-    console.log('页面加载，开始检查用户状态')
-    // 检查用户是否已登录
-    const token = uni.getStorageSync('token')
-    console.log('用户token：', token ? '已登录' : '未登录')
-    
-    // 添加调试按钮
-    this.addDebugButton()
     this.loadVoteRecords()
   },
   
@@ -168,14 +155,10 @@ export default {
       
       this.loading = true
       try {
-        console.log('开始加载投票记录，参数：', this.queryParams)
         const response = await getMyVoteRecords(this.queryParams)
-        console.log('投票记录API响应：', response)
         
         if (response.code === 200) {
           const newData = response.rows || []
-          console.log('获取到的数据：', newData)
-          console.log('数据长度：', newData.length)
           
           if (this.queryParams.pageNum === 1) {
             this.voteList = newData
@@ -183,10 +166,8 @@ export default {
             this.voteList = [...this.voteList, ...newData]
           }
           
-          console.log('更新后的voteList：', this.voteList)
           this.hasMore = newData.length === this.queryParams.pageSize
         } else {
-          console.error('API返回错误：', response)
           uni.showToast({
             title: response.msg || '获取数据失败',
             icon: 'none'
@@ -257,57 +238,6 @@ export default {
         return Math.floor(diff / 3600000) + '小时前'
       } else {
         return date.toLocaleDateString()
-      }
-    },
-    
-    addDebugButton() {
-      // 添加调试按钮到页面
-      console.log('添加调试按钮')
-    },
-    
-    async debugTest() {
-      try {
-        console.log('=== 开始调试测试 ===')
-        console.log('1. 检查getMyVoteRecords函数:', typeof getMyVoteRecords)
-        console.log('2. 检查queryParams:', this.queryParams)
-        
-        // 测试简单的uni.request
-        console.log('3. 测试uni.request...')
-        const testResponse = await new Promise((resolve, reject) => {
-          uni.request({
-            url: '/meeting/vote/my',
-            method: 'GET',
-            data: this.queryParams,
-            success: (res) => {
-              console.log('uni.request成功:', res)
-              resolve(res.data)
-            },
-            fail: (err) => {
-              console.error('uni.request失败:', err)
-              reject(err)
-            }
-          })
-        })
-        
-        console.log('4. uni.request测试完成:', testResponse)
-        
-        uni.showToast({
-          title: '调试成功，查看控制台',
-          icon: 'none',
-          duration: 3000
-        })
-        
-      } catch (error) {
-        console.error('=== 调试测试失败 ===')
-        console.error('错误类型:', typeof error)
-        console.error('错误信息:', error.message)
-        console.error('完整错误:', error)
-        
-        uni.showToast({
-          title: '调试失败: ' + error.message,
-          icon: 'none',
-          duration: 5000
-        })
       }
     }
   }
