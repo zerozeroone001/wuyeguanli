@@ -15,14 +15,22 @@
           </view>
         </view>
         <view class="user-info">
-          <text class="user-name">{{ nickName }}</text>
-          <view class="user-status" @click="handleAuthStatusClick">
-            <text class="status-text" :class="{ verified: authStatus }">
-              {{ ownerStatusText }}
-            </text>
-            <uni-icons type="right" size="14" color="#8C8C8C" />
-          </view>
-          
+          <template v-if="isLoggedIn">
+            <text class="user-name">{{ nickName }}</text>
+            <view class="user-status" @click="handleAuthStatusClick">
+              <text class="status-text" :class="{ verified: authStatus }">
+                {{ ownerStatusText }}
+              </text>
+              <uni-icons type="right" size="14" color="#8C8C8C" />
+            </view>
+          </template>
+          <template v-else>
+            <text class="user-name">游客</text>
+            <view class="login-status" @click="goToLogin">
+              <text class="login-text">未登录，去登录以使用完整功能</text>
+              <text class="login-link">去登录 ></text>
+            </view>
+          </template>
         </view>
         <view class="qr-code" @click="showQRCode">
           <uni-icons type="scan" size="24" color="white" />
@@ -174,8 +182,12 @@ export default {
     ...mapGetters([
         'nickName',
         'avatar',
-        'ownerProfile' // 直接获取ownerProfile对象
+        'ownerProfile', // 直接获取ownerProfile对象
+        'token'
     ]),
+    isLoggedIn() {
+      return !!this.token
+    },
 	
 	// 从isOwner字段派生出认证状态
 	authStatus() {
@@ -197,9 +209,11 @@ export default {
     }
   },
   onShow() {
-    // 每次页面显示时，都主动刷新一次认证信息
-    this.$store.dispatch('GetProfileInfo');
-    // 加载统计数据
+    // 每次页面显示，仅在已登录时刷新认证信息
+    if (this.isLoggedIn) {
+      this.$store.dispatch('GetProfileInfo');
+    }
+    // 加载统计数据（仅登录后请求接口，否则置为0）
     this.loadStats();
   },
   methods: {
@@ -227,6 +241,12 @@ export default {
     // 加载统计数据
     async loadStats() {
       try {
+        // 未登录则清零并返回，不触发接口导致401弹窗
+        if (!this.isLoggedIn) {
+          this.stats = { orders: 0, complaints: 0, votes: 0, messages: 0 }
+          return
+        }
+
         // 并行加载投票记录和投诉记录数量
         const [voteResponse, complaintResponse] = await Promise.all([
           getMyVoteRecords({ pageNum: 1, pageSize: 1 }),
@@ -243,9 +263,6 @@ export default {
           this.stats.complaints = complaintResponse.total || 0;
         }
         
-        // 这里可以添加其他统计数据的加载
-        // 例如合同数量、消息数量等
-        
       } catch (error) {
         console.error('加载统计数据失败:', error);
         // 失败时使用默认值，不影响页面显示
@@ -258,10 +275,18 @@ export default {
     },
     
     goToComplaints() {
+      if (!this.isLoggedIn) {
+        this.goToLogin()
+        return
+      }
       uni.navigateTo({ url: '/pages/complaints/my-complaints' })
     },
     
     goToVotes() {
+      if (!this.isLoggedIn) {
+        this.goToLogin()
+        return
+      }
       uni.navigateTo({ url: '/pages/property/meeting/my-votes' })
     },
     
@@ -283,8 +308,16 @@ export default {
     
     handleMenuClick(item) {
       if (item.path) {
+        if (!this.isLoggedIn) {
+          this.goToLogin()
+          return
+        }
         uni.navigateTo({ url: item.path });
       } else if (item.action === 'subscribe') {
+        if (!this.isLoggedIn) {
+          this.goToLogin()
+          return
+        }
         this.handleMessageSettings();
       } else {
         uni.showToast({
@@ -296,7 +329,14 @@ export default {
     },
     
     handleToAvatar() {
+      if (!this.isLoggedIn) {
+        this.goToLogin()
+        return
+      }
       uni.navigateTo({ url: '/pages/mine/avatar/index' })
+    },
+    goToLogin() {
+      uni.navigateTo({ url: '/pages/login' })
     },
     handleMessageSettings() {
       // 跳转到订阅消息设置页面

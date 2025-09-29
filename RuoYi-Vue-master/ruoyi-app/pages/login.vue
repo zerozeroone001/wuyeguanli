@@ -22,14 +22,23 @@
       </view>
       <!-- #endif -->
 
+      <!-- 用户协议和隐私协议勾选 -->
+      <view class="agreement-container">
+        <view class="agreement-checkbox" @click="toggleAgreement">
+          <view class="checkbox-icon" :class="{ 'checked': agreedToTerms }">
+            <text v-if="agreedToTerms" class="checkmark">✓</text>
+          </view>
+          <view class="agreement-text">
+            <text class="text-grey1">我已阅读并同意</text>
+            <text @click.stop="handleUserAgrement" class="text-blue">《用户协议》</text>
+            <text class="text-grey1">和</text>
+            <text @click.stop="handlePrivacy" class="text-blue">《隐私协议》</text>
+          </view>
+        </view>
+      </view>
+
       <view class="action-btn">
         <button @click="handleWechatLogin" class="login-btn cu-btn block bg-green lg round">微信授权登录</button>
-      </view>
-      
-      <view class="xieyi text-center">
-        <text class="text-grey1">登录即代表同意</text>
-        <text @click="handleUserAgrement" class="text-blue">《用户协议》</text>
-        <text @click="handlePrivacy" class="text-blue">《隐私协议》</text>
       </view>
     </view>
      
@@ -45,7 +54,8 @@
       return {
         globalConfig: getApp().globalData.config,
         avatarUrl: defaultAvatar,
-        nickname: ''
+        nickname: '',
+        agreedToTerms: false
       }
     },
     methods: {
@@ -90,10 +100,19 @@
           this.$tab.reLaunch('/pages/index')
         })
       },
+      // 切换协议勾选状态
+      toggleAgreement() {
+        this.agreedToTerms = !this.agreedToTerms
+      },
       // 微信登录
       handleWechatLogin() {
         if (!this.nickname) {
           this.$modal.msgError("请输入昵称")
+          return
+        }
+        
+        if (!this.agreedToTerms) {
+          this.$modal.msgError("请先阅读并同意用户协议和隐私协议")
           return
         }
 
@@ -208,9 +227,51 @@
         height: 45px;
       }
       
-      .xieyi {
-        color: #333;
-        margin-top: 20px;
+      .agreement-container {
+        margin: 20px 0;
+        text-align: left;
+        
+        .agreement-checkbox {
+          display: flex;
+          align-items: flex-start;
+          
+          .checkbox-icon {
+            width: 40rpx;
+            height: 40rpx;
+            border: 2px solid #ddd;
+            border-radius: 6rpx;
+            margin-right: 20rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            
+            &.checked {
+              background-color: #07c160;
+              border-color: #07c160;
+            }
+            
+            .checkmark {
+              color: white;
+              font-size: 24rpx;
+              font-weight: bold;
+            }
+          }
+          
+          .agreement-text {
+            flex: 1;
+            font-size: 24rpx;
+            line-height: 1.4;
+            
+            .text-grey1 {
+              color: #999;
+            }
+            
+            .text-blue {
+              color: #007aff;
+            }
+          }
+        }
       }
     }
   }

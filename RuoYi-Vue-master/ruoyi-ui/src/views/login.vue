@@ -37,7 +37,20 @@
           <img :src="codeUrl" @click="getCode" class="login-code-img"/>
         </div>
       </el-form-item>
-      <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
+      <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 15px 0px;">记住密码</el-checkbox>
+
+      <!-- 用户协议和隐私协议勾选 -->
+      <div class="agreement-container">
+        <el-checkbox v-model="loginForm.agreedToTerms" class="agreement-checkbox">
+          <span class="agreement-text">
+            我已阅读并同意
+            <a href="#" @click.prevent="showUserAgreement" class="agreement-link">《用户协议》</a>
+            和
+            <a href="#" @click.prevent="showPrivacyPolicy" class="agreement-link">《隐私协议》</a>
+          </span>
+        </el-checkbox>
+      </div>
+
       <el-form-item style="width:100%;">
         <el-button
           :loading="loading"
@@ -77,7 +90,8 @@ export default {
         password: "admin123",
         rememberMe: false,
         code: "",
-        uuid: ""
+        uuid: "",
+        agreedToTerms: false
       },
       loginRules: {
         username: [
@@ -131,6 +145,11 @@ export default {
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
+          // 检查是否同意用户协议和隐私协议
+          if (!this.loginForm.agreedToTerms) {
+            this.$message.error('请先阅读并同意用户协议和隐私协议')
+            return
+          }
           this.loading = true
           if (this.loginForm.rememberMe) {
             Cookies.set("username", this.loginForm.username, { expires: 30 })
@@ -150,6 +169,20 @@ export default {
             }
           })
         }
+      })
+    },
+    // 显示用户协议
+    showUserAgreement() {
+      this.$alert('用户协议内容', '用户协议', {
+        confirmButtonText: '确定',
+        dangerouslyUseHTMLString: true
+      })
+    },
+    // 显示隐私协议
+    showPrivacyPolicy() {
+      this.$alert('隐私协议内容', '隐私协议', {
+        confirmButtonText: '确定',
+        dangerouslyUseHTMLString: true
       })
     }
   }
@@ -217,5 +250,29 @@ export default {
 }
 .login-code-img {
   height: 38px;
+}
+
+.agreement-container {
+  margin: 10px 0 20px 0;
+  text-align: left;
+}
+
+.agreement-checkbox {
+  width: 100%;
+
+  .agreement-text {
+    font-size: 12px;
+    color: #606266;
+    line-height: 1.4;
+  }
+
+  .agreement-link {
+    color: #409EFF;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 </style>

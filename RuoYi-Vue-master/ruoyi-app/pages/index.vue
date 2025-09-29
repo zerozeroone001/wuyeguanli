@@ -22,26 +22,44 @@
         <view class="user-avatar-wrap">
           <image 
             class="user-avatar" 
-            :src="avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
+            :src="isLoggedIn ? (avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png') : 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
             mode="aspectFill"
           />
         </view>
         <view class="user-detail">
-          <view class="greeting-wrap">
-            <text class="greeting">{{ greeting }}，{{ nickName }}</text>
-            <view class="weather-info">
-              <uni-icons type="cloudy" size="14" color="#8C8C8C" />
-              <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
+          <!-- 已登录状态 -->
+          <template v-if="isLoggedIn">
+            <view class="greeting-wrap">
+              <text class="greeting">{{ greeting }}，{{ nickName || '用户' }}</text>
+              <view class="weather-info">
+                <uni-icons type="cloudy" size="14" color="#8C8C8C" />
+                <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
+              </view>
             </view>
-          </view>
-          <view class="auth-status" v-if="!authStatus" @click="goAuth">
-            <text class="status-text">{{ ownerStatusText }}</text>
-            <text class="auth-link">去认证 ></text>
-          </view>
-          <view class="auth-status verified" v-else>
-            <uni-icons type="home-filled" size="16" color="#52C41A" />
-            <text class="verified-text">{{ ownerStatusText || ownerStatusText }}</text>
-          </view>
+            <view class="auth-status" v-if="!authStatus" @click="goAuth">
+              <text class="status-text">{{ ownerStatusText }}</text>
+              <text class="auth-link">去认证 ></text>
+            </view>
+            <view class="auth-status verified" v-else>
+              <uni-icons type="home-filled" size="16" color="#52C41A" />
+              <text class="verified-text">{{ ownerStatusText || ownerStatusText }}</text>
+            </view>
+          </template>
+          
+          <!-- 未登录状态 -->
+          <template v-else>
+            <view class="greeting-wrap">
+              <text class="greeting">{{ greeting }}，欢迎使用智慧物业</text>
+              <view class="weather-info">
+                <uni-icons type="cloudy" size="14" color="#8C8C8C" />
+                <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
+              </view>
+            </view>
+            <view class="login-status" @click="goToLogin">
+              <text class="login-text">请先登录以享受更多服务</text>
+              <text class="login-link">去登录 ></text>
+            </view>
+          </template>
         </view>
       </view>
     </view>
@@ -275,8 +293,12 @@ export default {
         'nickName',
         'avatar',
         'ownerProfile', // 直接获取ownerProfile对象
-        
+        'token' // 添加token获取
     ]),
+    // 检查是否已登录
+    isLoggedIn() {
+      return !!this.token
+    },
     // 从isOwner字段派生出认证状态
     authStatus() {
       return isAuthenticated(this.ownerProfile.isOwner)
@@ -306,8 +328,12 @@ export default {
     this.initPage()
   },
   onShow() {
-    // 每次页面显示时，都主动刷新一次认证信息
-    this.$store.dispatch('GetProfileInfo');
+    // 每次页面显示时，都主动刷新一次认证信息（仅在已登录时）
+    if (this.isLoggedIn) {
+      this.$store.dispatch('GetProfileInfo');
+    }
+    // 重新加载数据，确保登录状态变化后数据正确显示
+    this.loadData();
   },
   
   // 下拉刷新
@@ -337,7 +363,12 @@ export default {
     },
     
     loadData() {
-      this.getNoticeList(); // 调用真实API
+      // 只有在已登录时才调用需要认证的API，否则使用模拟数据
+      if (this.isLoggedIn) {
+        this.getNoticeList(); // 调用真实API
+      } else {
+        this.getMockNoticeList(); // 使用模拟数据
+      }
       this.updateDynamicData()
     },
 
@@ -354,6 +385,40 @@ export default {
         });
       }).catch(error => {
         console.error("获取公告失败", error);
+        // 静默处理错误，不显示错误提示
+      });
+    },
+    
+    // 获取模拟公告列表（用于未登录状态）
+    getMockNoticeList() {
+      // 使用模拟公告数据
+      const mockNotices = [
+        {
+          noticeId: 1,
+          noticeTitle: '欢迎使用智慧物业管理系统',
+          noticeContent: '本系统为业主提供便民服务，包括投诉建议、投票表决、资金公示等功能。',
+          createTime: '2024-01-20',
+          isNew: true
+        },
+        {
+          noticeId: 2,
+          noticeTitle: '物业服务时间调整通知',
+          noticeContent: '因物业服务工作优化，服务时间调整为周一至周日9:00-18:00',
+          createTime: '2024-01-18',
+          isNew: false
+        },
+        {
+          noticeId: 3,
+          noticeTitle: '小区公共设施维护公告',
+          noticeContent: '近日将对小区公共设施进行例行维护，如有不便敬请谅解',
+          createTime: '2024-01-15',
+          isNew: false
+        }
+      ];
+      
+      this.noticeList = mockNotices.map(notice => {
+        notice.createTime = this.parseTime(notice.createTime, '{y}-{m}-{d}');
+        return notice;
       });
     },
     
@@ -402,6 +467,11 @@ export default {
       if (!this.authStatus) {
         uni.navigateTo({ url: '/pages/mine/auth' })
       }
+    },
+    
+    goToLogin() {
+      // 跳转到登录页面
+      uni.navigateTo({ url: '/pages/login' })
     },
     
     goMessage() {
@@ -580,6 +650,27 @@ export default {
             color: #52C41A;
             font-weight: 500;
           }
+        }
+      }
+      
+      .login-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16rpx 24rpx;
+        background: #F8F9FA;
+        border-radius: 16rpx;
+        border: 1rpx solid #E8E8E8;
+        
+        .login-text {
+          font-size: 26rpx;
+          color: #8C8C8C;
+        }
+        
+        .login-link {
+          font-size: 28rpx;
+          color: #1890FF;
+          font-weight: 500;
         }
       }
     }

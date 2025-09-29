@@ -52,10 +52,10 @@
       
       <view v-else class="vote-items">
         <!-- 调试按钮 -->
-        <view class="debug-section" style="padding: 20rpx; background: #f0f0f0; margin-bottom: 20rpx;">
+      <!--  <view class="debug-section" style="padding: 20rpx; background: #f0f0f0; margin-bottom: 20rpx;">
           <button @click="debugTest" style="margin: 10rpx; padding: 20rpx; background: #1890FF; color: white; border: none; border-radius: 8rpx;">调试测试</button>
           <text style="display: block; margin-top: 10rpx; font-size: 24rpx;">数据长度: {{ voteList.length }}</text>
-        </view>
+        </view> -->
         
         <view 
           class="vote-item" 
@@ -138,7 +138,7 @@ export default {
     console.log('用户token：', token ? '已登录' : '未登录')
     
     // 添加调试按钮
-    this.addDebugButton()
+    // this.addDebugButton()
     this.loadVoteRecords()
   },
   
@@ -260,56 +260,56 @@ export default {
       }
     },
     
-    addDebugButton() {
-      // 添加调试按钮到页面
-      console.log('添加调试按钮')
-    },
+    // addDebugButton() {
+    //   // 添加调试按钮到页面
+    //   console.log('添加调试按钮')
+    // },
     
-    async debugTest() {
-      try {
-        console.log('=== 开始调试测试 ===')
-        console.log('1. 检查getMyVoteRecords函数:', typeof getMyVoteRecords)
-        console.log('2. 检查queryParams:', this.queryParams)
+  //   async debugTest() {
+  //     try {
+  //       console.log('=== 开始调试测试 ===')
+  //       console.log('1. 检查getMyVoteRecords函数:', typeof getMyVoteRecords)
+  //       console.log('2. 检查queryParams:', this.queryParams)
         
-        // 测试简单的uni.request
-        console.log('3. 测试uni.request...')
-        const testResponse = await new Promise((resolve, reject) => {
-          uni.request({
-            url: '/meeting/vote/my',
-            method: 'GET',
-            data: this.queryParams,
-            success: (res) => {
-              console.log('uni.request成功:', res)
-              resolve(res.data)
-            },
-            fail: (err) => {
-              console.error('uni.request失败:', err)
-              reject(err)
-            }
-          })
-        })
+  //       // 测试简单的uni.request
+  //       console.log('3. 测试uni.request...')
+  //       const testResponse = await new Promise((resolve, reject) => {
+  //         uni.request({
+  //           url: '/meeting/vote/my',
+  //           method: 'GET',
+  //           data: this.queryParams,
+  //           success: (res) => {
+  //             console.log('uni.request成功:', res)
+  //             resolve(res.data)
+  //           },
+  //           fail: (err) => {
+  //             console.error('uni.request失败:', err)
+  //             reject(err)
+  //           }
+  //         })
+  //       })
         
-        console.log('4. uni.request测试完成:', testResponse)
+  //       console.log('4. uni.request测试完成:', testResponse)
         
-        uni.showToast({
-          title: '调试成功，查看控制台',
-          icon: 'none',
-          duration: 3000
-        })
+  //       uni.showToast({
+  //         title: '调试成功，查看控制台',
+  //         icon: 'none',
+  //         duration: 3000
+  //       })
         
-      } catch (error) {
-        console.error('=== 调试测试失败 ===')
-        console.error('错误类型:', typeof error)
-        console.error('错误信息:', error.message)
-        console.error('完整错误:', error)
+  //     } catch (error) {
+  //       console.error('=== 调试测试失败 ===')
+  //       console.error('错误类型:', typeof error)
+  //       console.error('错误信息:', error.message)
+  //       console.error('完整错误:', error)
         
-        uni.showToast({
-          title: '调试失败: ' + error.message,
-          icon: 'none',
-          duration: 5000
-        })
-      }
-    }
+  //       uni.showToast({
+  //         title: '调试失败: ' + error.message,
+  //         icon: 'none',
+  //         duration: 5000
+  //       })
+  //     }
+  //   }
   }
 }
 </script>
