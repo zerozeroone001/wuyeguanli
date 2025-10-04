@@ -184,13 +184,13 @@
         <el-form-item label="会议标题" prop="meetingTitle">
           <el-input v-model="form.meetingTitle" placeholder="请输入会议标题" />
         </el-form-item>
-        <el-form-item label="会议类型" prop="meetingType">
-          <el-select v-model="form.meetingType" placeholder="请选择会议类型" style="width:100%">
-            <!-- TODO: 此处应改为使用字典管理动态获取 -->
-            <el-option label="业主大会" value="1"></el-option>
-            <el-option label="业委会会议" value="2"></el-option>
-          </el-select>
-        </el-form-item>
+<!--        <el-form-item label="会议类型" prop="meetingType">-->
+<!--          <el-select v-model="form.meetingType" placeholder="请选择会议类型" style="width:100%">-->
+<!--            &lt;!&ndash; TODO: 此处应改为使用字典管理动态获取 &ndash;&gt;-->
+<!--            <el-option label="业主大会" value="1"></el-option>-->
+<!--            <el-option label="业委会会议" value="2"></el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
         <el-form-item label="会议内容">
           <editor v-model="form.meetingContent" :min-height="192"/>
         </el-form-item>
@@ -497,7 +497,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         meetingTitle: null,
-        meetingType: 2,
+        meetingType: '2',
         meetingContent: null,
         meetingTime: null,
         meetingLocation: null,
@@ -508,7 +508,9 @@ export default {
         actualVoters: null,
       },
       // 表单参数
-      form: {},
+      form: {
+        meetingType:'2'
+      },
       // 表单校验
       rules: {
         meetingTitle: [
@@ -576,11 +578,11 @@ export default {
       this.form = {
         meetingId: null,
         meetingTitle: null,
-        meetingType: null,
+        meetingType: '2',
         meetingContent: null,
         meetingTime: null,
         meetingLocation: null,
-        meetingStatus: null,
+        meetingStatus: 1,
         voteStartTime: null,
         voteEndTime: null,
         totalVoters: null,

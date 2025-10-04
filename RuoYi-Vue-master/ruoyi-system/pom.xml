@@ -23,6 +23,11 @@
             <artifactId>ruoyi-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.tencentcloudapi</groupId>
+            <artifactId>tencentcloud-sdk-java-ocr</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

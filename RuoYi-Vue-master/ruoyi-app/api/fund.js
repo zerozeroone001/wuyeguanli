@@ -24,3 +24,12 @@ export function getMonthlyStats() {
     method: 'get'
   })
 }
+
+// 创建资金流水（支出申请）
+export function createFundFlow(data) {
+  return request({
+    url: '/user/flow',
+    method: 'post',
+    data
+  })
+}

@@ -41,6 +41,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="totalVoters != null "> and total_voters = #{totalVoters}</if>
             <if test="actualVoters != null "> and actual_voters = #{actualVoters}</if>
         </where>
+        order by meeting_id desc
     </select>
     
     <select id="selectSysPropertyMeetingByMeetingId" parameterType="Long" resultMap="SysPropertyMeetingResult">

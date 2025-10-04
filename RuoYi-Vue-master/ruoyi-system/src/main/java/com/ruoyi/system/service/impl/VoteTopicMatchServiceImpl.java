@@ -48,20 +48,7 @@ public class VoteTopicMatchServiceImpl implements IVoteTopicMatchService {
             log.info("精确匹配成功：{} -> 议题ID: {}", topicTitle, exactMatchId);
             return exactMatchId;
         }
-        
-        // 2. 关键词匹配
-        Long keywordMatchId = findKeywordMatch(meetingTopics, cleanTitle);
-        if (keywordMatchId != null) {
-            log.info("关键词匹配成功：{} -> 议题ID: {}", topicTitle, keywordMatchId);
-            return keywordMatchId;
-        }
-        
-        // 3. 模糊匹配
-        Long fuzzyMatchId = findFuzzyMatch(meetingTopics, cleanTitle);
-        if (fuzzyMatchId != null) {
-            log.info("模糊匹配成功：{} -> 议题ID: {}", topicTitle, fuzzyMatchId);
-            return fuzzyMatchId;
-        }
+
         
         log.warn("未找到匹配的议题：{}", topicTitle);
         return null;

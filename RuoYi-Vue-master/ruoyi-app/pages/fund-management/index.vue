@@ -60,6 +60,12 @@
         </view>
         <text class="nav-text">审计记录</text>
       </view>
+      <view class="nav-item" v-if="isCommittee" @click="openExpenseForm">
+        <view class="nav-icon expense">
+          <uni-icons type="compose" size="20" color="#FF4D4F" />
+        </view>
+        <text class="nav-text">支出申请</text>
+      </view>
     </view>
 
     <!-- 本月收支统计 -->
@@ -170,11 +176,39 @@
         <text>• 详细账目可申请查阅纸质版财务报表</text>
       </view>
     </view>
+
+    <!-- 支出申请表单弹窗（仅业委会） -->
+    <uni-popup ref="expensePopup" type="center">
+      <view class="expense-form-card">
+        <view class="expense-form-header">支出申请</view>
+        <uni-forms ref="expenseFormRef" :modelValue="expenseForm" :rules="expenseRules" label-position="top">
+          <uni-forms-item label="支出类型" name="flowType">
+            <uni-data-select :localdata="expenseTypes" v-model="expenseForm.flowType" placeholder="请选择支出类型" />
+          </uni-forms-item>
+          <uni-forms-item label="金额(元)" name="amount">
+            <uni-easyinput type="number" v-model="expenseForm.amount" placeholder="请输入金额" />
+          </uni-forms-item>
+          <uni-forms-item label="标题" name="title">
+            <uni-easyinput v-model="expenseForm.title" placeholder="请输入标题" />
+          </uni-forms-item>
+          <uni-forms-item label="用途说明" name="description">
+            <uni-easyinput type="textarea" v-model="expenseForm.description" placeholder="请填写用途说明" />
+          </uni-forms-item>
+          <uni-forms-item label="流水日期" name="flowDate">
+            <uni-datetime-picker type="date" v-model="expenseForm.flowDate" />
+          </uni-forms-item>
+        </uni-forms>
+        <view class="expense-form-actions">
+          <button class="btn-cancel" @click="closeExpenseForm">取消</button>
+          <button class="btn-submit" type="primary" @click="submitExpense">提交</button>
+        </view>
+      </view>
+    </uni-popup>
   </view>
 </template>
 
 <script>
-import { getFundFlowList, getFundOverview, getMonthlyStats } from '@/api/fund'
+import { getFundFlowList, getFundOverview, getMonthlyStats, createFundFlow } from '@/api/fund'
 
 export default {
   data() {
@@ -193,7 +227,38 @@ export default {
         balance: 0,
         transactionCount: 0
       },
-      recentTransactions: []
+      recentTransactions: [],
+      expenseForm: {
+        flowType: '',
+        amount: '',
+        title: '',
+        description: '',
+        flowDate: ''
+      },
+      expenseTypes: [
+        { text: '经营性支出', value: '2' },
+        { text: '维修资金支出', value: '4' }
+      ],
+      expenseRules: {
+        flowType: { required: true, errorMessage: '请选择支出类型' },
+        amount: {
+          required: true,
+          errorMessage: '请输入正确金额'
+        },
+        title: { required: true, errorMessage: '请输入标题' },
+        flowDate: { required: true, errorMessage: '请选择日期' }
+      }
+    }
+  },
+  computed: {
+    ownerProfile() {
+      return this.$store.state.user.ownerProfile || {}
+    },
+    // 身份判断：业委会成员
+    isCommittee() {
+      // 需求：身份判断为 this.ownerProfile.isOwner
+      // 业委会成员标识通常为2，这里按照约定：isOwner==2 视为业委会
+      return this.ownerProfile && Number(this.ownerProfile.isOwner) === 2
     }
   },
   onLoad() {
@@ -201,6 +266,10 @@ export default {
     this.loadMonthlyStats()
     this.loadRecentTransactions()
     this.initDateTime()
+    // 确保拉取身份信息
+    if (!this.ownerProfile || !this.ownerProfile.isOwner) {
+      this.$store.dispatch('GetProfileInfo').catch(() => {})
+    }
   },
   onPullDownRefresh() {
     this.loadFundOverview()
@@ -290,6 +359,45 @@ export default {
       uni.navigateTo({
         url: `/pages/fund-management/transaction?id=${transaction.flowId}`
       })
+    },
+
+    openExpenseForm() {
+      // 默认日期为今天
+      if (!this.expenseForm.flowDate) {
+        const now = new Date()
+        const yyyy = now.getFullYear()
+        const mm = String(now.getMonth() + 1).padStart(2, '0')
+        const dd = String(now.getDate()).padStart(2, '0')
+        this.expenseForm.flowDate = `${yyyy}-${mm}-${dd}`
+      }
+      this.$refs.expensePopup.open()
+    },
+    closeExpenseForm() {
+      this.$refs.expensePopup.close()
+    },
+    async submitExpense() {
+      try {
+        await this.$refs.expenseFormRef.validate()
+        const payload = {
+          flowType: this.expenseForm.flowType,
+          amount: Number(this.expenseForm.amount),
+          title: this.expenseForm.title,
+          description: this.expenseForm.description,
+          flowDate: this.expenseForm.flowDate
+        }
+        await createFundFlow(payload)
+        uni.showToast({ title: '提交成功', icon: 'success' })
+        this.closeExpenseForm()
+        // 重置表单
+        this.expenseForm = { flowType: '', amount: '', title: '', description: '', flowDate: '' }
+        // 刷新数据
+        this.loadFundOverview()
+        this.loadMonthlyStats()
+        this.loadRecentTransactions()
+      } catch (e) {
+        if (e && e.errMsg) return
+        uni.showToast({ title: '提交失败', icon: 'none' })
+      }
     }
   }
 }
@@ -685,6 +793,33 @@ page {
       }
     }
   }
+}
+
+.expense-form-card {
+  width: 640rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 30rpx;
+}
+.expense-form-header {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+  color: #262626;
+}
+.expense-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20rpx;
+  margin-top: 10rpx;
+}
+.btn-cancel {
+  background: #F5F5F5;
+  color: #595959;
+}
+.btn-submit {
+  background: #FF4D4F;
+  color: #FFFFFF;
 }
 </style>
  

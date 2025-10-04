@@ -38,6 +38,12 @@ public class SysPropertyFundFlowServiceImpl implements ISysPropertyFundFlowServi
     @Override
     public int insertSysPropertyFundFlow(SysPropertyFundFlow sysPropertyFundFlow)
     {
+        // 自动生成流水编号 flowNo（前端不必传）
+        if (sysPropertyFundFlow.getFlowNo() == null || sysPropertyFundFlow.getFlowNo().isEmpty()) {
+            String ts = DateUtils.dateTimeNow("yyyyMMddHHmmss");
+            int rand = (int) (Math.random() * 9000) + 1000; // 4位随机数
+            sysPropertyFundFlow.setFlowNo("FL" + ts + rand);
+        }
         sysPropertyFundFlow.setCreateTime(DateUtils.getNowDate());
         return sysPropertyFundFlowMapper.insertSysPropertyFundFlow(sysPropertyFundFlow);
     }

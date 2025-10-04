@@ -50,6 +50,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="authStatus != null and authStatus != ''">
                 AND p.auth_status = #{authStatus}
             </if>
+            order by p.owner_id desc
         </where>
     </select>
     

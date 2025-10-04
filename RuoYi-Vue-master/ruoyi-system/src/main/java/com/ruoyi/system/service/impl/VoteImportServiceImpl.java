@@ -6,6 +6,14 @@ import com.ruoyi.system.domain.vo.OcrVoteData;
 import com.ruoyi.system.domain.vo.OwnerInfo;
 import com.ruoyi.system.domain.vo.VoteItem;
 import com.ruoyi.system.service.*;
+import com.tencentcloudapi.common.AbstractModel;
+import com.tencentcloudapi.common.Credential;
+import com.tencentcloudapi.common.exception.TencentCloudSDKException;
+import com.tencentcloudapi.common.profile.ClientProfile;
+import com.tencentcloudapi.common.profile.HttpProfile;
+import com.tencentcloudapi.ocr.v20181119.OcrClient;
+import com.tencentcloudapi.ocr.v20181119.models.RecognizeTableAccurateOCRRequest;
+import com.tencentcloudapi.ocr.v20181119.models.RecognizeTableAccurateOCRResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +47,9 @@ public class VoteImportServiceImpl implements IVoteImportService {
     
     @Autowired
     private ISysMeetingVoteService sysMeetingVoteService;
+
+    @Autowired
+    private ISysConfigService configService;
     
     @Override
     @Transactional
@@ -78,7 +89,10 @@ public class VoteImportServiceImpl implements IVoteImportService {
             result.setFileUrl(fileUrl);
             
             // 2. 调用OCR接口（这里模拟OCR调用，实际需要调用腾讯云OCR）
-            String ocrResponse = callTencentOcr(imageFile);
+            String ocrResponse = callTencentOcr(fileUrl);
+            log.error("===================================");
+            log.error(ocrResponse);
+            log.error("===================================");
             
             // 3. 解析OCR数据
             OcrVoteData ocrData = ocrVoteProcessorService.processOcrResponse(ocrResponse);
@@ -87,7 +101,7 @@ public class VoteImportServiceImpl implements IVoteImportService {
                 result.setMessage("OCR识别失败：" + String.join(", ", ocrData.getWarnings()));
                 return result;
             }
-            
+            System.out.println(ocrData.toString());
             // 4. 查找用户
             Long userId = findUserId(ocrData.getOwnerInfo());
             if (userId == null) {
@@ -164,39 +178,45 @@ public class VoteImportServiceImpl implements IVoteImportService {
     /**
      * 调用腾讯云OCR接口（模拟实现）
      */
-    private String callTencentOcr(MultipartFile imageFile) {
+    private String callTencentOcr(String imageFile) {
         // TODO: 实际调用腾讯云OCR表格识别v3接口
+        try{
+
+            //密钥从数据库中获取
+            String secretId = configService.selectConfigByKey("tencentCloudSecretId");
+            String secretKey = configService.selectConfigByKey("tencentCloudSecretKey");
+
+            // 密钥信息从环境变量读取，需要提前在环境变量中设置 TENCENTCLOUD_SECRET_ID 和 TENCENTCLOUD_SECRET_KEY
+            // 使用环境变量方式可以避免密钥硬编码在代码中，提高安全性
+            // 生产环境建议使用更安全的密钥管理方案，如密钥管理系统(KMS)、容器密钥注入等
+            // 请参见：https://cloud.tencent.com/document/product/1278/85305
+            // 密钥可前往官网控制台 https://console.cloud.tencent.com/cam/capi 进行获取
+            Credential cred = new Credential(secretId,secretKey);
+            // 使用临时密钥示例
+            // Credential cred = new Credential("SecretId", "SecretKey", "Token");
+            // 实例化一个http选项，可选的，没有特殊需求可以跳过
+            HttpProfile httpProfile = new HttpProfile();
+            httpProfile.setEndpoint("ocr.tencentcloudapi.com");
+            // 实例化一个client选项，可选的，没有特殊需求可以跳过
+            ClientProfile clientProfile = new ClientProfile();
+            clientProfile.setHttpProfile(httpProfile);
+            // 实例化要请求产品的client对象,clientProfile是可选的
+            OcrClient client = new OcrClient(cred, "", clientProfile);
+            // 实例化一个请求对象,每个接口都会对应一个request对象
+            RecognizeTableAccurateOCRRequest req = new RecognizeTableAccurateOCRRequest();
+            req.setImageUrl(imageFile);
+
+            // 返回的resp是一个RecognizeTableAccurateOCRResponse的实例，与请求对象对应
+            RecognizeTableAccurateOCRResponse resp = client.RecognizeTableAccurateOCR(req);
+
+            // 输出json格式的字符串回包
+            return AbstractModel.toJsonString(resp);
+        } catch (TencentCloudSDKException e) {
+            System.out.println(e.toString());
+        }
+
         // 这里返回模拟数据，实际开发时需要替换为真实的OCR调用
-        return "{\n" +
-            "  \"TableDetections\": [\n" +
-            "    {},\n" +
-            "    {},\n" +
-            "    {\n" +
-            "      \"Cells\": [\n" +
-            "        {\"Text\": \"业主姓名\", \"RowTl\": 100, \"RowBr\": 150, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"测试甲\", \"RowTl\": 100, \"RowBr\": 150, \"ColTl\": 200, \"ColBr\": 350},\n" +
-            "        {\"Text\": \"专有部分建筑面积(平方米)\", \"RowTl\": 150, \"RowBr\": 200, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"108\", \"RowTl\": 150, \"RowBr\": 200, \"ColTl\": 200, \"ColBr\": 350},\n" +
-            "        {\"Text\": \"房号\", \"RowTl\": 200, \"RowBr\": 250, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"3栋2单元1101室\", \"RowTl\": 200, \"RowBr\": 250, \"ColTl\": 200, \"ColBr\": 350},\n" +
-            "        {\"Text\": \"电话\", \"RowTl\": 250, \"RowBr\": 300, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"18888888888\", \"RowTl\": 250, \"RowBr\": 300, \"ColTl\": 200, \"ColBr\": 350}\n" +
-            "      ]\n" +
-            "    },\n" +
-            "    {},\n" +
-            "    {},\n" +
-            "    {\n" +
-            "      \"Cells\": [\n" +
-            "        {\"Text\": \"表决事项\", \"RowTl\": 400, \"RowBr\": 450, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"投票结果\", \"RowTl\": 400, \"RowBr\": 450, \"ColTl\": 200, \"ColBr\": 350},\n" +
-            "        {\"Text\": \"选聘物业服务企业\", \"RowTl\": 450, \"RowBr\": 500, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"√\", \"RowTl\": 450, \"RowBr\": 500, \"ColTl\": 200, \"ColBr\": 350},\n" +
-            "        {\"Text\": \"使用公共资金维修设施\", \"RowTl\": 500, \"RowBr\": 550, \"ColTl\": 50, \"ColBr\": 200},\n" +
-            "        {\"Text\": \"×\", \"RowTl\": 500, \"RowBr\": 550, \"ColTl\": 200, \"ColBr\": 350}\n" +
-            "      ]\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}";
+        return "";
     }
     
     /**
@@ -216,19 +236,19 @@ public class VoteImportServiceImpl implements IVoteImportService {
         }
         
         // 通过代理人电话查找
-        if (StringUtils.isNotEmpty(ownerInfo.getAgentPhone())) {
-            Long userId = voteUserQueryService.findUserIdByPhone(ownerInfo.getAgentPhone());
-            if (userId != null) {
-                return userId;
-            }
-        }
-        
-        // 通过姓名和房号查找
-        if (StringUtils.isNotEmpty(ownerInfo.getOwnerName()) && 
-            StringUtils.isNotEmpty(ownerInfo.getRoomNumber())) {
-            return voteUserQueryService.findUserIdByNameAndRoom(
-                ownerInfo.getOwnerName(), ownerInfo.getRoomNumber());
-        }
+//        if (StringUtils.isNotEmpty(ownerInfo.getAgentPhone())) {
+//            Long userId = voteUserQueryService.findUserIdByPhone(ownerInfo.getAgentPhone());
+//            if (userId != null) {
+//                return userId;
+//            }
+//        }
+//
+//        // 通过姓名和房号查找
+//        if (StringUtils.isNotEmpty(ownerInfo.getOwnerName()) &&
+//            StringUtils.isNotEmpty(ownerInfo.getRoomNumber())) {
+//            return voteUserQueryService.findUserIdByNameAndRoom(
+//                ownerInfo.getOwnerName(), ownerInfo.getRoomNumber());
+//        }
         
         return null;
     }
@@ -261,6 +281,7 @@ public class VoteImportServiceImpl implements IVoteImportService {
             vote.setTopicId(topicId);
             vote.setUserId(userId);
             vote.setUserName(ocrData.getOwnerInfo().getOwnerName());
+            vote.setCreateTime(new Date());
             
             // 安全处理voteOption，避免NullPointerException
             if (voteItem.getVoteOption() != null) {

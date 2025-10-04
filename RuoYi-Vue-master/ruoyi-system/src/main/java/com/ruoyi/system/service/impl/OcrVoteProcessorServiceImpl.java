@@ -36,19 +36,19 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
     @Override
     public OcrVoteData processOcrResponse(String ocrResponse) {
         try {
+
             JSONObject response = JSON.parseObject(ocrResponse);
             JSONArray tableDetections = response.getJSONArray("TableDetections");
-            
+
             if (tableDetections == null || tableDetections.size() < 6) {
                 log.warn("OCR响应中TableDetections数量不足，期望至少6个表格");
                 return createFailedResult("OCR识别结果格式不正确");
             }
-            
+
             // 提取业主基础信息（通常在第3个表格，索引为2）
             OwnerInfo ownerInfo = extractOwnerInfo(tableDetections.getJSONObject(2));
-            
             // 提取表决事项信息（通常在第6个表格，索引为5）
-            List<VoteItem> voteItems = extractVoteItems(tableDetections.getJSONObject(5));
+            List<VoteItem> voteItems = extractVoteItems(tableDetections.getJSONObject(3));
             
             return new OcrVoteData(ownerInfo, voteItems);
             
@@ -76,7 +76,6 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
                 dataMap.put(label, value);
             }
         }
-        
         // 映射到业主信息对象
         return OwnerInfo.builder()
                 .ownerName(dataMap.get("业主姓名"))
@@ -95,10 +94,11 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
         JSONArray cells = voteTable.getJSONArray("Cells");
         List<CellInfo> sortedCells = sortCellsByPosition(cells);
         List<VoteItem> voteItems = new ArrayList<>();
-        
         // 跳过表头，从第二行开始处理
         for (int i = 2; i < sortedCells.size(); i += 2) {
+
             if (i + 1 < sortedCells.size()) {
+                System.out.println(cleanText(sortedCells.get(i).getText())+"："+cleanText(sortedCells.get(i+1).getText()));
                 String topicTitle = cleanText(sortedCells.get(i).getText());
                 String voteSymbol = cleanText(sortedCells.get(i + 1).getText());
                 
@@ -213,12 +213,12 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
         }
         
         // 按位置排序：先行后列
-        cellList.sort((a, b) -> {
-            if (Math.abs(a.getRowTl() - b.getRowTl()) < 10) { // 同一行
-                return Integer.compare(a.getColTl(), b.getColTl());
-            }
-            return Integer.compare(a.getRowTl(), b.getRowTl());
-        });
+//        cellList.sort((a, b) -> {
+//            if (Math.abs(a.getRowTl() - b.getRowTl()) < 10) { // 同一行
+//                return Integer.compare(a.getColTl(), b.getColTl());
+//            }
+//            return Integer.compare(a.getRowTl(), b.getRowTl());
+//        });
         
         return cellList;
     }
