@@ -41,6 +41,8 @@ public class SysPropertyContractController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyContract sysPropertyContract)
     {
+        // 列表查询前根据当前账号解析小区条件，普通账号自动绑定自身小区
+        sysPropertyContract.setCommunityId(resolveCommunityId(sysPropertyContract.getCommunityId()));
         startPage();
         List<SysPropertyContract> list = sysPropertyContractService.selectSysPropertyContractList(sysPropertyContract);
         return getDataTable(list);
@@ -54,6 +56,7 @@ public class SysPropertyContractController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyContract sysPropertyContract)
     {
+        sysPropertyContract.setCommunityId(resolveCommunityId(sysPropertyContract.getCommunityId()));
         List<SysPropertyContract> list = sysPropertyContractService.selectSysPropertyContractList(sysPropertyContract);
         ExcelUtil<SysPropertyContract> util = new ExcelUtil<SysPropertyContract>(SysPropertyContract.class);
         util.exportExcel(response, list, "物业服务合同数据");
@@ -77,6 +80,7 @@ public class SysPropertyContractController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyContract sysPropertyContract)
     {
+        sysPropertyContract.setCommunityId(requireResolvedCommunityId(sysPropertyContract.getCommunityId(), "请选择小区后再新增合同"));
         return toAjax(sysPropertyContractService.insertSysPropertyContract(sysPropertyContract));
     }
 
@@ -88,6 +92,7 @@ public class SysPropertyContractController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyContract sysPropertyContract)
     {
+        sysPropertyContract.setCommunityId(requireResolvedCommunityId(sysPropertyContract.getCommunityId(), "请选择小区后再修改合同"));
         return toAjax(sysPropertyContractService.updateSysPropertyContract(sysPropertyContract));
     }
 

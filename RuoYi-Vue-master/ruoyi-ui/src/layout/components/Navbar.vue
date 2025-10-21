@@ -1,12 +1,39 @@
-<template>
+﻿<template>
   <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
+    <hamburger
+      id="hamburger-container"
+      :is-active="sidebar.opened"
+      class="hamburger-container"
+      @toggleClick="toggleSideBar"
+    />
 
     <breadcrumb v-if="!topNav" id="breadcrumb-container" class="breadcrumb-container" />
     <top-nav v-if="topNav" id="topmenu-container" class="topmenu-container" />
 
     <div class="right-menu">
-      <template v-if="device!=='mobile'">
+      <template v-if="device !== 'mobile'">
+        <div class="right-menu-item community-wrapper">
+          <template v-if="isSuperAdmin">
+            <el-select
+              v-model="selectedCommunity"
+              placeholder="请选择小区"
+              size="small"
+              @change="handleCommunityChange"
+            >
+              <el-option :value="0" label="全部小区" />
+              <el-option
+                v-for="item in communityOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </template>
+          <template v-else>
+            <span class="community-name">{{ displayCommunityName }}</span>
+          </template>
+        </div>
+
         <search id="header-search" class="right-menu-item" />
 
         <el-tooltip content="源码地址" effect="dark" placement="bottom">
@@ -22,13 +49,12 @@
         <el-tooltip content="布局大小" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
         </el-tooltip>
-
       </template>
 
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="hover">
         <div class="avatar-wrapper">
-          <img :src="avatar" class="user-avatar">
-          <span class="user-nickname"> {{ nickName }} </span>
+          <img :src="avatar" class="user-avatar" />
+          <span class="user-nickname">{{ nickName }}</span>
         </div>
         <el-dropdown-menu slot="dropdown">
           <router-link to="/user/profile">
@@ -40,7 +66,11 @@
         </el-dropdown-menu>
       </el-dropdown>
 
-      <div class="right-menu-item hover-effect setting" @click="setLayout" v-if="setting">
+      <div
+        v-if="setting"
+        class="right-menu-item hover-effect setting"
+        @click="setLayout"
+      >
         <svg-icon icon-class="more-up" />
       </div>
     </div>
@@ -48,18 +78,18 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import Breadcrumb from '@/components/Breadcrumb'
-import TopNav from '@/components/TopNav'
-import Hamburger from '@/components/Hamburger'
-import Screenfull from '@/components/Screenfull'
-import SizeSelect from '@/components/SizeSelect'
-import Search from '@/components/HeaderSearch'
-import RuoYiGit from '@/components/RuoYi/Git'
-import RuoYiDoc from '@/components/RuoYi/Doc'
+import { mapGetters } from "vuex"
+import Breadcrumb from "@/components/Breadcrumb"
+import TopNav from "@/components/TopNav"
+import Hamburger from "@/components/Hamburger"
+import Screenfull from "@/components/Screenfull"
+import SizeSelect from "@/components/SizeSelect"
+import Search from "@/components/HeaderSearch"
+import RuoYiGit from "@/components/RuoYi/Git"
+import RuoYiDoc from "@/components/RuoYi/Doc"
 
 export default {
-  emits: ['setLayout'],
+  emits: ["setLayout"],
   components: {
     Breadcrumb,
     TopNav,
@@ -70,41 +100,75 @@ export default {
     RuoYiGit,
     RuoYiDoc
   },
+  data() {
+    return {
+      selectedCommunity: ""
+    }
+  },
   computed: {
     ...mapGetters([
-      'sidebar',
-      'avatar',
-      'device',
-      'nickName'
+      "sidebar",
+      "avatar",
+      "device",
+      "nickName",
+      "isSuperAdmin",
+      "currentCommunityName",
+      "currentCommunityId",
+      "communityOptions"
     ]),
-    setting: {
-      get() {
-        return this.$store.state.settings.showSettings
-      }
+    setting() {
+      return this.$store.state.settings.showSettings
     },
-    topNav: {
-      get() {
-        return this.$store.state.settings.topNav
+    topNav() {
+      return this.$store.state.settings.topNav
+    },
+    displayCommunityName() {
+      return this.currentCommunityName || '未绑定小区'
+    }
+  },
+  watch: {
+    currentCommunityId: {
+      immediate: true,
+      handler(val) {
+        if (val === null || val === undefined) {
+          this.selectedCommunity = ""
+        } else {
+          this.selectedCommunity = val
+        }
       }
     }
   },
   methods: {
     toggleSideBar() {
-      this.$store.dispatch('app/toggleSideBar')
+      this.$store.dispatch("app/toggleSideBar")
     },
-    setLayout(event) {
-      this.$emit('setLayout')
+    setLayout() {
+      this.$emit("setLayout")
+    },
+    handleCommunityChange(value) {
+      const targetValue = value === "" ? null : value
+      this.$store
+        .dispatch("community/changeCommunity", targetValue)
+        .then(() => {
+          this.$message.success('小区切换成功，页面即将刷新')
+          this.$nextTick(() => {
+            this.$router.go(0)
+          })
+        })
+        .catch(() => {})
     },
     logout() {
-      this.$confirm('确定注销并退出系统吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$store.dispatch('LogOut').then(() => {
-          location.href = '/index'
+      this.$confirm('确定退出登录吗?', '提示', {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.$store.dispatch("LogOut").then(() => {
+            location.href = "/index"
+          })
         })
-      }).catch(() => {})
+        .catch(() => {})
     }
   }
 }
@@ -116,18 +180,18 @@ export default {
   overflow: hidden;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 
   .hamburger-container {
     line-height: 46px;
     height: 100%;
     float: left;
     cursor: pointer;
-    transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+    transition: background 0.3s;
+    -webkit-tap-highlight-color: transparent;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      background: rgba(0, 0, 0, 0.025);
     }
   }
 
@@ -140,16 +204,12 @@ export default {
     left: 50px;
   }
 
-  .errLog-container {
-    display: inline-block;
-    vertical-align: top;
-  }
-
   .right-menu {
     float: right;
     height: 100%;
     line-height: 50px;
-
+    width: 19%;
+    display: flex;
     &:focus {
       outline: none;
     }
@@ -160,21 +220,36 @@ export default {
       height: 100%;
       font-size: 18px;
       color: #5a5e66;
-      vertical-align: text-bottom;
+      vertical-align: middle;
 
       &.hover-effect {
         cursor: pointer;
-        transition: background .3s;
+        transition: background 0.3s;
 
         &:hover {
-          background: rgba(0, 0, 0, .025)
+          background: rgba(0, 0, 0, 0.025);
         }
       }
     }
 
+    .community-wrapper {
+      display: flex;
+      align-items: center;
+      padding-right: 16px;
+
+      .el-select {
+        width: 180px;
+      }
+
+      .community-name {
+        font-size: 14px;
+        color: #606266;
+      }
+    }
+
     .avatar-container {
-      margin-right: 0px;
-      padding-right: 0px;
+      margin-right: 0;
+      padding-right: 0;
 
       .avatar-wrapper {
         margin-top: 10px;
@@ -187,19 +262,11 @@ export default {
           border-radius: 50%;
         }
 
-        .user-nickname{
+        .user-nickname {
           position: relative;
           bottom: 10px;
           font-size: 14px;
           font-weight: bold;
-        }
-
-        .el-icon-caret-bottom {
-          cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
-          font-size: 12px;
         }
       }
     }

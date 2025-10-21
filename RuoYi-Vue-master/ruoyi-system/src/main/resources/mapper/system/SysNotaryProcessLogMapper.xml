@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysNotaryProcessLogMapper">
+    
+    <resultMap type="SysNotaryProcessLog" id="SysNotaryProcessLogResult">
+        <result property="logId"    column="log_id"    />
+        <result property="notaryId"    column="notary_id"    />
+        <result property="processStep"    column="process_step"    />
+        <result property="stepName"    column="step_name"    />
+        <result property="action"    column="action"    />
+        <result property="content"    column="content"    />
+        <result property="status"    column="status"    />
+        <result property="operatorId"    column="operator_id"    />
+        <result property="operatorName"    column="operator_name"    />
+        <result property="operationTime"    column="operation_time"    />
+        <result property="operateTime"    column="operate_time"    />
+        <result property="comment"    column="comment"    />
+        <result property="attachmentUrl"    column="attachment_url"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysNotaryProcessLogVo">
+        select log_id, notary_id, process_step, step_name, action, content, status, operator_id, operator_name, operation_time, operate_time, comment, attachment_url, create_by, create_time, update_by, update_time, remark from sys_notary_process_log
+    </sql>
+
+    <select id="selectSysNotaryProcessLogList" parameterType="SysNotaryProcessLog" resultMap="SysNotaryProcessLogResult">
+        <include refid="selectSysNotaryProcessLogVo"/>
+        <where>  
+            <if test="notaryId != null "> and notary_id = #{notaryId}</if>
+            <if test="processStep != null  and processStep != ''"> and process_step = #{processStep}</if>
+            <if test="stepName != null  and stepName != ''"> and step_name like concat('%', #{stepName}, '%')</if>
+            <if test="action != null  and action != ''"> and action = #{action}</if>
+            <if test="content != null  and content != ''"> and content like concat('%', #{content}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="operatorId != null "> and operator_id = #{operatorId}</if>
+            <if test="operatorName != null  and operatorName != ''"> and operator_name like concat('%', #{operatorName}, '%')</if>
+            <if test="operationTime != null "> and operation_time = #{operationTime}</if>
+            <if test="operateTime != null "> and operate_time = #{operateTime}</if>
+        </where>
+        order by operate_time desc
+    </select>
+    
+    <select id="selectSysNotaryProcessLogByLogId" parameterType="Long" resultMap="SysNotaryProcessLogResult">
+        <include refid="selectSysNotaryProcessLogVo"/>
+        where log_id = #{logId}
+    </select>
+        
+    <insert id="insertSysNotaryProcessLog" parameterType="SysNotaryProcessLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into sys_notary_process_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="notaryId != null">notary_id,</if>
+            <if test="processStep != null and processStep != ''">process_step,</if>
+            <if test="stepName != null and stepName != ''">step_name,</if>
+            <if test="action != null and action != ''">action,</if>
+            <if test="content != null">content,</if>
+            <if test="status != null">status,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="operatorName != null">operator_name,</if>
+            <if test="operationTime != null">operation_time,</if>
+            <if test="operateTime != null">operate_time,</if>
+            <if test="comment != null">comment,</if>
+            <if test="attachmentUrl != null">attachment_url,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="notaryId != null">#{notaryId},</if>
+            <if test="processStep != null and processStep != ''">#{processStep},</if>
+            <if test="stepName != null and stepName != ''">#{stepName},</if>
+            <if test="action != null and action != ''">#{action},</if>
+            <if test="content != null">#{content},</if>
+            <if test="status != null">#{status},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="operatorName != null">#{operatorName},</if>
+            <if test="operationTime != null">#{operationTime},</if>
+            <if test="operateTime != null">#{operateTime},</if>
+            <if test="comment != null">#{comment},</if>
+            <if test="attachmentUrl != null">#{attachmentUrl},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysNotaryProcessLog" parameterType="SysNotaryProcessLog">
+        update sys_notary_process_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="notaryId != null">notary_id = #{notaryId},</if>
+            <if test="processStep != null and processStep != ''">process_step = #{processStep},</if>
+            <if test="stepName != null and stepName != ''">step_name = #{stepName},</if>
+            <if test="action != null and action != ''">action = #{action},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="operationTime != null">operation_time = #{operationTime},</if>
+            <if test="operateTime != null">operate_time = #{operateTime},</if>
+            <if test="comment != null">comment = #{comment},</if>
+            <if test="attachmentUrl != null">attachment_url = #{attachmentUrl},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where log_id = #{logId}
+    </update>
+
+    <delete id="deleteSysNotaryProcessLogByLogId" parameterType="Long">
+        delete from sys_notary_process_log where log_id = #{logId}
+    </delete>
+
+    <delete id="deleteSysNotaryProcessLogByLogIds" parameterType="String">
+        delete from sys_notary_process_log where log_id in 
+        <foreach item="logId" collection="array" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+    </delete>
+</mapper>

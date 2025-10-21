@@ -2,6 +2,8 @@ package com.ruoyi.system.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.CommunityUtils;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.system.domain.SysContractFile;
 import com.ruoyi.system.domain.SysFileInfo;
@@ -44,6 +46,8 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
         SysPropertyContract contract = sysPropertyContractMapper.selectSysPropertyContractByContractId(contractId);
         if (contract != null)
         {
+            // 数据归属校验，防止跨小区读取
+            CommunityUtils.checkCommunityPermission(contract.getCommunityId());
             List<SysFileInfo> fileList = sysFileInfoService.selectSysFileInfoListByContractId(contractId);
             contract.setFileList(fileList);
         }
@@ -72,6 +76,7 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Transactional
     public int insertSysPropertyContract(SysPropertyContract sysPropertyContract)
     {
+        validateCommunityScope(sysPropertyContract.getCommunityId());
         sysPropertyContract.setCreateTime(DateUtils.getNowDate());
         // 1. 插入主表
         int rows = sysPropertyContractMapper.insertSysPropertyContract(sysPropertyContract);
@@ -90,6 +95,7 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Transactional
     public int updateSysPropertyContract(SysPropertyContract sysPropertyContract)
     {
+        validateCommunityScope(sysPropertyContract.getCommunityId());
         sysPropertyContract.setUpdateTime(DateUtils.getNowDate());
         // 1. 删除旧的文件关联
         sysContractFileMapper.deleteByContractId(sysPropertyContract.getContractId());
@@ -109,7 +115,13 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Transactional
     public int deleteSysPropertyContractByContractIds(Long[] contractIds)
     {
-        for (Long contractId : contractIds) {
+        for (Long contractId : contractIds)
+        {
+            SysPropertyContract contract = sysPropertyContractMapper.selectSysPropertyContractByContractId(contractId);
+            if (contract != null)
+            {
+                CommunityUtils.checkCommunityPermission(contract.getCommunityId());
+            }
             sysContractFileMapper.deleteByContractId(contractId);
         }
         return sysPropertyContractMapper.deleteSysPropertyContractByContractIds(contractIds);
@@ -125,6 +137,11 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
     @Transactional
     public int deleteSysPropertyContractByContractId(Long contractId)
     {
+        SysPropertyContract contract = sysPropertyContractMapper.selectSysPropertyContractByContractId(contractId);
+        if (contract != null)
+        {
+            CommunityUtils.checkCommunityPermission(contract.getCommunityId());
+        }
         sysContractFileMapper.deleteByContractId(contractId);
         return sysPropertyContractMapper.deleteSysPropertyContractByContractId(contractId);
     }
@@ -149,5 +166,19 @@ public class SysPropertyContractServiceImpl implements ISysPropertyContractServi
                 sysContractFileMapper.batchInsert(list);
             }
         }
+    }
+
+    /**
+     * 校验小区ID有效性并执行权限检查。
+     *
+     * @param communityId 目标小区ID
+     */
+    private void validateCommunityScope(Long communityId)
+    {
+        if (communityId == null)
+        {
+            throw new ServiceException("合同数据必须绑定所属小区");
+        }
+        CommunityUtils.checkCommunityPermission(communityId);
     }
 }

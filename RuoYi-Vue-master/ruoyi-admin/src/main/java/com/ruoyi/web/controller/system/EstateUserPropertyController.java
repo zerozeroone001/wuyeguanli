@@ -2,30 +2,29 @@ package com.ruoyi.web.controller.system;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.system.domain.EstateUserProperty;
 import com.ruoyi.system.service.IEstateUserPropertyService;
-import com.ruoyi.common.utils.poi.ExcelUtil;
-import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
- * ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»Controller
- * 
- * @author ruoyi
- * @date 2025-09-05
+ * ÓÃ»§Óë·¿Îİ¹ØÁª¹ÜÀí
  */
 @RestController
 @RequestMapping("/system/estateUserProperty")
@@ -35,7 +34,7 @@ public class EstateUserPropertyController extends BaseController
     private IEstateUserPropertyService estateUserPropertyService;
 
     /**
-     * æŸ¥è¯¢ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»åˆ—è¡¨
+     * ²éÑ¯ÁĞ±í
      */
     @PreAuthorize("@ss.hasPermi('system:property:list')")
     @GetMapping("/list")
@@ -47,33 +46,33 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * å¯¼å‡ºç”¨æˆ·ä¸æˆ¿äº§å…³ç³»åˆ—è¡¨
+     * µ¼³ö
      */
     @PreAuthorize("@ss.hasPermi('system:property:export')")
-    @Log(title = "ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»", businessType = BusinessType.EXPORT)
+    @Log(title = "ÓÃ»§·¿Îİ¹ØÁª", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, EstateUserProperty estateUserProperty)
     {
         List<EstateUserProperty> list = estateUserPropertyService.selectEstateUserPropertyList(estateUserProperty);
-        ExcelUtil<EstateUserProperty> util = new ExcelUtil<EstateUserProperty>(EstateUserProperty.class);
-        util.exportExcel(response, list, "ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»æ•°æ®");
+        ExcelUtil<EstateUserProperty> util = new ExcelUtil<>(EstateUserProperty.class);
+        util.exportExcel(response, list, "ÓÃ»§·¿Îİ¹ØÁªÊı¾İ");
     }
 
     /**
-     * è·å–ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»è¯¦ç»†ä¿¡æ¯
+     * »ñÈ¡ÏêÇé
      */
     @PreAuthorize("@ss.hasPermi('system:property:query')")
     @GetMapping(value = "/{associationId}")
-    public AjaxResult getInfo(@PathVariable("associationId") Long associationId)
+    public AjaxResult getInfo(@PathVariable Long associationId)
     {
         return success(estateUserPropertyService.selectEstateUserPropertyByAssociationId(associationId));
     }
 
     /**
-     * æ–°å¢ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
+     * ĞÂÔö
      */
     @PreAuthorize("@ss.hasPermi('system:property:add')")
-    @Log(title = "ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»", businessType = BusinessType.INSERT)
+    @Log(title = "ÓÃ»§·¿Îİ¹ØÁª", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody EstateUserProperty estateUserProperty)
     {
@@ -81,10 +80,10 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * ä¿®æ”¹ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
+     * ĞŞ¸Ä
      */
     @PreAuthorize("@ss.hasPermi('system:property:edit')")
-    @Log(title = "ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»", businessType = BusinessType.UPDATE)
+    @Log(title = "ÓÃ»§·¿Îİ¹ØÁª", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody EstateUserProperty estateUserProperty)
     {
@@ -92,11 +91,22 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * åˆ é™¤ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
+     * ÉóºË
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:audit')")
+    @Log(title = "ÓÃ»§·¿Îİ¹ØÁªÉóºË", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody EstateUserProperty estateUserProperty)
+    {
+        return toAjax(estateUserPropertyService.auditEstateUserProperty(estateUserProperty));
+    }
+
+    /**
+     * É¾³ı
      */
     @PreAuthorize("@ss.hasPermi('system:property:remove')")
-    @Log(title = "ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{associationIds}")
+    @Log(title = "ÓÃ»§·¿Îİ¹ØÁª", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{associationIds}")
     public AjaxResult remove(@PathVariable Long[] associationIds)
     {
         return toAjax(estateUserPropertyService.deleteEstateUserPropertyByAssociationIds(associationIds));

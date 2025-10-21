@@ -58,6 +58,13 @@ public interface ISysUserService
     public List<SysUser> selectUserListWithOpenId();
 
     /**
+     * 查询业主手机号码列表（is_owner=1）
+     *
+     * @return 手机号码列表
+     */
+    public List<String> selectOwnerPhoneList();
+
+    /**
      * 通过用户ID查询用户
      * 
      * @param userId 用户ID

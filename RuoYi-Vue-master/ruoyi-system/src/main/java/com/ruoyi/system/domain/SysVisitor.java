@@ -26,6 +26,10 @@ public class SysVisitor extends BaseEntity {
     @NotBlank(message = "访客姓名不能为空")
     private String visitorName;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 访客手机号 */
     @Excel(name = "访客手机号")
     @NotBlank(message = "访客手机号不能为空")
@@ -67,6 +71,14 @@ public class SysVisitor extends BaseEntity {
 
     public void setVisitorName(String visitorName) {
         this.visitorName = visitorName;
+    }
+
+    public Long getCommunityId() {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId) {
+        this.communityId = communityId;
     }
 
     public String getVisitorPhone() {
@@ -122,6 +134,7 @@ public class SysVisitor extends BaseEntity {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
                 .append("visitorId", getVisitorId())
                 .append("visitorName", getVisitorName())
+                .append("communityId", getCommunityId())
                 .append("visitorPhone", getVisitorPhone())
                 .append("idCard", getIdCard())
                 .append("visitDate", getVisitDate())

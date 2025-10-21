@@ -112,4 +112,88 @@ public class NotaryApplicationController extends BaseController {
         List<SysNotaryOffice> list = notaryOfficeService.selectSysNotaryOfficeList(filter);
         return AjaxResult.success(list);
     }
+
+    /**
+     * 获取公证类型配置列表
+     */
+    @GetMapping("/type/list")
+    public AjaxResult getNotaryTypeList() {
+        // 获取所有可用的公证类型配置
+        return AjaxResult.success(notaryApplicationService.getNotaryTypeConfigs());
+    }
+
+    /**
+     * 计算公证费用
+     */
+    @PostMapping("/fee/calculate")
+    public AjaxResult calculateFee(@RequestBody Map<String, Object> params) {
+        String type = (String) params.get("type");
+        Boolean urgent = (Boolean) params.get("urgent");
+        return AjaxResult.success(notaryApplicationService.calculateFee(type, urgent));
+    }
+
+    /**
+     * 获取公证流程进度
+     */
+    @GetMapping("/{notaryId}/process")
+    public AjaxResult getProcessLogs(@PathVariable("notaryId") Long notaryId) {
+        // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权访问");
+        }
+        return AjaxResult.success(notaryApplicationService.getProcessLogs(notaryId));
+    }
+
+    /**
+     * 上传公证材料
+     */
+    @PostMapping("/{notaryId}/attachment")
+    public AjaxResult uploadAttachment(@PathVariable("notaryId") Long notaryId, @RequestBody Map<String, Object> params) {
+        // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权访问");
+        }
+        return AjaxResult.success(notaryApplicationService.uploadAttachment(notaryId, params));
+    }
+
+    /**
+     * 删除公证材料
+     */
+    @DeleteMapping("/{notaryId}/attachment/{attachmentId}")
+    public AjaxResult deleteAttachment(@PathVariable("notaryId") Long notaryId, @PathVariable("attachmentId") Long attachmentId) {
+        // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权访问");
+        }
+        return toAjax(notaryApplicationService.deleteAttachment(attachmentId));
+    }
+
+    /**
+     * 提交支付
+     */
+    @PostMapping("/{notaryId}/payment")
+    public AjaxResult submitPayment(@PathVariable("notaryId") Long notaryId, @RequestBody Map<String, Object> params) {
+        // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权访问");
+        }
+        return AjaxResult.success(notaryApplicationService.submitPayment(notaryId, params));
+    }
+
+    /**
+     * 获取支付状态
+     */
+    @GetMapping("/{notaryId}/payment/status")
+    public AjaxResult getPaymentStatus(@PathVariable("notaryId") Long notaryId) {
+        // 安全校验
+        SysNotaryApplication existingApplication = notaryApplicationService.selectSysNotaryApplicationByApplicationId(notaryId);
+        if (existingApplication == null || !existingApplication.getUserId().equals(getUserId())) {
+            return AjaxResult.error("无权访问");
+        }
+        return AjaxResult.success(notaryApplicationService.getPaymentStatus(notaryId));
+    }
 }

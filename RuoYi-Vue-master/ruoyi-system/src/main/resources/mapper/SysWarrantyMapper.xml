@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysWarranty" id="SysWarrantyResult">
         <result property="warrantyId"    column="warranty_id"    />
         <result property="equipmentName"  column="equipment_name"  />
+        <result property="communityId" column="community_id" />
         <result property="equipmentLocation" column="equipment_location" />
         <result property="description"       column="description"       />
         <result property="reporterName"    column="reporter_name"    />
@@ -20,13 +21,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectWarrantyVo">
-        select warranty_id, equipment_name, equipment_location, description, reporter_name, reporter_phone, status, create_by, create_time, update_by, update_time, remark from sys_warranty
+        select warranty_id, equipment_name, community_id, equipment_location, description, reporter_name, reporter_phone, status, create_by, create_time, update_by, update_time, remark from sys_warranty
     </sql>
 
     <select id="selectSysWarrantyList" parameterType="SysWarranty" resultMap="SysWarrantyResult">
         <include refid="selectWarrantyVo"/>
         <where>
             <if test="equipmentName != null  and equipmentName != ''"> and equipment_name like concat('%', #{equipmentName}, '%')</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
     </select>
@@ -39,6 +41,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertSysWarranty" parameterType="SysWarranty" useGeneratedKeys="true" keyProperty="warrantyId">
         insert into sys_warranty (
             <if test="equipmentName != null and equipmentName != ''">equipment_name,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="equipmentLocation != null and equipmentLocation != ''">equipment_location,</if>
             <if test="description != null and description != ''">description,</if>
             <if test="reporterName != null and reporterName != ''">reporter_name,</if>
@@ -48,6 +51,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             create_time
         )values(
             <if test="equipmentName != null and equipmentName != ''">#{equipmentName},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="equipmentLocation != null and equipmentLocation != ''">#{equipmentLocation},</if>
             <if test="description != null and description != ''">#{description},</if>
             <if test="reporterName != null and reporterName != ''">#{reporterName},</if>
@@ -62,6 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_warranty
         <set>
             <if test="equipmentName != null and equipmentName != ''">equipment_name = #{equipmentName},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="equipmentLocation != null and equipmentLocation != ''">equipment_location = #{equipmentLocation},</if>
             <if test="description != null and description != ''">description = #{description},</if>
             <if test="reporterName != null and reporterName != ''">reporter_name = #{reporterName},</if>

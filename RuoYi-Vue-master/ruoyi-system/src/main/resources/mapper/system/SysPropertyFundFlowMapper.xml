@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysPropertyFundFlow" id="SysPropertyFundFlowResult">
         <result property="flowId"    column="flow_id"    />
         <result property="flowNo"    column="flow_no"    />
+        <result property="communityId"    column="community_id"    />
         <result property="flowType"    column="flow_type"    />
         <result property="amount"    column="amount"    />
         <result property="title"    column="title"    />
@@ -24,13 +25,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyFundFlowVo">
-        select flow_id, flow_no, flow_type, amount, title, description, handler, approval_status, approver_id, approval_time, approval_note, flow_date, create_by, create_time, update_by, update_time from sys_property_fund_flow
+        select flow_id, flow_no, community_id, flow_type, amount, title, description, handler, approval_status, approver_id, approval_time, approval_note, flow_date, create_by, create_time, update_by, update_time from sys_property_fund_flow
     </sql>
 
     <select id="selectSysPropertyFundFlowList" parameterType="SysPropertyFundFlow" resultMap="SysPropertyFundFlowResult">
         <include refid="selectSysPropertyFundFlowVo"/>
         <where>  
             <if test="flowNo != null  and flowNo != ''"> and flow_no = #{flowNo}</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="flowType != null  and flowType != ''"> and flow_type = #{flowType}</if>
             <if test="amount != null "> and amount = #{amount}</if>
             <if test="title != null  and title != ''"> and title = #{title}</if>
@@ -53,6 +55,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into sys_property_fund_flow
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="flowNo != null and flowNo != ''">flow_no,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="flowType != null and flowType != ''">flow_type,</if>
             <if test="amount != null">amount,</if>
             <if test="title != null and title != ''">title,</if>
@@ -70,6 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="flowNo != null and flowNo != ''">#{flowNo},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="flowType != null and flowType != ''">#{flowType},</if>
             <if test="amount != null">#{amount},</if>
             <if test="title != null and title != ''">#{title},</if>
@@ -91,6 +95,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_property_fund_flow
         <trim prefix="SET" suffixOverrides=",">
             <if test="flowNo != null and flowNo != ''">flow_no = #{flowNo},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="flowType != null and flowType != ''">flow_type = #{flowType},</if>
             <if test="amount != null">amount = #{amount},</if>
             <if test="title != null and title != ''">title = #{title},</if>
@@ -120,22 +125,105 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
-    <select id="getFundOverview" resultType="java.util.HashMap">
+    <select id="getFundOverview" parameterType="java.lang.Long" resultType="java.util.HashMap">
         SELECT
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type = '3') -
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type = '4') AS maintenanceFund,
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type = '1') -
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type = '2') AS operatingIncome,
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type = '3' AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) AS maintenanceIncrease,
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type = '1' AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) AS operatingIncrease
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type = '3'
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) -
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type = '4'
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS maintenanceFund,
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type = '1'
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) -
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type = '2'
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS operatingIncome,
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type = '3'
+                  AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS maintenanceIncrease,
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type = '1'
+                  AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS operatingIncrease
     </select>
 
-    <select id="getMonthlyStats" resultType="java.util.HashMap">
+    <select id="getMonthlyStats" parameterType="java.lang.Long" resultType="java.util.HashMap">
         SELECT
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type IN ('1', '3') AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) AS income,
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type IN ('2', '4') AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) AS expense,
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type IN ('1', '3') AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) -
-            (SELECT IFNULL(SUM(amount),0) FROM sys_property_fund_flow WHERE flow_type IN ('2', '4') AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) AS balance,
-            (SELECT COUNT(*) FROM sys_property_fund_flow WHERE DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')) AS transactionCount
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type IN ('1', '3')
+                  AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS income,
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type IN ('2', '4')
+                  AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS expense,
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type IN ('1', '3')
+                  AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) -
+            (
+                SELECT IFNULL(SUM(amount),0)
+                FROM sys_property_fund_flow
+                WHERE flow_type IN ('2', '4')
+                  AND DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS balance,
+            (
+                SELECT COUNT(*)
+                FROM sys_property_fund_flow
+                WHERE DATE_FORMAT(flow_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                <if test="communityId != null">
+                    AND community_id = #{communityId}
+                </if>
+            ) AS transactionCount
     </select>
 </mapper>

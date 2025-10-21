@@ -6,7 +6,7 @@
         <view class="user-avatar-wrap">
           <image 
             class="user-avatar" 
-            :src="avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
+            :src="avatar || '/static/avatar.png'" 
             mode="aspectFill"
             @click="handleToAvatar"
           />

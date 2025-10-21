@@ -41,6 +41,7 @@ public class SysPropertyComplaintController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyComplaint sysPropertyComplaint)
     {
+        sysPropertyComplaint.setCommunityId(resolveCommunityId(sysPropertyComplaint.getCommunityId()));
         startPage();
         List<SysPropertyComplaint> list = sysPropertyComplaintService.selectSysPropertyComplaintList(sysPropertyComplaint);
         return getDataTable(list);
@@ -54,6 +55,7 @@ public class SysPropertyComplaintController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyComplaint sysPropertyComplaint)
     {
+        sysPropertyComplaint.setCommunityId(resolveCommunityId(sysPropertyComplaint.getCommunityId()));
         List<SysPropertyComplaint> list = sysPropertyComplaintService.selectSysPropertyComplaintList(sysPropertyComplaint);
         ExcelUtil<SysPropertyComplaint> util = new ExcelUtil<SysPropertyComplaint>(SysPropertyComplaint.class);
         util.exportExcel(response, list, "投诉管理数据");
@@ -77,6 +79,7 @@ public class SysPropertyComplaintController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyComplaint sysPropertyComplaint)
     {
+        sysPropertyComplaint.setCommunityId(requireResolvedCommunityId(sysPropertyComplaint.getCommunityId(), "请选择小区后再新增投诉"));
         return toAjax(sysPropertyComplaintService.insertSysPropertyComplaint(sysPropertyComplaint));
     }
 
@@ -88,6 +91,7 @@ public class SysPropertyComplaintController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyComplaint sysPropertyComplaint)
     {
+        sysPropertyComplaint.setCommunityId(requireResolvedCommunityId(sysPropertyComplaint.getCommunityId(), "请选择小区后再修改投诉"));
         return toAjax(sysPropertyComplaintService.updateSysPropertyComplaint(sysPropertyComplaint));
     }
 

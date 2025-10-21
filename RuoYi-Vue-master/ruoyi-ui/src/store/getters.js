@@ -16,6 +16,10 @@ const getters = {
   permission_routes: state => state.permission.routes,
   topbarRouters: state => state.permission.topbarRouters,
   defaultRoutes: state => state.permission.defaultRoutes,
-  sidebarRouters: state => state.permission.sidebarRouters
+  sidebarRouters: state => state.permission.sidebarRouters,
+  currentCommunityId: state => state.community.currentId,
+  currentCommunityName: state => state.community.currentName,
+  communityOptions: state => state.community.communityList,
+  isSuperAdmin: state => state.community.isSuperAdmin
 }
 export default getters

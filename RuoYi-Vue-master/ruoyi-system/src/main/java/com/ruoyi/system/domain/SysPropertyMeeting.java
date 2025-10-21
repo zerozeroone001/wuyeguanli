@@ -25,6 +25,10 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "会议标题")
     private String meetingTitle;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 会议类型 */
     @Excel(name = "会议类型")
     private String meetingType;
@@ -85,6 +89,16 @@ public class SysPropertyMeeting extends BaseEntity
     public String getMeetingTitle() 
     {
         return meetingTitle;
+    }
+
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
     }
 
     public void setMeetingType(String meetingType) 
@@ -192,6 +206,7 @@ public class SysPropertyMeeting extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("meetingId", getMeetingId())
             .append("meetingTitle", getMeetingTitle())
+            .append("communityId", getCommunityId())
             .append("meetingType", getMeetingType())
             .append("meetingContent", getMeetingContent())
             .append("meetingTime", getMeetingTime())

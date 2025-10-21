@@ -55,6 +55,9 @@ public class SysUser extends BaseEntity
     /** 密码 */
     private String password;
 
+    /** 用户类型 */
+    private String userType;
+
     /** 账号状态（0正常 1停用） */
     @Excel(name = "账号状态", readConverterExp = "0=正常,1=停用")
     private String status;
@@ -94,6 +97,10 @@ public class SysUser extends BaseEntity
 
     /** openid */
     private String openid;
+
+    /** 所属小区ID，超级管理员可不绑定 */
+    @Excel(name = "所属小区ID")
+    private Long communityId;
 
     /** 是否业委会成员（0否 1是） */
     @Excel(name = "是否业委会成员", readConverterExp = "0=否,1=业主，2=业委会")
@@ -217,6 +224,16 @@ public class SysUser extends BaseEntity
         this.password = password;
     }
 
+    public String getUserType()
+    {
+        return userType;
+    }
+
+    public void setUserType(String userType)
+    {
+        this.userType = userType;
+    }
+
     public String getStatus()
     {
         return status;
@@ -325,6 +342,16 @@ public class SysUser extends BaseEntity
         this.openid = openid;
     }
 
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
+    }
+
     public int getIsOwner() {
         return isOwner;
     }
@@ -345,6 +372,7 @@ public class SysUser extends BaseEntity
             .append("sex", getSex())
             .append("avatar", getAvatar())
             .append("password", getPassword())
+            .append("userType", getUserType())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())
             .append("loginIp", getLoginIp())
@@ -356,6 +384,7 @@ public class SysUser extends BaseEntity
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
             .append("openid", getOpenid())
+            .append("communityId", getCommunityId())
             .append("isOwner", getIsOwner())
             .append("dept", getDept())
             .toString();

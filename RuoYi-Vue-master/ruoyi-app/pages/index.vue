@@ -3,10 +3,27 @@
     <!-- 自定义导航栏 -->
     <view class="custom-navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="navbar-content">
-        <view class="location-info">
-          <uni-icons type="location" size="16" color="#fff" />
-          <text class="location-text">{{ communityInfo.name }}</text>
-        </view>
+        <picker
+          class="location-picker"
+          mode="selector"
+          :range="communityOptions"
+          range-key="name"
+          :value="selectedCommunityIndex"
+          :disabled="communityOptions.length === 0"
+          @change="handleCommunityChange"
+        >
+          <view class="location-info">
+            <uni-icons type="location" size="16" color="#fff" />
+            <text class="location-text">{{ communityInfo.name }}</text>
+            <uni-icons
+              v-if="communityOptions.length > 0"
+              type="arrowdown"
+              size="12"
+              color="#fff"
+              class="location-arrow"
+            />
+          </view>
+        </picker>
         <view class="navbar-right">
           <view class="message-icon" @click="goMessage">
             <uni-icons type="email" size="20" color="#fff" />
@@ -50,18 +67,22 @@
           <template v-else>
             <view class="greeting-wrap">
               <text class="greeting">{{ greeting }}，欢迎使用智慧物业</text>
-              <view class="weather-info">
+              <!-- <view class="weather-info">
                 <uni-icons type="cloudy" size="14" color="#8C8C8C" />
                 <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
-              </view>
+              </view> -->
             </view>
             <view class="login-status" @click="goToLogin">
               <text class="login-text">请先登录以享受更多服务</text>
               <text class="login-link">去登录 ></text>
             </view>
+			
           </template>
         </view>
       </view>
+	  <view class="tishi" v-if="!isLoggedIn">
+	  	账号仅限特定人群登录并进行登录账号鉴权
+	  </view>
     </view>
 
     <!-- 公告轮播 -->
@@ -190,13 +211,21 @@
 import { mapGetters } from 'vuex'
 import config from '@/config'
 import { listNotice } from '@/api/notice.js'
+import { listMyProperty, listCommunity } from '@/api/property.js'
 import { isAuthenticated, getAuthStatusText, getAuthStatusColor, getAuthStatusIcon } from '@/utils/authHelper'
+
+const COMMUNITY_STORAGE_KEY = 'app_current_community_id'
+const COMMUNITY_INFO_STORAGE_KEY = 'app_current_community_info'
 
 export default {
   data() {
     return {
       statusBarHeight: 0,
-      communityInfo: config.property.communityInfo,
+      defaultCommunityInfo: { ...config.property.communityInfo },
+      communityInfo: { ...config.property.communityInfo },
+      communityOptions: [],
+      selectedCommunityIndex: 0,
+      selectedCommunityId: null,
       unreadCount: 3,
       weather: {
         text: '晴',
@@ -327,13 +356,18 @@ export default {
   onLoad() {
     this.initPage()
   },
-  onShow() {
-    // 每次页面显示时，都主动刷新一次认证信息（仅在已登录时）
+  async onShow() {
+    // 每次页面显示时，若已登录则刷新认证信息
     if (this.isLoggedIn) {
-      this.$store.dispatch('GetProfileInfo');
+      try {
+        await this.$store.dispatch('GetProfileInfo')
+      } catch (error) {
+        console.warn('获取认证信息失败', error)
+      }
     }
+    await this.loadCommunityOptions()
     // 重新加载数据，确保登录状态变化后数据正确显示
-    this.loadData();
+    this.loadData()
   },
   
   // 下拉刷新
@@ -350,6 +384,87 @@ export default {
     }, 1000)
   },
   methods: {
+    async loadCommunityOptions() {
+      if (!this.isLoggedIn) {
+        this.communityOptions = []
+        this.resetCommunityInfo()
+        return
+      }
+      try {
+        const propertyRes = await listMyProperty({ status: '1', pageNum: 1, pageSize: 100 })
+        const propertyRows = propertyRes.rows || []
+        const communityIds = Array.from(new Set(propertyRows.map(item => item.communityId).filter(Boolean)))
+        if (communityIds.length === 0) {
+          this.communityOptions = []
+          this.resetCommunityInfo({ clearStorage: true })
+          return
+        }
+        const communityRes = await listCommunity({ pageNum: 1, pageSize: 1000 })
+        const communities = (communityRes.rows || []).filter(item => communityIds.includes(item.communityId))
+        const options = communities.map(item => ({
+          value: item.communityId,
+          name: item.communityName,
+          address: item.address,
+          phone: item.contactPhone,
+          raw: item
+        }))
+        this.communityOptions = options
+        if (options.length > 0) {
+          const storedId = uni.getStorageSync(COMMUNITY_STORAGE_KEY)
+          let index = options.findIndex(option => option.value === storedId)
+          if (index === -1) {
+            index = 0
+          }
+          this.applyCommunity(options[index], index)
+        } else {
+          this.resetCommunityInfo({ clearStorage: true })
+        }
+      } catch (error) {
+        console.error('加载小区信息失败', error)
+        this.communityOptions = []
+        this.resetCommunityInfo({ fallbackToStored: true })
+      }
+    },
+    handleCommunityChange(event) {
+      const index = Number(event.detail.value)
+      const option = this.communityOptions[index]
+      if (option) {
+        this.applyCommunity(option, index)
+      }
+    },
+    applyCommunity(option, index = 0) {
+      if (option) {
+        this.selectedCommunityIndex = index
+        this.selectedCommunityId = option.value
+        this.communityInfo = {
+          ...this.defaultCommunityInfo,
+          name: option.name || this.defaultCommunityInfo.name,
+          address: option.address || this.defaultCommunityInfo.address,
+          phone: option.phone || this.defaultCommunityInfo.phone
+        }
+        uni.setStorageSync(COMMUNITY_STORAGE_KEY, option.value)
+        uni.setStorageSync(COMMUNITY_INFO_STORAGE_KEY, this.communityInfo)
+      } else {
+        this.resetCommunityInfo()
+      }
+    },
+    resetCommunityInfo(options = {}) {
+      const { fallbackToStored = false, clearStorage = false } = options
+      let info = null
+      if (fallbackToStored) {
+        const storedInfo = uni.getStorageSync(COMMUNITY_INFO_STORAGE_KEY)
+        if (storedInfo && storedInfo.name) {
+          info = storedInfo
+        }
+      }
+      this.communityInfo = info || { ...this.defaultCommunityInfo }
+      this.selectedCommunityId = null
+      this.selectedCommunityIndex = 0
+      if (clearStorage) {
+        uni.removeStorageSync(COMMUNITY_STORAGE_KEY)
+        uni.removeStorageSync(COMMUNITY_INFO_STORAGE_KEY)
+      }
+    },
     initPage() {
       // 获取状态栏高度
       uni.getSystemInfo({
@@ -364,11 +479,11 @@ export default {
     
     loadData() {
       // 只有在已登录时才调用需要认证的API，否则使用模拟数据
-      if (this.isLoggedIn) {
+      // if (this.isLoggedIn) {
         this.getNoticeList(); // 调用真实API
-      } else {
-        this.getMockNoticeList(); // 使用模拟数据
-      }
+      // } else {
+      //   this.getMockNoticeList(); // 使用模拟数据
+      // }
       this.updateDynamicData()
     },
 
@@ -550,6 +665,11 @@ export default {
     height: 44px;
     padding: 0 30rpx;
     
+    .location-picker {
+      display: flex;
+      align-items: center;
+    }
+    
     .location-info {
       display: flex;
       align-items: center;
@@ -559,6 +679,10 @@ export default {
         font-size: 32rpx;
         font-weight: 600;
         color: #262626;
+      }
+      
+      .location-arrow {
+        margin-left: 8rpx;
       }
     }
     
@@ -1000,5 +1124,10 @@ export default {
 .safe-area-bottom {
   height: env(safe-area-inset-bottom);
   background: #fff;
+  }
+  .tishi{
+	      text-align: center;
+	      font-size: 12px;
+	      color: red;
   }
 </style>

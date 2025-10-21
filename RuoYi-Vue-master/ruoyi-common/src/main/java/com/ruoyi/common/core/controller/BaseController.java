@@ -15,6 +15,8 @@ import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.page.TableSupport;
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.CommunityUtils;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.PageUtils;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -198,5 +200,56 @@ public class BaseController
     public String getUsername()
     {
         return getLoginUser().getUsername();
+    }
+
+    /**
+     * 获取当前请求绑定的小区ID（可能为null，仅超级管理员查看全部时）
+     */
+    protected Long getCurrentCommunityId()
+    {
+        return CommunityUtils.getCurrentCommunityId();
+    }
+
+    /**
+     * 获取并校验当前小区ID，常用于非超级管理员的场景。
+     *
+     * @return 当前线程内已绑定的小区ID
+     */
+    protected Long requireCommunityId()
+    {
+        return CommunityUtils.requireCurrentCommunityId("当前账号未绑定任何小区");
+    }
+
+    /**
+     * 根据当前登录用户身份解析最终应使用的小区ID。
+     * 超级管理员返回前端传递的ID（可为null），普通账号则强制使用自身绑定的小区。
+     *
+     * @param requestedCommunityId 前端请求中携带的小区ID
+     * @return 经权限校验后可使用的小区ID
+     */
+    protected Long resolveCommunityId(Long requestedCommunityId)
+    {
+        if (CommunityUtils.isCurrentUserAdmin())
+        {
+            return requestedCommunityId;
+        }
+        return requireCommunityId();
+    }
+
+    /**
+     * 在解析小区ID的基础上强制判空，常用于新增/编辑等必须落库的场景。
+     *
+     * @param requestedCommunityId 前端请求中携带的小区ID
+     * @param errorMessage 判空失败时的提示语
+     * @return 经校验的有效小区ID
+     */
+    protected Long requireResolvedCommunityId(Long requestedCommunityId, String errorMessage)
+    {
+        Long communityId = resolveCommunityId(requestedCommunityId);
+        if (communityId == null)
+        {
+            throw new ServiceException(StringUtils.isNotBlank(errorMessage) ? errorMessage : "请选择小区后再执行当前操作");
+        }
+        return communityId;
     }
 }

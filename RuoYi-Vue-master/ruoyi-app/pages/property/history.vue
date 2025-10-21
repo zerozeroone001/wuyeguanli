@@ -14,7 +14,6 @@
 
 <script>
 	import { listMyProperty } from "@/api/property.js";
-	import { getPropertyDetails } from "@/api/property.js";
 
 	export default {
 		data() {
@@ -29,20 +28,17 @@
 			getHistoryList() {
 				// 不带任何查询参数，获取当前用户的所有记录
 				listMyProperty().then(response => {
-					const userProperties = response.rows;
-					const promises = userProperties.map(up => getPropertyDetails(up.propertyId));
-					
-					Promise.all(promises).then(detailsResponses => {
-						this.historyList = userProperties.map((up, index) => {
-							const details = detailsResponses[index].data;
-							return {
-								...up,
-								communityName: details.communityName,
-								propertyInfo: `${details.buildingName}${details.unitName}${details.roomNumber}`
-							};
-						});
-					});
+					const rows = response.rows || [];
+					this.historyList = rows.map(item => ({
+						...item,
+						communityName: item.communityName || '',
+						propertyInfo: this.buildPropertyInfo(item)
+					}));
 				});
+			},
+			buildPropertyInfo(item) {
+				const parts = [item.buildingName, item.unitName, item.roomNumber].filter(Boolean);
+				return parts.join('');
 			},
 			formatUserType(userType) {
 				const map = { '00': '业主', '01': '家属', '02': '租户' };

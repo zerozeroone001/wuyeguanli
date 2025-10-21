@@ -56,7 +56,7 @@
 <script>
 import store from "@/store"
 import { VueCropper } from "vue-cropper"
-import { uploadAvatar } from "@/api/system/user"
+import request from "@/utils/request"
 import { debounce } from '@/utils'
 
 export default {
@@ -130,16 +130,26 @@ export default {
         }
       }
     },
-    // 上传图片
+    // 上传图片（统一使用 /common/upload）
     uploadImg() {
       this.$refs.cropper.getCropBlob(data => {
-        let formData = new FormData()
-        formData.append("avatarfile", data, this.options.filename)
-        uploadAvatar(formData).then(response => {
+        const formData = new FormData()
+        // 统一上传字段名为 file，和全局上传保持一致
+        formData.append('file', data, this.options.filename)
+        request({
+          url: '/common/upload',
+          method: 'post',
+          headers: { 'Content-Type': 'multipart/form-data' },
+          data: formData
+        }).then(response => {
+          // 兼容后端返回相对路径或不同字段名
+          const returnedUrl = response.url || response.imgUrl || ''
+          const fullUrl = /^https?:\/\//i.test(returnedUrl) ? returnedUrl : (process.env.VUE_APP_BASE_API + returnedUrl)
           this.open = false
-          this.options.img = process.env.VUE_APP_BASE_API + response.imgUrl
-          store.commit('SET_AVATAR', this.options.img)
-          this.$modal.msgSuccess("修改成功")
+          this.options.img = fullUrl
+          store.commit('SET_AVATAR', fullUrl)
+          this.$emit('avatar-updated', fullUrl)
+          this.$modal.msgSuccess('修改成功')
           this.visible = false
         })
       })

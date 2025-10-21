@@ -10,6 +10,7 @@ public class SysInspectionPlan extends BaseEntity {
     private Long planId;
     private String planName;
     private String inspectionType;
+    private Long communityId;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date startDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -26,6 +27,8 @@ public class SysInspectionPlan extends BaseEntity {
     public void setPlanName(String planName) { this.planName = planName; }
     public String getInspectionType() { return inspectionType; }
     public void setInspectionType(String inspectionType) { this.inspectionType = inspectionType; }
+    public Long getCommunityId() { return communityId; }
+    public void setCommunityId(Long communityId) { this.communityId = communityId; }
     public Date getStartDate() { return startDate; }
     public void setStartDate(Date startDate) { this.startDate = startDate; }
     public Date getEndDate() { return endDate; }

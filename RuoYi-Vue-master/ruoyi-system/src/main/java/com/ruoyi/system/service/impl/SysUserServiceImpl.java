@@ -15,6 +15,7 @@ import com.ruoyi.common.annotation.DataScope;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
@@ -65,6 +66,49 @@ public class SysUserServiceImpl implements ISysUserService
 
     @Autowired
     protected Validator validator;
+
+    /**
+     * 为用户对象填充并校验所属小区信息。
+     * <p>
+     * - 若当前操作人非超级管理员，则强制使用其绑定的小区，并在缺失时阻断操作；<br>
+     * - 若当前操作人为超级管理员，仅允许超级管理员账号（userId=1）为空，其余账号必须显式选择小区。<br>
+     * 这样可以确保除超级管理员外的后台账号都被绑定到唯一的小区，满足权限隔离要求。
+     * </p>
+     *
+     * @param user 待处理的用户对象
+     */
+    private void applyCommunityBinding(SysUser user)
+    {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        boolean operatorIsAdmin = loginUser != null && SecurityUtils.isAdmin(loginUser.getUserId());
+        if (loginUser == null)
+        {
+            // 无登录上下文（例如系统任务）时，仅允许超级管理员账号为空小区
+            if (!SysUser.isAdmin(user.getUserId()) && user.getCommunityId() == null)
+            {
+                throw new ServiceException("非超级管理员账号必须绑定所属小区");
+            }
+            return;
+        }
+        if (!operatorIsAdmin)
+        {
+            Long operatorCommunityId = loginUser.getUser() != null ? loginUser.getUser().getCommunityId() : null;
+            if (operatorCommunityId == null)
+            {
+                throw new ServiceException("当前账号未绑定小区，请联系管理员处理");
+            }
+            // 非超级管理员不允许越权切换小区，直接覆盖为自身绑定的小区
+            user.setCommunityId(operatorCommunityId);
+        }
+//        else
+//        {
+//            // 超级管理员可操作任意小区，但除超级管理员账号外必须指定具体小区
+//            if (!SysUser.isAdmin(user.getUserId()) && user.getCommunityId() == null)
+//            {
+//                throw new ServiceException("请为该账号选择所属小区");
+//            }
+//        }
+    }
 
     /**
      * 根据条件分页查询用户列表
@@ -285,6 +329,8 @@ public class SysUserServiceImpl implements ISysUserService
     @Transactional
     public int insertUser(SysUser user)
     {
+        // 落库前先校验并写入小区信息，确保除超级管理员外的账号都有绑定
+        applyCommunityBinding(user);
         // 新增用户信息
         int rows = userMapper.insertUser(user);
         // 新增用户岗位关联
@@ -331,6 +377,8 @@ public class SysUserServiceImpl implements ISysUserService
     @Transactional
     public int updateUser(SysUser user)
     {
+        // 更新前校验并回填所属小区，防止出现未绑定或越权修改
+        applyCommunityBinding(user);
         Long userId = user.getUserId();
         // 删除用户与角色关联
         userRoleMapper.deleteUserRoleByUserId(userId);
@@ -546,6 +594,8 @@ public class SysUserServiceImpl implements ISysUserService
                     String password = configService.selectConfigByKey("sys.user.initPassword");
                     user.setPassword(SecurityUtils.encryptPassword(password));
                     user.setCreateBy(operName);
+                    // 导入新增同步校验小区绑定，避免产生越权账号
+                    applyCommunityBinding(user);
                     userMapper.insertUser(user);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、账号 " + user.getUserName() + " 导入成功");
@@ -558,6 +608,8 @@ public class SysUserServiceImpl implements ISysUserService
                     deptService.checkDeptDataScope(user.getDeptId());
                     user.setUserId(u.getUserId());
                     user.setUpdateBy(operName);
+                    // 导入更新同样需要校验操作者的小区权限
+                    applyCommunityBinding(user);
                     userMapper.updateUser(user);
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、账号 " + user.getUserName() + " 更新成功");
@@ -655,5 +707,11 @@ public class SysUserServiceImpl implements ISysUserService
     public List<SysUser> selectUserListWithOpenId()
     {
         return userMapper.selectUserListWithOpenId();
+    }
+
+    @Override
+    public List<String> selectOwnerPhoneList()
+    {
+        return userMapper.selectOwnerPhoneList();
     }
 }

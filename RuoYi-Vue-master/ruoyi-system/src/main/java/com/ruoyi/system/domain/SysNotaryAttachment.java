@@ -34,6 +34,26 @@ public class SysNotaryAttachment extends BaseEntity
     @Excel(name = "文件材料类型 (id_card, application, supporting_docs, photos)")
     private String fileType;
 
+    /** 文件大小（字节） */
+    @Excel(name = "文件大小（字节）")
+    private Long fileSize;
+
+    /** 文件哈希值 */
+    @Excel(name = "文件哈希值")
+    private String fileHash;
+
+    /** 上传时间 */
+    @Excel(name = "上传时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    private java.util.Date uploadTime;
+
+    /** 上传人 */
+    @Excel(name = "上传人")
+    private String uploadBy;
+
+    /** 附件状态 (pending, verified, rejected) */
+    @Excel(name = "附件状态 (pending, verified, rejected)")
+    private String status;
+
     public void setAttachmentId(Long attachmentId) 
     {
         this.attachmentId = attachmentId;
@@ -84,6 +104,56 @@ public class SysNotaryAttachment extends BaseEntity
         return fileType;
     }
 
+    public void setFileSize(Long fileSize) 
+    {
+        this.fileSize = fileSize;
+    }
+
+    public Long getFileSize() 
+    {
+        return fileSize;
+    }
+
+    public void setFileHash(String fileHash) 
+    {
+        this.fileHash = fileHash;
+    }
+
+    public String getFileHash() 
+    {
+        return fileHash;
+    }
+
+    public void setUploadTime(java.util.Date uploadTime) 
+    {
+        this.uploadTime = uploadTime;
+    }
+
+    public java.util.Date getUploadTime() 
+    {
+        return uploadTime;
+    }
+
+    public void setUploadBy(String uploadBy) 
+    {
+        this.uploadBy = uploadBy;
+    }
+
+    public String getUploadBy() 
+    {
+        return uploadBy;
+    }
+
+    public void setStatus(String status) 
+    {
+        this.status = status;
+    }
+
+    public String getStatus() 
+    {
+        return status;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -92,8 +162,16 @@ public class SysNotaryAttachment extends BaseEntity
             .append("fileName", getFileName())
             .append("fileUrl", getFileUrl())
             .append("fileType", getFileType())
+            .append("fileSize", getFileSize())
+            .append("fileHash", getFileHash())
+            .append("uploadTime", getUploadTime())
+            .append("uploadBy", getUploadBy())
+            .append("status", getStatus())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
+            .append("updateBy", getUpdateBy())
+            .append("updateTime", getUpdateTime())
+            .append("remark", getRemark())
             .toString();
     }
 }

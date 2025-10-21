@@ -21,6 +21,10 @@ public class SysOwnerProfile extends BaseEntity
     /** 用户ID (外键, 可选) */
     private Long userId;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 真实姓名 */
     @Excel(name = "真实姓名")
     private String realName;
@@ -92,6 +96,15 @@ public class SysOwnerProfile extends BaseEntity
     public Long getUserId() 
     {
         return userId;
+    }
+    public void setCommunityId(Long communityId) 
+    {
+        this.communityId = communityId;
+    }
+
+    public Long getCommunityId() 
+    {
+        return communityId;
     }
     public void setRealName(String realName) 
     {
@@ -258,6 +271,7 @@ public class SysOwnerProfile extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("ownerId", getOwnerId())
             .append("userId", getUserId())
+            .append("communityId", getCommunityId())
             .append("realName", getRealName())
             .append("idCardNo", getIdCardNo())
             .append("idCardFrontUrl", getIdCardFrontUrl())

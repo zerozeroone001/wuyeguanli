@@ -23,6 +23,12 @@ public class EstateProperty extends BaseEntity
     @Excel(name = "所属小区ID")
     private Long communityId;
 
+    /** 小区名称 */
+    private String communityName;
+
+    /** 小区地址 */
+    private String communityAddress;
+
     /** 楼栋名称 */
     @Excel(name = "楼栋名称")
     private String buildingName;
@@ -68,6 +74,26 @@ public class EstateProperty extends BaseEntity
     public Long getCommunityId() 
     {
         return communityId;
+    }
+
+    public String getCommunityName()
+    {
+        return communityName;
+    }
+
+    public void setCommunityName(String communityName)
+    {
+        this.communityName = communityName;
+    }
+
+    public String getCommunityAddress()
+    {
+        return communityAddress;
+    }
+
+    public void setCommunityAddress(String communityAddress)
+    {
+        this.communityAddress = communityAddress;
     }
 
     public void setBuildingName(String buildingName) 
@@ -145,6 +171,8 @@ public class EstateProperty extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("propertyId", getPropertyId())
             .append("communityId", getCommunityId())
+            .append("communityName", getCommunityName())
+            .append("communityAddress", getCommunityAddress())
             .append("buildingName", getBuildingName())
             .append("unitName", getUnitName())
             .append("roomNumber", getRoomNumber())

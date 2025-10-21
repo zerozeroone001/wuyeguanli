@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysPropertyMeeting" id="SysPropertyMeetingResult">
         <result property="meetingId"    column="meeting_id"    />
         <result property="meetingTitle"    column="meeting_title"    />
+        <result property="communityId"    column="community_id"    />
         <result property="meetingType"    column="meeting_type"    />
         <result property="meetingContent"    column="meeting_content"    />
         <result property="meetingTime"    column="meeting_time"    />
@@ -24,13 +25,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyMeetingVo">
-        select meeting_id, meeting_title, meeting_type, meeting_content, meeting_time, meeting_location, meeting_status, vote_start_time, vote_end_time, total_voters, actual_voters, create_by, create_time, update_by, update_time from sys_property_meeting
+        select meeting_id, meeting_title, community_id, meeting_type, meeting_content, meeting_time, meeting_location, meeting_status, vote_start_time, vote_end_time, total_voters, actual_voters, create_by, create_time, update_by, update_time from sys_property_meeting
     </sql>
 
     <select id="selectSysPropertyMeetingList" parameterType="SysPropertyMeeting" resultMap="SysPropertyMeetingResult">
         <include refid="selectSysPropertyMeetingVo"/>
         <where>  
             <if test="meetingTitle != null  and meetingTitle != ''"> and meeting_title = #{meetingTitle}</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="meetingType != null  and meetingType != ''"> and meeting_type = #{meetingType}</if>
             <if test="meetingContent != null  and meetingContent != ''"> and meeting_content = #{meetingContent}</if>
             <if test="meetingTime != null "> and meeting_time = #{meetingTime}</if>
@@ -53,6 +55,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into sys_property_meeting
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="meetingTitle != null and meetingTitle != ''">meeting_title,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="meetingType != null and meetingType != ''">meeting_type,</if>
             <if test="meetingContent != null">meeting_content,</if>
             <if test="meetingTime != null">meeting_time,</if>
@@ -69,6 +72,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="meetingTitle != null and meetingTitle != ''">#{meetingTitle},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="meetingType != null and meetingType != ''">#{meetingType},</if>
             <if test="meetingContent != null">#{meetingContent},</if>
             <if test="meetingTime != null">#{meetingTime},</if>
@@ -89,6 +93,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_property_meeting
         <trim prefix="SET" suffixOverrides=",">
             <if test="meetingTitle != null and meetingTitle != ''">meeting_title = #{meetingTitle},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="meetingType != null and meetingType != ''">meeting_type = #{meetingType},</if>
             <if test="meetingContent != null">meeting_content = #{meetingContent},</if>
             <if test="meetingTime != null">meeting_time = #{meetingTime},</if>
@@ -117,7 +122,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
-    <select id="getMeetingMarks" resultType="java.util.Map">
+    <select id="getMeetingMarks" parameterType="java.lang.Long" resultType="java.util.Map">
         select date_format(meeting_time, '%Y-%m-%d') as date, meeting_title as info from sys_property_meeting
+        <where>
+            <if test="communityId != null"> community_id = #{communityId}</if>
+        </where>
     </select>
 </mapper>

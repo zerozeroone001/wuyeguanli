@@ -6,21 +6,25 @@ import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.utils.MessageUtils;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.framework.manager.AsyncManager;
+import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.framework.web.service.SysPermissionService;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysOwnerProfileService;
 import com.ruoyi.system.service.ISysUserService;
-import com.ruoyi.system.domain.SysOwnerProfile;
-import com.ruoyi.user.domain.dto.WechatLoginDto;
+import com.ruoyi.system.domain.dto.WechatLoginDto;
+import com.ruoyi.system.service.WechatService;
 import com.ruoyi.user.service.IWechatLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @RestController
@@ -49,11 +53,21 @@ public class UserLoginController {
     @Autowired
     private ISysUserService userService;
 
+    @Autowired
+    private WechatService wechatService;
+
+
     @PostMapping("/wx-login")
     public AjaxResult wechatLogin(@RequestBody WechatLoginDto wechatLoginDto) {
         AjaxResult ajax = AjaxResult.success("登录成功");
-        String token = wechatLoginService.wechatLogin(wechatLoginDto);
-        ajax.put(Constants.TOKEN, token);
+
+        SysUser user = wechatService.wechatLogin(wechatLoginDto);
+
+        AsyncManager.me().execute(AsyncFactory.recordLogininfor(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
+
+        LoginUser loginUser = new LoginUser(user.getUserId(), user.getDeptId(), user,new HashSet<>());
+
+        ajax.put(Constants.TOKEN, tokenService.createToken(loginUser));
         return ajax;
     }
 

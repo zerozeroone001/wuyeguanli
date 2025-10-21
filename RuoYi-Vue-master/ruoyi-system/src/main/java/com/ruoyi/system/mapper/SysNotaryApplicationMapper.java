@@ -66,4 +66,11 @@ public interface SysNotaryApplicationMapper
      * @return 结果
      */
     public List<java.util.Map<String, Object>> countByStatus(Long userId);
+    
+    /**
+     * 统计所有申请按状态分组
+     *
+     * @return 结果
+     */
+    public List<java.util.Map<String, Object>> countAllByStatus();
 }

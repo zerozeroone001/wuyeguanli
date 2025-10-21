@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysNotaryTypeConfigMapper">
+    
+    <resultMap type="SysNotaryTypeConfig" id="SysNotaryTypeConfigResult">
+        <result property="configId"    column="config_id"    />
+        <result property="typeCode"    column="type_code"    />
+        <result property="typeName"    column="type_name"    />
+        <result property="description"    column="description"    />
+        <result property="baseFee"    column="base_fee"    />
+        <result property="urgentFee"    column="urgent_fee"    />
+        <result property="processingDays"    column="processing_days"    />
+        <result property="urgentDays"    column="urgent_days"    />
+        <result property="requiredDocuments"    column="required_documents"    />
+        <result property="optionalDocuments"    column="optional_documents"    />
+        <result property="status"    column="status"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysNotaryTypeConfigVo">
+        select config_id, type_code, type_name, description, base_fee, urgent_fee, processing_days, urgent_days, required_documents, optional_documents, status, sort_order, create_by, create_time, update_by, update_time, remark from sys_notary_type_config
+    </sql>
+
+    <select id="selectSysNotaryTypeConfigList" parameterType="SysNotaryTypeConfig" resultMap="SysNotaryTypeConfigResult">
+        <include refid="selectSysNotaryTypeConfigVo"/>
+        <where>  
+            <if test="typeCode != null  and typeCode != ''"> and type_code = #{typeCode}</if>
+            <if test="typeName != null  and typeName != ''"> and type_name like concat('%', #{typeName}, '%')</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="baseFee != null "> and base_fee = #{baseFee}</if>
+            <if test="urgentFee != null "> and urgent_fee = #{urgentFee}</if>
+            <if test="processingDays != null "> and processing_days = #{processingDays}</if>
+            <if test="urgentDays != null "> and urgent_days = #{urgentDays}</if>
+            <if test="requiredDocuments != null  and requiredDocuments != ''"> and required_documents = #{requiredDocuments}</if>
+            <if test="optionalDocuments != null  and optionalDocuments != ''"> and optional_documents = #{optionalDocuments}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="sortOrder != null "> and sort_order = #{sortOrder}</if>
+        </where>
+        order by sort_order asc, create_time desc
+    </select>
+    
+    <select id="selectSysNotaryTypeConfigByConfigId" parameterType="Long" resultMap="SysNotaryTypeConfigResult">
+        <include refid="selectSysNotaryTypeConfigVo"/>
+        where config_id = #{configId}
+    </select>
+        
+    <insert id="insertSysNotaryTypeConfig" parameterType="SysNotaryTypeConfig" useGeneratedKeys="true" keyProperty="configId">
+        insert into sys_notary_type_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="typeCode != null and typeCode != ''">type_code,</if>
+            <if test="typeName != null and typeName != ''">type_name,</if>
+            <if test="description != null">description,</if>
+            <if test="baseFee != null">base_fee,</if>
+            <if test="urgentFee != null">urgent_fee,</if>
+            <if test="processingDays != null">processing_days,</if>
+            <if test="urgentDays != null">urgent_days,</if>
+            <if test="requiredDocuments != null">required_documents,</if>
+            <if test="optionalDocuments != null">optional_documents,</if>
+            <if test="status != null">status,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="typeCode != null and typeCode != ''">#{typeCode},</if>
+            <if test="typeName != null and typeName != ''">#{typeName},</if>
+            <if test="description != null">#{description},</if>
+            <if test="baseFee != null">#{baseFee},</if>
+            <if test="urgentFee != null">#{urgentFee},</if>
+            <if test="processingDays != null">#{processingDays},</if>
+            <if test="urgentDays != null">#{urgentDays},</if>
+            <if test="requiredDocuments != null">#{requiredDocuments},</if>
+            <if test="optionalDocuments != null">#{optionalDocuments},</if>
+            <if test="status != null">#{status},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysNotaryTypeConfig" parameterType="SysNotaryTypeConfig">
+        update sys_notary_type_config
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="typeCode != null and typeCode != ''">type_code = #{typeCode},</if>
+            <if test="typeName != null and typeName != ''">type_name = #{typeName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="baseFee != null">base_fee = #{baseFee},</if>
+            <if test="urgentFee != null">urgent_fee = #{urgentFee},</if>
+            <if test="processingDays != null">processing_days = #{processingDays},</if>
+            <if test="urgentDays != null">urgent_days = #{urgentDays},</if>
+            <if test="requiredDocuments != null">required_documents = #{requiredDocuments},</if>
+            <if test="optionalDocuments != null">optional_documents = #{optionalDocuments},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where config_id = #{configId}
+    </update>
+
+    <delete id="deleteSysNotaryTypeConfigByConfigId" parameterType="Long">
+        delete from sys_notary_type_config where config_id = #{configId}
+    </delete>
+
+    <delete id="deleteSysNotaryTypeConfigByConfigIds" parameterType="String">
+        delete from sys_notary_type_config where config_id in 
+        <foreach item="configId" collection="array" open="(" separator="," close=")">
+            #{configId}
+        </foreach>
+    </delete>
+</mapper>

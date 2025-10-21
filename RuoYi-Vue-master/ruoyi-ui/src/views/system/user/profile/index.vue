@@ -8,7 +8,7 @@
           </div>
           <div>
             <div class="text-center">
-              <userAvatar />
+              <userAvatar @avatar-updated="handleAvatarUpdated" />
             </div>
             <ul class="list-group list-group-striped">
               <li class="list-group-item">
@@ -46,7 +46,7 @@
           </div>
           <el-tabs v-model="selectedTab">
             <el-tab-pane label="基本资料" name="userinfo">
-              <userInfo :user="user" />
+              <userInfo ref="userInfoRef" :user="user" />
             </el-tab-pane>
             <el-tab-pane label="修改密码" name="resetPwd">
               <resetPwd />
@@ -86,9 +86,36 @@ export default {
     getUser() {
       getUserProfile().then(response => {
         this.user = response.data
+        const resolvedAvatar = this.resolveAvatar(response.data.avatar)
+        this.$set(this.user, "avatar", resolvedAvatar)
         this.roleGroup = response.roleGroup
         this.postGroup = response.postGroup
+        if (this.$refs.userInfoRef && typeof this.$refs.userInfoRef.updateAvatar === "function") {
+          this.$refs.userInfoRef.updateAvatar(resolvedAvatar)
+        }
       })
+    },
+    handleAvatarUpdated(url) {
+      if (!this.user) {
+        this.user = {}
+      }
+      this.$set(this.user, "avatar", url)
+      if (this.$refs.userInfoRef && typeof this.$refs.userInfoRef.updateAvatar === "function") {
+        this.$refs.userInfoRef.updateAvatar(url)
+      }
+    },
+    resolveAvatar(avatar) {
+      if (avatar && avatar.startsWith("http")) {
+        return avatar
+      }
+      const storeAvatar = this.$store?.getters?.avatar
+      if (storeAvatar && storeAvatar.startsWith("http")) {
+        return storeAvatar
+      }
+      if (avatar && avatar !== "") {
+        return `${process.env.VUE_APP_BASE_API || ""}${avatar}`
+      }
+      return ""
     }
   }
 }

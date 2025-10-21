@@ -1,6 +1,6 @@
 package com.ruoyi.user.service;
 
-import com.ruoyi.user.domain.dto.WechatLoginDto;
+import com.ruoyi.system.domain.dto.WechatLoginDto;
 
 public interface IWechatLoginService {
 

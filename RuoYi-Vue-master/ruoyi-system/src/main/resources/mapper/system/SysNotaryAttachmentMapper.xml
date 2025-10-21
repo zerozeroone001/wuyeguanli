@@ -10,12 +10,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="fileName"    column="file_name"    />
         <result property="fileUrl"    column="file_url"    />
         <result property="fileType"    column="file_type"    />
+        <result property="fileSize"    column="file_size"    />
+        <result property="fileHash"    column="file_hash"    />
+        <result property="uploadTime"    column="upload_time"    />
+        <result property="uploadBy"    column="upload_by"    />
+        <result property="status"    column="status"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
     </resultMap>
 
     <sql id="selectSysNotaryAttachmentVo">
-        select attachment_id, notary_id, file_name, file_url, file_type, create_by, create_time from sys_notary_attachment
+        select attachment_id, notary_id, file_name, file_url, file_type, file_size, file_hash, upload_time, upload_by, status, create_by, create_time, update_by, update_time, remark from sys_notary_attachment
     </sql>
 
     <select id="selectSysNotaryAttachmentList" parameterType="SysNotaryAttachment" resultMap="SysNotaryAttachmentResult">
@@ -25,31 +33,53 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="fileName != null  and fileName != ''"> and file_name like concat('%', #{fileName}, '%')</if>
             <if test="fileUrl != null  and fileUrl != ''"> and file_url = #{fileUrl}</if>
             <if test="fileType != null  and fileType != ''"> and file_type = #{fileType}</if>
+            <if test="fileSize != null "> and file_size = #{fileSize}</if>
+            <if test="fileHash != null  and fileHash != ''"> and file_hash = #{fileHash}</if>
+            <if test="uploadTime != null "> and upload_time = #{uploadTime}</if>
+            <if test="uploadBy != null  and uploadBy != ''"> and upload_by like concat('%', #{uploadBy}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
+        order by upload_time desc
     </select>
     
     <select id="selectSysNotaryAttachmentByAttachmentId" parameterType="Long" resultMap="SysNotaryAttachmentResult">
         <include refid="selectSysNotaryAttachmentVo"/>
         where attachment_id = #{attachmentId}
     </select>
-
+        
     <insert id="insertSysNotaryAttachment" parameterType="SysNotaryAttachment" useGeneratedKeys="true" keyProperty="attachmentId">
         insert into sys_notary_attachment
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="notaryId != null">notary_id,</if>
-            <if test="fileName != null">file_name,</if>
+            <if test="fileName != null and fileName != ''">file_name,</if>
             <if test="fileUrl != null and fileUrl != ''">file_url,</if>
-            <if test="fileType != null">file_type,</if>
+            <if test="fileType != null and fileType != ''">file_type,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="fileHash != null">file_hash,</if>
+            <if test="uploadTime != null">upload_time,</if>
+            <if test="uploadBy != null">upload_by,</if>
+            <if test="status != null">status,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="notaryId != null">#{notaryId},</if>
-            <if test="fileName != null">#{fileName},</if>
+            <if test="fileName != null and fileName != ''">#{fileName},</if>
             <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
-            <if test="fileType != null">#{fileType},</if>
+            <if test="fileType != null and fileType != ''">#{fileType},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="fileHash != null">#{fileHash},</if>
+            <if test="uploadTime != null">#{uploadTime},</if>
+            <if test="uploadBy != null">#{uploadBy},</if>
+            <if test="status != null">#{status},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
          </trim>
     </insert>
 
@@ -57,11 +87,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_notary_attachment
         <trim prefix="SET" suffixOverrides=",">
             <if test="notaryId != null">notary_id = #{notaryId},</if>
-            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileName != null and fileName != ''">file_name = #{fileName},</if>
             <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>
-            <if test="fileType != null">file_type = #{fileType},</if>
+            <if test="fileType != null and fileType != ''">file_type = #{fileType},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="fileHash != null">file_hash = #{fileHash},</if>
+            <if test="uploadTime != null">upload_time = #{uploadTime},</if>
+            <if test="uploadBy != null">upload_by = #{uploadBy},</if>
+            <if test="status != null">status = #{status},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
         </trim>
         where attachment_id = #{attachmentId}
     </update>

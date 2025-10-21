@@ -13,10 +13,7 @@ import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.SmsUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.poi.ExcelUtil;
-import com.ruoyi.system.service.ISysDeptService;
-import com.ruoyi.system.service.ISysPostService;
-import com.ruoyi.system.service.ISysRoleService;
-import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.service.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,10 +48,13 @@ public class UserController extends BaseController
     private ISysPostService postService;
 
     @Autowired
-    private SmsUtils smsUtils;
+    private SmsService smsService;
 
     @Autowired
     private RedisCache redisCache;
+
+    @Autowired
+    private WechatService wechatService;
 
     private final static String SMS_CODE_PREFIX = "sms_code:";
 
@@ -149,9 +149,9 @@ public class UserController extends BaseController
 
         // 2. 将验证码存入Redis，有效期5分钟
         redisCache.setCacheObject(SMS_CODE_PREFIX + user.getPhonenumber(), code, 5, TimeUnit.MINUTES);
-
+        wechatService.getPageLink(11L);
         // 3. 发送短信
-        boolean isSuccess = smsUtils.sendSms(user.getPhonenumber(), code);
+        boolean isSuccess = smsService.sendSms(user.getPhonenumber(), code);
 
         if (isSuccess) {
             return AjaxResult.success("短信发送成功");

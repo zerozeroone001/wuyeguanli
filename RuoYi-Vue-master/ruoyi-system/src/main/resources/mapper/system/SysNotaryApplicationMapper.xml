@@ -18,6 +18,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="address"    column="address"    />
         <result property="notaryOfficeId"    column="notary_office_id"    />
         <result property="userId"    column="user_id"    />
+        <result property="communityId"    column="community_id"    />
         <result property="progress"    column="progress"    />
         <result property="certificateUrl"    column="certificate_url"    />
         <result property="expectedTime"    column="expected_time"    />
@@ -30,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysNotaryApplicationVo">
-        select notary_id, notary_no, title, type, status, urgent, description, contact_name, contact_phone, id_card, address, notary_office_id, user_id, progress, certificate_url, expected_time, apply_time, create_by, create_time, update_by, update_time, remark from sys_notary_application
+        select notary_id, notary_no, title, type, status, urgent, description, contact_name, contact_phone, id_card, address, notary_office_id, user_id, community_id, progress, certificate_url, expected_time, apply_time, create_by, create_time, update_by, update_time, remark from sys_notary_application
     </sql>
 
     <select id="selectSysNotaryApplicationList" parameterType="SysNotaryApplication" resultMap="SysNotaryApplicationResult">
@@ -41,6 +42,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="type != null  and type != ''"> and type = #{type}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
             <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
         </where>
     </select>
 
@@ -64,6 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="address != null">address,</if>
             <if test="notaryOfficeId != null">notary_office_id,</if>
             <if test="userId != null">user_id,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="progress != null">progress,</if>
             <if test="certificateUrl != null">certificate_url,</if>
             <if test="expectedTime != null">expected_time,</if>
@@ -85,6 +88,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="address != null">#{address},</if>
             <if test="notaryOfficeId != null">#{notaryOfficeId},</if>
             <if test="userId != null">#{userId},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="progress != null">#{progress},</if>
             <if test="certificateUrl != null">#{certificateUrl},</if>
             <if test="expectedTime != null">#{expectedTime},</if>
@@ -110,6 +114,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="address != null">address = #{address},</if>
             <if test="notaryOfficeId != null">notary_office_id = #{notaryOfficeId},</if>
             <if test="userId != null">user_id = #{userId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="progress != null">progress = #{progress},</if>
             <if test="certificateUrl != null">certificate_url = #{certificateUrl},</if>
             <if test="expectedTime != null">expected_time = #{expectedTime},</if>
@@ -136,6 +141,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT status, count(*) as count
         FROM sys_notary_application
         WHERE user_id = #{userId}
+        GROUP BY status
+    </select>
+
+    <select id="countAllByStatus" resultType="java.util.Map">
+        SELECT status, count(*) as count
+        FROM sys_notary_application
         GROUP BY status
     </select>
 

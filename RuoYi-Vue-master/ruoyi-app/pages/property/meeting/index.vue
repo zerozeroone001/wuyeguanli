@@ -1,5 +1,30 @@
 <template>
   <view class="meeting-container">
+    <!-- 灏忓尯閫夋嫨 -->
+    <view class="community-selector">
+      <picker
+        class="community-picker"
+        mode="selector"
+        :range="communityOptions"
+        range-key="name"
+        :value="selectedCommunityIndex"
+        :disabled="communityOptions.length === 0"
+        @change="handleCommunityChange"
+      >
+        <view class="community-picker-inner">
+          <uni-icons type="location" size="16" color="#1890FF" />
+          <text class="community-name">{{ communityInfo.name }}</text>
+          <uni-icons
+            v-if="communityOptions.length > 0"
+            type="arrowdown"
+            size="12"
+            color="#1890FF"
+            class="community-arrow"
+          />
+        </view>
+      </picker>
+    </view>
+
     <!-- 会议分类 -->
     <view class="meeting-tabs">
       <view 
@@ -40,6 +65,10 @@
           </view>
         </view>
         <view class="meeting-info">
+          <view class="info-row">
+            <uni-icons type="home" size="16" color="#8C8C8C" />
+            <text class="meeting-community">{{ meeting.communityName || '未关联小区' }}</text>
+          </view>
           <view class="info-row">
             <uni-icons type="calendar" size="16" color="#8C8C8C" />
             <text class="meeting-time">{{ meeting.meetingTime }}</text>
@@ -85,18 +114,36 @@
 </template>
 
 <script>
+import config from "@/config";
+import { listMyProperty, listCommunity } from "@/api/property.js";
 import { listMeeting } from "@/api/property/meeting";
+import { mapGetters } from "vuex";
+const COMMUNITY_STORAGE_KEY = 'app_current_community_id';
+const COMMUNITY_INFO_STORAGE_KEY = 'app_current_community_info';
 
 export default {
+  computed: {
+    ...mapGetters(['token']),
+    isLoggedIn() {
+      return !!this.token;
+    }
+  },
   data() {
     return {
       activeTab: 'ongoing',
       meetingList: [],
+      defaultCommunityInfo: { ...config.property.communityInfo },
+      communityInfo: { ...config.property.communityInfo },
+      communityOptions: [],
+      selectedCommunityIndex: 0,
+      selectedCommunityId: null,
+      communityPromptShown: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        meetingStatus: '1' // 默认加载进行中
+        meetingStatus: '1', // 默认加载进行中
+        communityId: null
       },
       // 加载状态
       loading: false,
@@ -105,8 +152,14 @@ export default {
       total: 0
     }
   },
-  onLoad() {
-    this.loadMeetings();
+  async onLoad() {
+    await this.initializeCommunitySelection();
+  },
+  async onShow() {
+    await this.loadCommunityOptions({ reloadOnChange: true, showPrompt: true });
+  },
+  onHide() {
+    this.communityPromptShown = false;
   },
   // 下拉刷新
   onPullDownRefresh() {
@@ -117,18 +170,169 @@ export default {
   },
   // 触底加载更多
   onReachBottom() {
+    if (!this.selectedCommunityId) {
+      return;
+    }
     if (!this.finished && !this.loading) {
       this.queryParams.pageNum++;
       this.loadMeetings();
     }
   },
   methods: {
+    async initializeCommunitySelection() {
+      await this.loadCommunityOptions({ showPrompt: true, reloadOnChange: true, initialLoad: true });
+    },
+    async loadCommunityOptions(options = {}) {
+      const {
+        showPrompt = false,
+        reloadOnChange = false,
+        initialLoad = false
+      } = options;
+      const previousCommunityId = this.selectedCommunityId;
+      if (!this.isLoggedIn) {
+        this.communityOptions = [];
+        this.resetCommunityInfo();
+        if (reloadOnChange || initialLoad) {
+          this.clearMeetingData();
+        }
+        return;
+      }
+      try {
+        const propertyRes = await listMyProperty({ status: '1', pageNum: 1, pageSize: 100 });
+        const propertyRows = propertyRes.rows || [];
+        const communityIds = Array.from(new Set(propertyRows.map(item => item.communityId).filter(Boolean)));
+        if (communityIds.length === 0) {
+          this.communityOptions = [];
+          this.resetCommunityInfo({ clearStorage: true });
+          if (reloadOnChange || initialLoad) {
+            this.clearMeetingData();
+          }
+          if (showPrompt) {
+            await this.showEmptyCommunityPrompt();
+          }
+          return;
+        }
+        const communityRes = await listCommunity({ pageNum: 1, pageSize: 1000 });
+        const communities = (communityRes.rows || []).filter(item => communityIds.includes(item.communityId));
+        const optionsList = communities.map(item => ({
+          value: item.communityId,
+          name: item.communityName,
+          address: item.address,
+          phone: item.contactPhone,
+          raw: item
+        }));
+        this.communityOptions = optionsList;
+        if (optionsList.length > 0) {
+          const storedId = uni.getStorageSync(COMMUNITY_STORAGE_KEY);
+          let index = optionsList.findIndex(option => option.value === storedId);
+          if (index === -1) {
+            index = 0;
+          }
+          this.applyCommunity(optionsList[index], index);
+          this.communityPromptShown = false;
+        } else {
+          this.resetCommunityInfo({ clearStorage: true });
+        }
+        if ((reloadOnChange || initialLoad) && this.selectedCommunityId) {
+          if (this.selectedCommunityId !== previousCommunityId || initialLoad) {
+            this.resetAndLoad();
+          }
+        } else if ((reloadOnChange || initialLoad) && !this.selectedCommunityId) {
+          this.clearMeetingData();
+        }
+      } catch (error) {
+        console.error('加载小区信息失败', error);
+        this.communityOptions = [];
+        this.resetCommunityInfo({ fallbackToStored: true });
+        if (reloadOnChange || initialLoad) {
+          this.clearMeetingData();
+        }
+      }
+    },
+    handleCommunityChange(event) {
+      const index = Number(event.detail.value);
+      const option = this.communityOptions[index];
+      if (option) {
+        this.applyCommunity(option, index);
+        this.resetAndLoad();
+      }
+    },
+    applyCommunity(option, index = 0) {
+      if (option) {
+        this.selectedCommunityIndex = index;
+        this.selectedCommunityId = option.value;
+        this.communityInfo = {
+          ...this.defaultCommunityInfo,
+          name: option.name || this.defaultCommunityInfo.name,
+          address: option.address || this.defaultCommunityInfo.address,
+          phone: option.phone || this.defaultCommunityInfo.phone
+        };
+        uni.setStorageSync(COMMUNITY_STORAGE_KEY, option.value);
+        uni.setStorageSync(COMMUNITY_INFO_STORAGE_KEY, this.communityInfo);
+        this.communityPromptShown = false;
+      } else {
+        this.resetCommunityInfo();
+      }
+    },
+    resetCommunityInfo(options = {}) {
+      const { fallbackToStored = false, clearStorage = false } = options;
+      let info = null;
+      if (fallbackToStored) {
+        const storedInfo = uni.getStorageSync(COMMUNITY_INFO_STORAGE_KEY);
+        if (storedInfo && storedInfo.name) {
+          info = storedInfo;
+        }
+      }
+      this.communityInfo = info || { ...this.defaultCommunityInfo };
+      this.selectedCommunityId = null;
+      this.selectedCommunityIndex = 0;
+      this.queryParams.communityId = null;
+      if (clearStorage) {
+        uni.removeStorageSync(COMMUNITY_STORAGE_KEY);
+        uni.removeStorageSync(COMMUNITY_INFO_STORAGE_KEY);
+      }
+    },
+    clearMeetingData() {
+      this.queryParams.pageNum = 1;
+      this.queryParams.communityId = null;
+      this.meetingList = [];
+      this.total = 0;
+      this.finished = true;
+      this.loading = false;
+    },
+    async showEmptyCommunityPrompt() {
+      if (this.communityPromptShown) {
+        return;
+      }
+      this.communityPromptShown = true;
+      return new Promise(resolve => {
+        uni.showModal({
+          title: '提示',
+          content: '当前尚未绑定任何小区，请先添加房产信息。',
+          confirmText: '去添加',
+          cancelText: '返回首页',
+          success: (res) => {
+            if (res.confirm) {
+              uni.navigateTo({ url: '/pages/property/add' });
+            } else {
+              uni.switchTab({ url: '/pages/index' });
+            }
+            resolve(res);
+          },
+          fail: () => resolve()
+        });
+      });
+    },
     // 重置并加载
     resetAndLoad() {
       this.queryParams.pageNum = 1;
       this.meetingList = [];
-      this.finished = false;
       this.total = 0;
+      this.finished = false;
+      if (!this.selectedCommunityId) {
+        this.clearMeetingData();
+        return;
+      }
       this.loadMeetings();
     },
     // 加载会议列表
@@ -136,6 +340,12 @@ export default {
       if (this.loading || (this.queryParams.pageNum > 1 && this.finished)) {
         return;
       }
+      if (!this.selectedCommunityId) {
+        this.clearMeetingData();
+        return;
+      }
+      const communityId = Number(this.selectedCommunityId);
+      this.queryParams.communityId = Number.isNaN(communityId) ? this.selectedCommunityId : communityId;
       this.loading = true;
       this.queryParams.meetingStatus = this.getStatusByTab(this.activeTab);
 
@@ -211,6 +421,37 @@ page {
 .meeting-container {
   min-height: 100vh;
   background-color: #FAFBFC;
+}
+
+.community-selector {
+  padding: 20rpx 20rpx 0 20rpx;
+}
+
+.community-picker {
+  width: 100%;
+}
+
+.community-picker-inner {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  border: 1rpx solid #E5E5E5;
+}
+
+.community-name {
+  flex: 1;
+  margin: 0 12rpx;
+  font-size: 28rpx;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-arrow {
+  margin-left: 8rpx;
 }
 
 .meeting-tabs {

@@ -7,6 +7,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="EstateProperty" id="EstatePropertyResult">
         <result property="propertyId"    column="property_id"    />
         <result property="communityId"    column="community_id"    />
+        <result property="communityName"    column="community_name"    />
+        <result property="communityAddress"    column="community_address"    />
         <result property="buildingName"    column="building_name"    />
         <result property="unitName"    column="unit_name"    />
         <result property="roomNumber"    column="room_number"    />
@@ -22,29 +24,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectEstatePropertyVo">
-        select property_id, community_id, building_name, unit_name, room_number, floor, area, status, del_flag, create_by, create_time, update_by, update_time, remark from estate_property
+        select p.property_id, p.community_id, c.community_name, c.address as community_address, p.building_name, p.unit_name, p.room_number, p.floor, p.area, p.status, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark
+        from sys_estate_property p
+        left join sys_estate_community c on p.community_id = c.community_id
     </sql>
 
     <select id="selectEstatePropertyList" parameterType="EstateProperty" resultMap="EstatePropertyResult">
         <include refid="selectEstatePropertyVo"/>
         <where>  
-            <if test="communityId != null "> and community_id = #{communityId}</if>
-            <if test="buildingName != null  and buildingName != ''"> and building_name like concat('%', #{buildingName}, '%')</if>
-            <if test="unitName != null  and unitName != ''"> and unit_name like concat('%', #{unitName}, '%')</if>
-            <if test="roomNumber != null  and roomNumber != ''"> and room_number = #{roomNumber}</if>
-            <if test="floor != null "> and floor = #{floor}</if>
-            <if test="area != null "> and area = #{area}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="communityId != null "> and p.community_id = #{communityId}</if>
+            <if test="buildingName != null  and buildingName != ''"> and p.building_name like concat('%', #{buildingName}, '%')</if>
+            <if test="unitName != null  and unitName != ''"> and p.unit_name like concat('%', #{unitName}, '%')</if>
+            <if test="roomNumber != null  and roomNumber != ''"> and p.room_number = #{roomNumber}</if>
+            <if test="floor != null "> and p.floor = #{floor}</if>
+            <if test="area != null "> and p.area = #{area}</if>
+            <if test="status != null  and status != ''"> and p.status = #{status}</if>
         </where>
     </select>
     
     <select id="selectEstatePropertyByPropertyId" parameterType="Long" resultMap="EstatePropertyResult">
         <include refid="selectEstatePropertyVo"/>
-        where property_id = #{propertyId}
+        where p.property_id = #{propertyId}
     </select>
 
     <insert id="insertEstateProperty" parameterType="EstateProperty" useGeneratedKeys="true" keyProperty="propertyId">
-        insert into estate_property
+        insert into sys_estate_property
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="communityId != null">community_id,</if>
             <if test="buildingName != null and buildingName != ''">building_name,</if>
@@ -78,7 +82,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <update id="updateEstateProperty" parameterType="EstateProperty">
-        update estate_property
+        update sys_estate_property
         <trim prefix="SET" suffixOverrides=",">
             <if test="communityId != null">community_id = #{communityId},</if>
             <if test="buildingName != null and buildingName != ''">building_name = #{buildingName},</if>
@@ -98,11 +102,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteEstatePropertyByPropertyId" parameterType="Long">
-        delete from estate_property where property_id = #{propertyId}
+        delete from sys_estate_property where property_id = #{propertyId}
     </delete>
 
     <delete id="deleteEstatePropertyByPropertyIds" parameterType="String">
-        delete from estate_property where property_id in 
+        delete from sys_estate_property where property_id in
         <foreach item="propertyId" collection="array" open="(" separator="," close=")">
             #{propertyId}
         </foreach>

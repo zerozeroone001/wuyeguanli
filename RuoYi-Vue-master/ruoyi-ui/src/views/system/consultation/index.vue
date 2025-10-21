@@ -83,6 +83,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="咨询ID" align="center" prop="consultationId" />
       <el-table-column label="咨询人用户" align="center" prop="userId" />
+      <el-table-column label="所属小区" align="center" prop="communityName" />
       <el-table-column label="咨询标题" align="center" prop="title" />
       <el-table-column label="咨询内容" align="center" prop="content" />
 
@@ -120,6 +121,10 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="咨询人用户ID (关联sys_user)" prop="userId">
           <el-input v-model="form.userId" placeholder="请输入咨询人用户ID (关联sys_user)" />
+        </el-form-item>
+        <el-form-item label="所属小区" prop="communityId">
+          <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
+          <input type="hidden" v-model="form.communityId" />
         </el-form-item>
         <el-form-item label="咨询标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入咨询标题" />
@@ -161,6 +166,7 @@
 
 <script>
 import { listConsultation, getConsultation, delConsultation, addConsultation, updateConsultation } from "@/api/system/consultation"
+import { mapGetters } from "vuex"
 
 export default {
   name: "Consultation",
@@ -196,6 +202,7 @@ export default {
         replyContent: null,
         replyTime: null,
         assignee: null,
+        communityId: null,
       },
       // 表单参数
       form: {},
@@ -213,15 +220,94 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters([
+      "currentCommunityId",
+      "currentCommunityName",
+      "communityOptions"
+    ]),
+    /**
+     * 顶部选择为“全部小区”时返回 true。
+     */
+    isAllCommunitySelected() {
+      const value = this.currentCommunityId
+      if (value === null || value === undefined) {
+        return true
+      }
+      return Number(value) === 0
+    }
+  },
   created() {
+    this.applyCommunityFilter()
     this.getList()
   },
   methods: {
+    /**
+     * 根据顶部选择的小区同步查询条件。
+     */
+    applyCommunityFilter() {
+      if (this.isAllCommunitySelected) {
+        this.queryParams.communityId = null
+      } else {
+        this.queryParams.communityId = Number(this.currentCommunityId)
+      }
+    },
+    /**
+     * 构建请求参数，必要时携带小区 ID。
+     */
+    buildQueryParams() {
+      const params = { ...this.queryParams }
+      if (this.isAllCommunitySelected) {
+        delete params.communityId
+      } else {
+        const numericId = Number(this.currentCommunityId)
+        this.queryParams.communityId = numericId
+        params.communityId = numericId
+      }
+      return params
+    },
+    /**
+     * 根据小区 ID 返回对应的小区名称。
+     */
+    resolveCommunityName(communityId) {
+      if (communityId === null || communityId === undefined) {
+        return ""
+      }
+      const numericId = Number(communityId)
+      const options = Array.isArray(this.communityOptions) ? this.communityOptions : []
+      const target = options.find(item => Number(item.id) === numericId)
+      if (target && target.name) {
+        return target.name
+      }
+      if (
+        this.currentCommunityId !== null &&
+        this.currentCommunityId !== undefined &&
+        Number(this.currentCommunityId) === numericId
+      ) {
+        return this.currentCommunityName || ""
+      }
+      return ""
+    },
+    /**
+     * 为表单对象补全小区信息。
+     */
+    attachCommunityInfo(target, communityId) {
+      const numericId =
+        communityId === null || communityId === undefined ? null : Number(communityId)
+      target.communityId = numericId
+      target.communityName = this.resolveCommunityName(numericId)
+    },
     /** 查询法律咨询列表 */
     getList() {
       this.loading = true
-      listConsultation(this.queryParams).then(response => {
-        this.consultationList = response.rows
+      const params = this.buildQueryParams()
+      listConsultation(params).then(response => {
+        this.consultationList = Array.isArray(response.rows)
+          ? response.rows.map(item => ({
+              ...item,
+              communityName: this.resolveCommunityName(item.communityId)
+            }))
+          : []
         this.total = response.total
         this.loading = false
       })
@@ -243,22 +329,27 @@ export default {
         replyContent: null,
         replyTime: null,
         assignee: null,
+        communityId: null,
         delFlag: null,
         createBy: null,
         createTime: null,
         updateBy: null,
         updateTime: null,
-        remark: null
+        remark: null,
+        communityId: null,
+        communityName: ""
       }
       this.resetForm("form")
     },
     /** 搜索按钮操作 */
     handleQuery() {
+      this.applyCommunityFilter()
       this.queryParams.pageNum = 1
       this.getList()
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.applyCommunityFilter()
       this.resetForm("queryForm")
       this.handleQuery()
     },
@@ -270,7 +361,12 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
+      if (this.isAllCommunitySelected) {
+        this.$message.warning("请先在右上角选择具体小区，再新增咨询。")
+        return
+      }
       this.reset()
+      this.attachCommunityInfo(this.form, this.currentCommunityId)
       this.open = true
       this.title = "添加法律咨询"
     },
@@ -280,6 +376,7 @@ export default {
       const consultationId = row.consultationId || this.ids
       getConsultation(consultationId).then(response => {
         this.form = response.data
+        this.attachCommunityInfo(this.form, response.data.communityId)
         this.open = true
         this.title = "修改法律咨询"
       })
@@ -288,6 +385,18 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (this.form.communityId === null || this.form.communityId === undefined) {
+            if (!this.isAllCommunitySelected) {
+              this.form.communityId = Number(this.currentCommunityId)
+              this.form.communityName = this.resolveCommunityName(this.form.communityId)
+            }
+          }
+          const numericId = Number(this.form.communityId)
+          if (Number.isNaN(numericId) || numericId === 0) {
+            this.$message.error("请先为咨询记录指定所属小区。")
+            return
+          }
+          this.form.communityId = numericId
           if (this.form.consultationId != null) {
             updateConsultation(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
@@ -316,9 +425,8 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/consultation/export', {
-        ...this.queryParams
-      }, `consultation_${new Date().getTime()}.xlsx`)
+      const params = this.buildQueryParams()
+      this.download('system/consultation/export', params, `consultation_${new Date().getTime()}.xlsx`)
     }
   }
 }

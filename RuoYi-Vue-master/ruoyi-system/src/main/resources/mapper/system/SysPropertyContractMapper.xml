@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysPropertyContract" id="SysPropertyContractResult">
         <result property="contractId"    column="contract_id"    />
         <result property="contractNo"    column="contract_no"    />
+        <result property="communityId"    column="community_id"    />
         <result property="contractName"    column="contract_name"    />
         <result property="contractVersion"    column="contract_version"    />
         <result property="fileUrl"    column="file_url"    />
@@ -29,7 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyContractVo">
-        select contract_id, contract_no, contract_name, contract_version, file_url, effective_date, expiry_date, contract_amount, party_a, party_b, contract_content, important_clauses, manager_name, manager_phone, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
+        select contract_id, contract_no, community_id, contract_name, contract_version, file_url, effective_date, expiry_date, contract_amount, party_a, party_b, contract_content, important_clauses, manager_name, manager_phone, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
     </sql>
 
     <select id="selectSysPropertyContractList" parameterType="SysPropertyContract" resultMap="SysPropertyContractResult">
@@ -37,6 +38,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>
             <if test="contractName != null  and contractName != ''"> and contract_name like concat('%', #{contractName}, '%')</if>
             <if test="contractVersion != null  and contractVersion != ''"> and contract_version = #{contractVersion}</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="effectiveDate != null "> and effective_date = #{effectiveDate}</if>
             <if test="expiryDate != null "> and expiry_date = #{expiryDate}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
@@ -52,6 +54,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into sys_property_contract
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="contractNo != null and contractNo != ''">contract_no,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="contractName != null and contractName != ''">contract_name,</if>
             <if test="contractVersion != null">contract_version,</if>
             <if test="fileUrl != null and fileUrl != ''">file_url,</if>
@@ -74,6 +77,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="contractNo != null and contractNo != ''">#{contractNo},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="contractName != null and contractName != ''">#{contractName},</if>
             <if test="contractVersion != null">#{contractVersion},</if>
             <if test="fileUrl != null and fileUrl != ''">#{fileUrl},</if>
@@ -100,6 +104,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_property_contract
         <trim prefix="SET" suffixOverrides=",">
             <if test="contractNo != null and contractNo != ''">contract_no = #{contractNo},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="contractName != null and contractName != ''">contract_name = #{contractName},</if>
             <if test="contractVersion != null">contract_version = #{contractVersion},</if>
             <if test="fileUrl != null and fileUrl != ''">file_url = #{fileUrl},</if>

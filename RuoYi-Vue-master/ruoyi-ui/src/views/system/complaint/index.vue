@@ -35,20 +35,22 @@
       </el-form-item>
 
       <el-form-item label="处理时间" prop="handleTime">
-        <el-date-picker clearable
+        <el-date-picker
           v-model="queryParams.handleTime"
+          clearable
           type="date"
           value-format="yyyy-MM-dd"
-          placeholder="请选择处理时间">
-        </el-date-picker>
+          placeholder="请选择处理时间"
+        />
       </el-form-item>
       <el-form-item label="完成时间" prop="completeTime">
-        <el-date-picker clearable
+        <el-date-picker
           v-model="queryParams.completeTime"
+          clearable
           type="date"
           value-format="yyyy-MM-dd"
-          placeholder="请选择完成时间">
-        </el-date-picker>
+          placeholder="请选择完成时间"
+        />
       </el-form-item>
       <el-form-item label="满意度(1-5分)" prop="satisfaction">
         <el-input
@@ -162,6 +164,7 @@
           <span>{{ scope.row.complaintNo || '未生成' }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="所属小区" align="center" prop="communityName" />
       <el-table-column label="投诉人ID" align="center" prop="userId" />
       <el-table-column label="投诉类型" align="center" prop="complaintType">
         <template slot-scope="scope">
@@ -197,7 +200,7 @@
         </template>
       </el-table-column>
       <el-table-column label="满意度(1-5分)" align="center" prop="satisfaction" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="220">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -213,7 +216,7 @@
             @click="handleAssign(scope.row)"
             v-hasPermi="['system:complaint:assign']"
             v-if="scope.row.status === '0'"
-          >分配</el-button>
+          >指派</el-button>
           <el-button
             size="mini"
             type="text"
@@ -242,16 +245,16 @@
     </el-table>
 
     <pagination
-      v-show="total>0"
+      v-show="total > 0"
       :total="total"
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
 
-    <!-- 添加或修改投诉管理对话框 -->
+    <!-- 新增 / 编辑投诉管理对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="90px">
         <el-form-item label="投诉编号" prop="complaintNo">
           <el-input
             v-model="form.complaintNo"
@@ -263,66 +266,75 @@
         <el-form-item label="投诉人ID" prop="userId">
           <el-input v-model="form.userId" placeholder="请输入投诉人ID" />
         </el-form-item>
+        <el-form-item label="所属小区" prop="communityId">
+          <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
+          <input type="hidden" v-model="form.communityId" />
+        </el-form-item>
         <el-form-item label="投诉标题" prop="complaintTitle">
           <el-input v-model="form.complaintTitle" placeholder="请输入投诉标题" />
         </el-form-item>
-        <el-form-item label="投诉内容">
-          <editor v-model="form.complaintContent" :min-height="192"/>
+        <el-form-item label="投诉内容" prop="complaintContent">
+          <editor v-model="form.complaintContent" :min-height="192" />
         </el-form-item>
         <el-form-item label="联系电话" prop="contactPhone">
           <el-input v-model="form.contactPhone" placeholder="请输入联系电话" />
         </el-form-item>
-        <el-form-item label="紧急程度(1-紧急,2-普通,3-一般)" prop="urgency">
-          <el-input v-model="form.urgency" placeholder="请输入紧急程度(1-紧急,2-普通,3-一般)" />
+        <el-form-item label="紧急程度" prop="urgency">
+          <el-input v-model="form.urgency" placeholder="请输入紧急程度(1-紧急,2-较紧急,3-一般)" />
         </el-form-item>
-        <el-form-item label="期望处理时间(1-立即,2-3天内,3-1周内,4-1月内)" prop="expectedTime">
-          <el-input v-model="form.expectedTime" placeholder="请输入期望处理时间(1-立即,2-3天内,3-1周内,4-1月内)" />
+        <el-form-item label="期望处理时间" prop="expectedTime">
+          <el-input
+            v-model="form.expectedTime"
+            placeholder="请输入期望处理时间(1-立即,2-3天内,3-1周内,4-1月内)"
+          />
         </el-form-item>
         <el-form-item label="处理人ID" prop="handlerId">
           <el-input v-model="form.handlerId" placeholder="请输入处理人ID" />
         </el-form-item>
         <el-form-item label="处理时间" prop="handleTime">
-          <el-date-picker clearable
+          <el-date-picker
             v-model="form.handleTime"
+            clearable
             type="date"
             value-format="yyyy-MM-dd"
-            placeholder="请选择处理时间">
-          </el-date-picker>
+            placeholder="请选择处理时间"
+          />
         </el-form-item>
         <el-form-item label="完成时间" prop="completeTime">
-          <el-date-picker clearable
+          <el-date-picker
             v-model="form.completeTime"
+            clearable
             type="date"
             value-format="yyyy-MM-dd"
-            placeholder="请选择完成时间">
-          </el-date-picker>
+            placeholder="请选择完成时间"
+          />
         </el-form-item>
-        <el-form-item label="满意度(1-5分)" prop="satisfaction">
+        <el-form-item label="满意度" prop="satisfaction">
           <el-input v-model="form.satisfaction" placeholder="请输入满意度(1-5分)" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="submitForm">确定</el-button>
+        <el-button @click="cancel">取消</el-button>
       </div>
     </el-dialog>
 
-    <!-- 分配处理人对话框 -->
-    <el-dialog title="分配处理人" :visible.sync="assignDialog" width="400px" append-to-body>
-      <el-form ref="assignForm" :model="assignForm" label-width="80px">
+    <!-- 指派处理人对话框 -->
+    <el-dialog title="指派处理人" :visible.sync="assignDialog" width="400px" append-to-body>
+      <el-form ref="assignForm" :model="assignForm" label-width="90px">
         <el-form-item label="处理人ID" required>
           <el-input v-model="assignForm.handlerId" placeholder="请输入处理人ID" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="confirmAssign">确 定</el-button>
-        <el-button @click="assignDialog = false">取 消</el-button>
+        <el-button type="primary" @click="confirmAssign">确定</el-button>
+        <el-button @click="assignDialog = false">取消</el-button>
       </div>
     </el-dialog>
 
     <!-- 完成处理对话框 -->
     <el-dialog title="完成处理" :visible.sync="completeDialog" width="400px" append-to-body>
-      <el-form ref="completeForm" :model="completeForm" label-width="80px">
+      <el-form ref="completeForm" :model="completeForm" label-width="90px">
         <el-form-item label="满意度">
           <el-select v-model="completeForm.satisfaction" placeholder="请选择满意度">
             <el-option label="1分" value="1"></el-option>
@@ -334,8 +346,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="confirmComplete">确 定</el-button>
-        <el-button @click="completeDialog = false">取 消</el-button>
+        <el-button type="primary" @click="confirmComplete">确定</el-button>
+        <el-button @click="completeDialog = false">取消</el-button>
       </div>
     </el-dialog>
   </div>
@@ -351,39 +363,33 @@ import {
   getComplaintStats,
   assignComplaint,
   completeComplaint,
-  closeComplaint,
-  getPendingCount,
-  getUrgentCount,
-  getComplaintTrend,
-  getRecentComplaints,
-  getComplaintTypeStats,
-  getComplaintStatusStats,
-  getComplaintGrowthRate
+  closeComplaint
 } from "@/api/system/complaint"
+import { mapGetters } from "vuex"
 
 export default {
   name: "Complaint",
   data() {
     return {
-      // 遮罩层
+      // 表格加载遮罩
       loading: true,
-      // 选中数组
+      // 当前选中的投诉主键集合
       ids: [],
-      // 非单个禁用
+      // 需要单选时的按钮禁用态
       single: true,
-      // 非多个禁用
+      // 需要多选时的按钮禁用态
       multiple: true,
-      // 显示搜索条件
+      // 是否显示高级搜索
       showSearch: true,
-      // 总条数
+      // 列表总条数
       total: 0,
-      // 投诉管理表格数据
+      // 投诉管理列表数据
       complaintList: [],
-      // 弹出层标题
+      // 弹窗标题
       title: "",
-      // 是否显示弹出层
+      // 弹窗显隐
       open: false,
-      // 查询参数
+      // 查询参数，需要和后端分页接口保持一致
       queryParams: {
         pageNum: 1,
         pageSize: 10,
@@ -400,41 +406,58 @@ export default {
         handleTime: null,
         completeTime: null,
         satisfaction: null,
+        communityId: null
       },
-      // 表单参数
+      // 表单数据模型
       form: {},
-      // 表单校验
+      // 表单校验规则
       rules: {
-        complaintNo: [
-          // 投诉编号由系统自动生成，不需要验证
-        ],
         userId: [
           { required: true, message: "投诉人ID不能为空", trigger: "blur" }
         ],
         complaintType: [
-          { required: true, message: "投诉类型(1-物业服务,2-设施设备,3-环境卫生,4-安全管理,5-收费争议,6-其他)不能为空", trigger: "change" }
+          { required: true, message: "投诉类型不能为空", trigger: "change" }
         ],
         complaintTitle: [
           { required: true, message: "投诉标题不能为空", trigger: "blur" }
         ],
         complaintContent: [
           { required: true, message: "投诉内容不能为空", trigger: "blur" }
-        ],
+        ]
       },
-      // 统计数据
+      // 首页统计数据
       stats: {},
-      // 分配处理人对话框
+      // 指派处理人对话框显隐
       assignDialog: false,
+      // 指派处理人表单
       assignForm: {
         complaintId: null,
         handlerId: null
       },
-      // 完成处理对话框
+      // 完成处理对话框显隐
       completeDialog: false,
+      // 完成处理表单
       completeForm: {
         complaintId: null,
         satisfaction: null
       }
+    }
+  },
+  computed: {
+    ...mapGetters([
+      "currentCommunityId",
+      "currentCommunityName",
+      "communityOptions"
+    ]),
+    /**
+     * 顶部选择“全部小区”时返回 true
+     */
+    isAllCommunitySelected() {
+      const value = this.currentCommunityId
+      if (value === null || value === undefined) {
+        return true
+      }
+      return Number(value) === 0
     }
   },
   created() {
@@ -442,11 +465,72 @@ export default {
     this.loadStats()
   },
   methods: {
+    /**
+     * 根据顶部的小区选择同步查询条件
+     */
+    applyCommunityFilter() {
+      if (this.isAllCommunitySelected) {
+        this.queryParams.communityId = null
+      } else {
+        this.queryParams.communityId = Number(this.currentCommunityId)
+      }
+    },
+    /**
+     * 构建请求参数，确保带上社区维度
+     */
+    buildQueryParams() {
+      const params = { ...this.queryParams }
+      if (this.isAllCommunitySelected) {
+        delete params.communityId
+      } else {
+        const numericId = Number(this.currentCommunityId)
+        this.queryParams.communityId = numericId
+        params.communityId = numericId
+      }
+      return params
+    },
+    /**
+     * 根据社区 ID 返回对应名称（优先读取缓存的下拉数据）
+     */
+    resolveCommunityName(communityId) {
+      if (communityId === null || communityId === undefined) {
+        return ""
+      }
+      const numericId = Number(communityId)
+      const options = Array.isArray(this.communityOptions) ? this.communityOptions : []
+      const target = options.find(item => Number(item.id) === numericId)
+      if (target && target.name) {
+        return target.name
+      }
+      if (
+        this.currentCommunityId !== null &&
+        this.currentCommunityId !== undefined &&
+        Number(this.currentCommunityId) === numericId
+      ) {
+        return this.currentCommunityName || ""
+      }
+      return ""
+    },
+    /**
+     * 给表单/查询对象补齐社区信息
+     */
+    attachCommunityInfo(target, communityId) {
+      const numericId =
+        communityId === null || communityId === undefined ? null : Number(communityId)
+      target.communityId = numericId
+      target.communityName = this.resolveCommunityName(numericId)
+    },
     /** 查询投诉管理列表 */
     getList() {
       this.loading = true
-      listComplaint(this.queryParams).then(response => {
-        this.complaintList = response.rows
+      const params = this.buildQueryParams()
+      listComplaint(params).then(response => {
+        this.complaintList = Array.isArray(response.rows)
+          ? response.rows.map(item => ({
+              ...item,
+              communityName: this.resolveCommunityName(item.communityId)
+            }))
+          : []
         this.total = response.total
         this.loading = false
       })
@@ -473,34 +557,43 @@ export default {
         handleTime: null,
         completeTime: null,
         satisfaction: null,
+        communityId: null,
         createBy: null,
         createTime: null,
         updateBy: null,
-        updateTime: null
+        updateTime: null,
+        communityName: ""
       }
       this.resetForm("form")
     },
     /** 搜索按钮操作 */
     handleQuery() {
+      this.applyCommunityFilter()
       this.queryParams.pageNum = 1
       this.getList()
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.applyCommunityFilter()
       this.resetForm("queryForm")
       this.handleQuery()
     },
-    // 多选框选中数据
+    // 多选变化事件
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.complaintId)
-      this.single = selection.length!==1
-      this.multiple = !selection.length
+      this.single = selection.length !== 1
+      this.multiple = selection.length === 0
     },
     /** 新增按钮操作 */
     handleAdd() {
+      if (this.isAllCommunitySelected) {
+        this.$message.warning("请先在右上角选择具体小区，再新增投诉。")
+        return
+      }
       this.reset()
+      this.attachCommunityInfo(this.form, this.currentCommunityId)
       this.open = true
-      this.title = "添加投诉管理"
+      this.title = "新增投诉管理"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -508,6 +601,7 @@ export default {
       const complaintId = row.complaintId || this.ids
       getComplaint(complaintId).then(response => {
         this.form = response.data
+        this.attachCommunityInfo(this.form, response.data.communityId)
         this.open = true
         this.title = "修改投诉管理"
       })
@@ -516,14 +610,26 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (this.form.communityId === null || this.form.communityId === undefined) {
+            if (!this.isAllCommunitySelected) {
+              this.form.communityId = Number(this.currentCommunityId)
+              this.form.communityName = this.resolveCommunityName(this.form.communityId)
+            }
+          }
+          const numericId = Number(this.form.communityId)
+          if (Number.isNaN(numericId) || numericId === 0) {
+            this.$message.error("请先为投诉记录指定所属小区。")
+            return
+          }
+          this.form.communityId = numericId
           if (this.form.complaintId != null) {
-            updateComplaint(this.form).then(response => {
+            updateComplaint(this.form).then(() => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
             })
           } else {
-            addComplaint(this.form).then(response => {
+            addComplaint(this.form).then(() => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
               this.getList()
@@ -535,7 +641,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const complaintIds = row.complaintId || this.ids
-      this.$modal.confirm('是否确认删除投诉管理编号为"' + complaintIds + '"的数据项？').then(function() {
+      this.$modal.confirm(`是否确认删除投诉管理编号为"${complaintIds}"的数据项？`).then(function() {
         return delComplaint(complaintIds)
       }).then(() => {
         this.getList()
@@ -544,9 +650,8 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/complaint/export', {
-        ...this.queryParams
-      }, `complaint_${new Date().getTime()}.xlsx`)
+      const params = this.buildQueryParams()
+      this.download("system/complaint/export", params, `complaint_${new Date().getTime()}.xlsx`)
     },
     /** 加载统计数据 */
     loadStats() {
@@ -554,15 +659,15 @@ export default {
         this.stats = response.data
       })
     },
-    /** 分配处理人 */
+    /** 指派处理人 */
     handleAssign(row) {
       this.assignForm.complaintId = row.complaintId
       this.assignDialog = true
     },
-    /** 确认分配 */
+    /** 确认指派 */
     confirmAssign() {
-      assignComplaint(this.assignForm).then(response => {
-        this.$modal.msgSuccess("分配成功")
+      assignComplaint(this.assignForm).then(() => {
+        this.$modal.msgSuccess("指派成功")
         this.assignDialog = false
         this.getList()
         this.loadStats()
@@ -575,7 +680,7 @@ export default {
     },
     /** 确认完成 */
     confirmComplete() {
-      completeComplaint(this.completeForm).then(response => {
+      completeComplaint(this.completeForm).then(() => {
         this.$modal.msgSuccess("处理完成")
         this.completeDialog = false
         this.getList()
@@ -584,7 +689,7 @@ export default {
     },
     /** 关闭投诉 */
     handleClose(row) {
-      this.$modal.confirm('是否确认关闭投诉编号为"' + row.complaintNo + '"？').then(function() {
+      this.$modal.confirm(`是否确认关闭投诉编号"${row.complaintNo}"？`).then(function() {
         return closeComplaint({ complaintId: row.complaintId })
       }).then(() => {
         this.getList()
@@ -592,36 +697,36 @@ export default {
         this.$modal.msgSuccess("关闭成功")
       }).catch(() => {})
     },
-    /** 格式化状态 */
+    /** 格式化状态标签 */
     formatStatus(status) {
       const statusMap = {
-        '0': { text: '待处理', type: 'warning' },
-        '1': { text: '处理中', type: 'primary' },
-        '2': { text: '已完成', type: 'success' },
-        '3': { text: '已关闭', type: 'info' }
+        "0": { text: "待处理", type: "warning" },
+        "1": { text: "处理中", type: "primary" },
+        "2": { text: "已完成", type: "success" },
+        "3": { text: "已关闭", type: "info" }
       }
-      return statusMap[status] || { text: '未知', type: 'info' }
+      return statusMap[status] || { text: "未知", type: "info" }
     },
     /** 格式化紧急程度 */
     formatUrgency(urgency) {
       const urgencyMap = {
-        '1': { text: '紧急', type: 'danger' },
-        '2': { text: '普通', type: 'warning' },
-        '3': { text: '一般', type: 'info' }
+        "1": { text: "紧急", type: "danger" },
+        "2": { text: "较紧急", type: "warning" },
+        "3": { text: "一般", type: "info" }
       }
-      return urgencyMap[urgency] || { text: '未知', type: 'info' }
+      return urgencyMap[urgency] || { text: "未知", type: "info" }
     },
     /** 格式化投诉类型 */
     formatComplaintType(type) {
       const typeMap = {
-        '1': '物业服务',
-        '2': '设施设备',
-        '3': '环境卫生',
-        '4': '安全管理',
-        '5': '收费争议',
-        '6': '其他'
+        "1": "物业服务",
+        "2": "设施设备",
+        "3": "环境卫生",
+        "4": "安全管理",
+        "5": "收费问题",
+        "6": "其他"
       }
-      return typeMap[type] || '未知'
+      return typeMap[type] || "未知"
     }
   }
 }

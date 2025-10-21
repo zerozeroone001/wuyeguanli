@@ -49,4 +49,14 @@ export function sendNotification(meetingId) {
     url: '/system/meeting/notify/' + meetingId,
     method: 'post'
   })
+  }
+
+// 流转状态
+export function changeStatus(data) {
+  return request({
+    url: '/system/meeting',
+    method: 'put',
+    data: data
+  })
+
 }

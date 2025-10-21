@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysVisitor" id="SysVisitorResult">
         <result property="visitorId"    column="visitor_id"    />
         <result property="visitorName"  column="visitor_name"  />
+        <result property="communityId" column="community_id" />
         <result property="visitorPhone" column="visitor_phone" />
         <result property="idCard"       column="id_card"       />
         <result property="visitDate"    column="visit_date"    />
@@ -21,13 +22,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectVisitorVo">
-        select visitor_id, visitor_name, visitor_phone, id_card, visit_date, reason, license_plate, status, create_by, create_time, update_by, update_time, remark from sys_visitor
+        select visitor_id, visitor_name, community_id, visitor_phone, id_card, visit_date, reason, license_plate, status, create_by, create_time, update_by, update_time, remark from sys_visitor
     </sql>
 
     <select id="selectSysVisitorList" parameterType="SysVisitor" resultMap="SysVisitorResult">
         <include refid="selectVisitorVo"/>
         <where>
             <if test="visitorName != null  and visitorName != ''"> and visitor_name like concat('%', #{visitorName}, '%')</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="visitorPhone != null  and visitorPhone != ''"> and visitor_phone = #{visitorPhone}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
@@ -41,6 +43,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertSysVisitor" parameterType="SysVisitor" useGeneratedKeys="true" keyProperty="visitorId">
         insert into sys_visitor (
             <if test="visitorName != null and visitorName != ''">visitor_name,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="visitorPhone != null and visitorPhone != ''">visitor_phone,</if>
             <if test="idCard != null and idCard != ''">id_card,</if>
             <if test="visitDate != null">visit_date,</if>
@@ -51,6 +54,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             create_time
         )values(
             <if test="visitorName != null and visitorName != ''">#{visitorName},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="visitorPhone != null and visitorPhone != ''">#{visitorPhone},</if>
             <if test="idCard != null and idCard != ''">#{idCard},</if>
             <if test="visitDate != null">#{visitDate},</if>
@@ -66,6 +70,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_visitor
         <set>
             <if test="visitorName != null and visitorName != ''">visitor_name = #{visitorName},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="visitorPhone != null and visitorPhone != ''">visitor_phone = #{visitorPhone},</if>
             <if test="idCard != null and idCard != ''">id_card = #{idCard},</if>
             <if test="visitDate != null">visit_date = #{visitDate},</if>

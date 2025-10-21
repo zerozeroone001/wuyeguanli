@@ -41,6 +41,7 @@ public class SysPropertyFundFlowController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyFundFlow sysPropertyFundFlow)
     {
+        sysPropertyFundFlow.setCommunityId(resolveCommunityId(sysPropertyFundFlow.getCommunityId()));
         startPage();
         List<SysPropertyFundFlow> list = sysPropertyFundFlowService.selectSysPropertyFundFlowList(sysPropertyFundFlow);
         return getDataTable(list);
@@ -54,6 +55,7 @@ public class SysPropertyFundFlowController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyFundFlow sysPropertyFundFlow)
     {
+        sysPropertyFundFlow.setCommunityId(resolveCommunityId(sysPropertyFundFlow.getCommunityId()));
         List<SysPropertyFundFlow> list = sysPropertyFundFlowService.selectSysPropertyFundFlowList(sysPropertyFundFlow);
         ExcelUtil<SysPropertyFundFlow> util = new ExcelUtil<SysPropertyFundFlow>(SysPropertyFundFlow.class);
         util.exportExcel(response, list, "资金流水数据");
@@ -77,6 +79,7 @@ public class SysPropertyFundFlowController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyFundFlow sysPropertyFundFlow)
     {
+        sysPropertyFundFlow.setCommunityId(requireResolvedCommunityId(sysPropertyFundFlow.getCommunityId(), "请选择小区后再新增资金流水"));
         return toAjax(sysPropertyFundFlowService.insertSysPropertyFundFlow(sysPropertyFundFlow));
     }
 
@@ -88,6 +91,7 @@ public class SysPropertyFundFlowController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyFundFlow sysPropertyFundFlow)
     {
+        sysPropertyFundFlow.setCommunityId(requireResolvedCommunityId(sysPropertyFundFlow.getCommunityId(), "请选择小区后再修改资金流水"));
         return toAjax(sysPropertyFundFlowService.updateSysPropertyFundFlow(sysPropertyFundFlow));
     }
 

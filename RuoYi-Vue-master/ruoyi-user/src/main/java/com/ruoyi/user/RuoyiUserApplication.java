@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * @author ruoyi
  */
 
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }, scanBasePackages = {""})
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class }, scanBasePackages = {"com.ruoyi"})
 
 public class RuoyiUserApplication {
 

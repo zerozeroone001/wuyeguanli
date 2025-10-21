@@ -65,10 +65,10 @@ public class SysConfigServiceImpl implements ISysConfigService
     public String selectConfigByKey(String configKey)
     {
         String configValue = Convert.toStr(redisCache.getCacheObject(getCacheKey(configKey)));
-        if (StringUtils.isNotEmpty(configValue))
-        {
-            return configValue;
-        }
+//        if (StringUtils.isNotEmpty(configValue))
+//        {
+//            return configValue;
+//        }
         SysConfig config = new SysConfig();
         config.setConfigKey(configKey);
         SysConfig retConfig = configMapper.selectConfig(config);

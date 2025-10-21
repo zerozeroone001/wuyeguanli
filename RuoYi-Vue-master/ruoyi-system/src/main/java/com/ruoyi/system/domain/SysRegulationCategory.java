@@ -1,5 +1,6 @@
 package com.ruoyi.system.domain;
 
+import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -19,6 +20,10 @@ public class SysRegulationCategory extends BaseEntity
 
     /** 分类名称 */
     private String categoryName;
+
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
 
     /** 显示顺序 */
     private Integer orderNum;
@@ -41,6 +46,17 @@ public class SysRegulationCategory extends BaseEntity
     {
         return categoryName;
     }
+
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
+    }
+
     public void setOrderNum(Integer orderNum)
     {
         this.orderNum = orderNum;
@@ -56,6 +72,7 @@ public class SysRegulationCategory extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("categoryId", getCategoryId())
             .append("categoryName", getCategoryName())
+            .append("communityId", getCommunityId())
             .append("orderNum", getOrderNum())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

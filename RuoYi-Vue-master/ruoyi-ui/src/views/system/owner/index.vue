@@ -100,6 +100,7 @@
       <el-table-column label="楼栋号" align="center" prop="buildingNo" />
       <el-table-column label="单元号" align="center" prop="unitNo" />
       <el-table-column label="房号" align="center" prop="roomNo" />
+      <el-table-column label="所属小区" align="center" prop="communityName" />
       <el-table-column label="业委会成员" align="center" prop="isCommitteeMember">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_yes_no" :value="scope.row.isCommitteeMember"/>
@@ -173,6 +174,10 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="真实姓名" prop="realName">
           <el-input v-model="form.realName" placeholder="请输入真实姓名" />
+        </el-form-item>
+        <el-form-item label="所属小区" prop="communityId">
+          <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
+          <input type="hidden" v-model="form.communityId" />
         </el-form-item>
         <el-form-item label="绑定用户" prop="userId">
           <el-input
@@ -264,6 +269,7 @@
 import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity } from "@/api/system/owner";
 import { getToken } from "@/utils/auth";
 import UserSelectDialog from "@/components/UserSelectDialog";
+import { mapGetters } from "vuex";
 
 export default {
   name: "Owner",
@@ -303,6 +309,7 @@ export default {
         realName: null,
         phonenumber: null,
         contactNumber: null,
+        communityId: null
       },
       // 表单参数
       form: {},
@@ -332,15 +339,94 @@ export default {
       },
     };
   },
+  computed: {
+    ...mapGetters([
+      "currentCommunityId",
+      "currentCommunityName",
+      "communityOptions"
+    ]),
+    /**
+     * 顶部选择为“全部小区”时返回 true。
+     */
+    isAllCommunitySelected() {
+      const value = this.currentCommunityId;
+      if (value === null || value === undefined) {
+        return true;
+      }
+      return Number(value) === 0;
+    }
+  },
   created() {
+    this.applyCommunityFilter();
     this.getList();
   },
   methods: {
+    /**
+     * 根据顶部选择的小区同步查询条件。
+     */
+    applyCommunityFilter() {
+      if (this.isAllCommunitySelected) {
+        this.queryParams.communityId = null;
+      } else {
+        this.queryParams.communityId = Number(this.currentCommunityId);
+      }
+    },
+    /**
+     * 构建请求参数，必要时携带小区 ID。
+     */
+    buildQueryParams() {
+      const params = { ...this.queryParams };
+      if (this.isAllCommunitySelected) {
+        delete params.communityId;
+      } else {
+        const numericId = Number(this.currentCommunityId);
+        this.queryParams.communityId = numericId;
+        params.communityId = numericId;
+      }
+      return params;
+    },
+    /**
+     * 根据小区 ID 返回对应的小区名称。
+     */
+    resolveCommunityName(communityId) {
+      if (communityId === null || communityId === undefined) {
+        return "";
+      }
+      const numericId = Number(communityId);
+      const options = Array.isArray(this.communityOptions) ? this.communityOptions : [];
+      const target = options.find(item => Number(item.id) === numericId);
+      if (target && target.name) {
+        return target.name;
+      }
+      if (
+        this.currentCommunityId !== null &&
+        this.currentCommunityId !== undefined &&
+        Number(this.currentCommunityId) === numericId
+      ) {
+        return this.currentCommunityName || "";
+      }
+      return "";
+    },
+    /**
+     * 为表单对象补全小区信息。
+     */
+    attachCommunityInfo(target, communityId) {
+      const numericId =
+        communityId === null || communityId === undefined ? null : Number(communityId);
+      target.communityId = numericId;
+      target.communityName = this.resolveCommunityName(numericId);
+    },
     /** 查询业主信息列表 */
     getList() {
       this.loading = true;
-      listOwner(this.queryParams).then(response => {
-        this.ownerList = response.rows;
+      const params = this.buildQueryParams();
+      listOwner(params).then(response => {
+        this.ownerList = Array.isArray(response.rows)
+          ? response.rows.map(item => ({
+              ...item,
+              communityName: this.resolveCommunityName(item.communityId)
+            }))
+          : [];
         this.total = response.total;
         this.loading = false;
       });
@@ -362,6 +448,8 @@ export default {
         buildingNo: null,
         unitNo: null,
         roomNo: null,
+        communityId: null,
+        communityName: "",
         isCommitteeMember: "N",
         delFlag: null,
         createBy: null,
@@ -378,12 +466,14 @@ export default {
     },
     /** 搜索按钮操作 */
     handleQuery() {
+      this.applyCommunityFilter();
       this.queryParams.pageNum = 1;
       this.getList();
     },
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
+      this.applyCommunityFilter();
       this.handleQuery();
     },
     // 多选框选中数据
@@ -394,7 +484,12 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
+      if (this.isAllCommunitySelected) {
+        this.$message.warning("请先在右上角选择具体小区，再新增业主。");
+        return;
+      }
       this.reset();
+      this.attachCommunityInfo(this.form, this.currentCommunityId);
       this.open = true;
       this.title = "添加业主信息";
     },
@@ -404,6 +499,7 @@ export default {
       const userId = row.userId || this.ids[0]
       getOwner(userId).then(response => {
         this.form = response.data;
+        this.attachCommunityInfo(this.form, response.data.communityId);
         // 需要额外获取手机号, 因为主表没有
         // this.form.phonenumber = ...
         this.open = true;
@@ -414,6 +510,18 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (this.form.communityId === null || this.form.communityId === undefined) {
+            if (!this.isAllCommunitySelected) {
+              this.form.communityId = Number(this.currentCommunityId);
+              this.form.communityName = this.resolveCommunityName(this.form.communityId);
+            }
+          }
+          const numericId = Number(this.form.communityId);
+          if (Number.isNaN(numericId) || numericId === 0) {
+            this.$message.error("请先为业主选择所属小区。");
+            return;
+          }
+          this.form.communityId = numericId;
           if (this.form.userId != null) {
             updateOwner(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
@@ -442,9 +550,8 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/owner/export', {
-        ...this.queryParams
-      }, `owner_${new Date().getTime()}.xlsx`)
+      const params = this.buildQueryParams();
+      this.download('system/owner/export', params, `owner_${new Date().getTime()}.xlsx`)
     },
     /** 导入按钮操作 */
     handleImport() {

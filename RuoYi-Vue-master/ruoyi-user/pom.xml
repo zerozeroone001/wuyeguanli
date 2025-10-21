@@ -65,6 +65,7 @@
             <groupId>com.ruoyi</groupId>
             <artifactId>ruoyi-system</artifactId>
         </dependency>
+
     </dependencies>
 
     <build>

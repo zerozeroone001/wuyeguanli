@@ -28,6 +28,10 @@ public class SysPropertyRegulation extends BaseEntity
     @Excel(name = "制度分类ID")
     private Long categoryId;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 制度类型 */
     @Excel(name = "制度类型")
     private String regulationType;
@@ -104,6 +108,14 @@ public class SysPropertyRegulation extends BaseEntity
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Long getCommunityId() {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId) {
+        this.communityId = communityId;
     }
 
     public String getRegulationType() {
@@ -224,6 +236,7 @@ public class SysPropertyRegulation extends BaseEntity
             .append("regulationId", getRegulationId())
             .append("regulationName", getRegulationName())
             .append("categoryId", getCategoryId())
+            .append("communityId", getCommunityId())
             .append("regulationType", getRegulationType())
             .append("summary", getSummary())
             .append("publishDept", getPublishDept())

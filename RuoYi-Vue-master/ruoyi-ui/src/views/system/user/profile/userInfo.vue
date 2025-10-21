@@ -2,7 +2,7 @@
   <el-form ref="form" :model="form" :rules="rules" label-width="80px">
     <el-form-item label="用户昵称" prop="nickName">
       <el-input v-model="form.nickName" maxlength="30" />
-    </el-form-item> 
+    </el-form-item>
     <el-form-item label="手机号码" prop="phonenumber">
       <el-input v-model="form.phonenumber" maxlength="11" />
     </el-form-item>
@@ -33,7 +33,13 @@ export default {
   },
   data() {
     return {
-      form: {},
+      form: {
+        nickName: "",
+        phonenumber: "",
+        email: "",
+        sex: undefined,
+        avatar: ""
+      },
       // 表单校验
       rules: {
         nickName: [
@@ -62,7 +68,14 @@ export default {
     user: {
       handler(user) {
         if (user) {
-          this.form = { nickName: user.nickName, phonenumber: user.phonenumber, email: user.email, sex: user.sex }
+          const resolvedAvatar = this.resolveAvatar(user.avatar)
+          this.form = {
+            nickName: user.nickName,
+            phonenumber: user.phonenumber,
+            email: user.email,
+            sex: user.sex,
+            avatar: resolvedAvatar
+          }
         }
       },
       immediate: true
@@ -72,16 +85,39 @@ export default {
     submit() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          this.form.avatar = this.resolveAvatar(this.form.avatar)
           updateUserProfile(this.form).then(response => {
             this.$modal.msgSuccess("修改成功")
+            this.user.nickName = this.form.nickName
             this.user.phonenumber = this.form.phonenumber
             this.user.email = this.form.email
+            this.user.sex = this.form.sex
+            this.user.avatar = this.form.avatar
           })
         }
       })
     },
     close() {
       this.$tab.closePage()
+    },
+    updateAvatar(url) {
+      if (!this.form) {
+        this.form = {}
+      }
+      this.form.avatar = url
+    },
+    resolveAvatar(avatar) {
+      if (avatar && avatar.startsWith("http")) {
+        return avatar
+      }
+      const storeAvatar = this.$store?.getters?.avatar
+      if (storeAvatar && storeAvatar.startsWith("http")) {
+        return storeAvatar
+      }
+      if (avatar && avatar !== "") {
+        return `${process.env.VUE_APP_BASE_API || ""}${avatar}`
+      }
+      return ""
     }
   }
 }

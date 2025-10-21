@@ -24,6 +24,10 @@ public class SysWarranty extends BaseEntity {
     @NotBlank(message = "设备名称不能为空")
     private String equipmentName;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 设备位置 */
     @Excel(name = "设备位置")
     @NotBlank(message = "设备位置不能为空")
@@ -62,6 +66,14 @@ public class SysWarranty extends BaseEntity {
 
     public void setEquipmentName(String equipmentName) {
         this.equipmentName = equipmentName;
+    }
+
+    public Long getCommunityId() {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId) {
+        this.communityId = communityId;
     }
 
     public String getEquipmentLocation() {
@@ -109,6 +121,7 @@ public class SysWarranty extends BaseEntity {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
                 .append("warrantyId", getWarrantyId())
                 .append("equipmentName", getEquipmentName())
+                .append("communityId", getCommunityId())
                 .append("equipmentLocation", getEquipmentLocation())
                 .append("description", getDescription())
                 .append("reporterName", getReporterName())

@@ -4,7 +4,7 @@
     <div class="dashboard-header">
       <h2>
         <i class="el-icon-monitor"></i>
-        智慧物业管理仪表盘
+        仪表盘
       </h2>
     </div>
 

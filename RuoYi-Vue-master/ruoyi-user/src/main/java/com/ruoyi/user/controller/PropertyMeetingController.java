@@ -35,9 +35,6 @@ public class PropertyMeetingController extends BaseController
     private static final Logger log = LoggerFactory.getLogger(PropertyMeetingController.class);
 
     @Autowired
-    private WechatService wechatService;
-
-    @Autowired
     private ISysPropertyMeetingService sysPropertyMeetingService;
 
     @Autowired

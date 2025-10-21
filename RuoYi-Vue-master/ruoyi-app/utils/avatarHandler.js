@@ -76,7 +76,7 @@ export function handleAvatarSelection(avatarUrl, onSuccess, onError) {
  */
 export function getAvatarDisplayUrl(avatarUrl) {
   if (!avatarUrl) {
-    return '/static/images/profile.jpg' // 默认头像
+    return '/static/avatar.png' // 默认头像
   }
   
   // 如果是临时路径（开发环境），直接返回

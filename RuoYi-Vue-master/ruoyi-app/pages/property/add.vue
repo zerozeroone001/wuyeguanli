@@ -2,22 +2,22 @@
 <template>
 	<view class="form-container">
 		<uni-forms ref="form" :modelValue="formData" :rules="rules">
-			<uni-forms-item label="选择小区" required name="communityId">
+			<uni-forms-item label="选择小区11" style="width: 100px;" required name="communityId">
 				<picker @change="handleCommunityChange" :value="communityIndex" :range="communityList" range-key="communityName">
 					<view class="uni-input">{{communityList[communityIndex] ? communityList[communityIndex].communityName : '请选择小区'}}</view>
 				</picker>
 			</uni-forms-item>
-			<uni-forms-item label="选择楼栋" required name="buildingName">
+			<uni-forms-item label="选择楼栋" style="width: 100px;" required name="buildingName">
 				<picker @change="handleBuildingChange" :value="buildingIndex" :range="buildingList" range-key="buildingName" :disabled="!formData.communityId">
 					<view class="uni-input">{{buildingList[buildingIndex] ? buildingList[buildingIndex].buildingName : '请先选择小区'}}</view>
 				</picker>
 			</uni-forms-item>
-			<uni-forms-item label="选择房号" required name="propertyId">
+			<uni-forms-item label="选择房号" style="width: 100px;" required name="propertyId">
 				<picker @change="handleRoomChange" :value="roomIndex" :range="roomList" range-key="roomNumber" :disabled="!formData.buildingName">
 					<view class="uni-input">{{roomList[roomIndex] ? roomList[roomIndex].roomNumber : '请先选择楼栋'}}</view>
 				</picker>
 			</uni-forms-item>
-			<uni-forms-item label="用户类型" required name="userType">
+			<uni-forms-item label="用户类型" style="width: 100px;" required name="userType">
 				<uni-data-checkbox v-model="formData.userType" :localdata="userTypes"></uni-data-checkbox>
 			</uni-forms-item>
 		</uni-forms>
@@ -129,5 +129,8 @@
 <style>
 	.form-container {
 		padding: 30rpx;
+	}
+	.forms-item{
+		width: 100px ;
 	}
 </style>

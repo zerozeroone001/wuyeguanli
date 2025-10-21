@@ -3,6 +3,8 @@ package com.ruoyi.system.service.impl;
 import java.util.List;
 import java.util.Map;
 
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.CommunityUtils;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.SysMeetingFeedback;
@@ -21,13 +23,12 @@ import com.ruoyi.system.domain.SysPropertyMeeting;
 import com.ruoyi.system.service.ISysPropertyMeetingService;
 
 /**
- * 会议管理Service业务层处理
- * 
- * @author ruoyi
- * @date 2025-08-21
+ * 会议管理Service业务层处理。
+ *
+ * <p>围绕多小区权限改造，实现对查询、增删改的社区隔离。</p>
  */
 @Service
-public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService 
+public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 {
     private static final Logger log = LoggerFactory.getLogger(SysPropertyMeetingServiceImpl.class);
 
@@ -43,67 +44,49 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     @Autowired
     private ISysMeetingFeedbackService sysMeetingFeedbackService;
 
-
-
-    /**
-     * 查询会议管理
-     * 
-     * @param meetingId 会议管理主键
-     * @return 会议管理
-     */
     @Override
     public SysPropertyMeeting selectSysPropertyMeetingByMeetingId(Long meetingId)
     {
         SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
-        if (meeting != null && meeting.getTopics() != null) {
-            for (SysPropertyMeetingTopic topic : meeting.getTopics()) {
-                List<SysMeetingVote> voteList = sysMeetingVoteService.selectSysMeetingVoteListByTopicId(topic.getTopicId());
-                List<SysMeetingFeedback> feedbackList = sysMeetingFeedbackService.selectSysMeetingFeedbackListByTopicId(topic.getTopicId());
-                topic.setVoteList(voteList);
-                topic.setFeedbackList(feedbackList);
+        if (meeting != null)
+        {
+            CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+            if (StringUtils.isNotEmpty(meeting.getTopics()))
+            {
+                for (SysPropertyMeetingTopic topic : meeting.getTopics())
+                {
+                    List<SysMeetingVote> voteList = sysMeetingVoteService.selectSysMeetingVoteListByTopicId(topic.getTopicId());
+                    List<SysMeetingFeedback> feedbackList = sysMeetingFeedbackService.selectSysMeetingFeedbackListByTopicId(topic.getTopicId());
+                    topic.setVoteList(voteList);
+                    topic.setFeedbackList(feedbackList);
+                }
             }
         }
         return meeting;
     }
 
-    /**
-     * 查询会议管理列表
-     * 
-     * @param sysPropertyMeeting 会议管理
-     * @return 会议管理
-     */
     @Override
     public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting)
     {
         return sysPropertyMeetingMapper.selectSysPropertyMeetingList(sysPropertyMeeting);
     }
 
-    /**
-     * 新增会议管理
-     * 
-     * @param sysPropertyMeeting 会议管理
-     * @return 结果
-     */
     @Override
     @Transactional
     public int insertSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting)
     {
+        enforceCommunityScope(sysPropertyMeeting.getCommunityId());
         sysPropertyMeeting.setCreateTime(DateUtils.getNowDate());
         int rows = sysPropertyMeetingMapper.insertSysPropertyMeeting(sysPropertyMeeting);
         insertTopics(sysPropertyMeeting);
         return rows;
     }
 
-    /**
-     * 修改会议管理
-     * 
-     * @param sysPropertyMeeting 会议管理
-     * @return 结果
-     */
     @Override
     @Transactional
     public int updateSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting)
     {
+        enforceCommunityScope(sysPropertyMeeting.getCommunityId());
         sysPropertyMeeting.setUpdateTime(DateUtils.getNowDate());
         int rows = sysPropertyMeetingMapper.updateSysPropertyMeeting(sysPropertyMeeting);
         sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(sysPropertyMeeting.getMeetingId());
@@ -111,41 +94,35 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         return rows;
     }
 
-    /**
-     * 批量删除会议管理
-     * 
-     * @param meetingIds 需要删除的会议管理主键
-     * @return 结果
-     */
     @Override
     @Transactional
     public int deleteSysPropertyMeetingByMeetingIds(Long[] meetingIds)
     {
-        for (Long meetingId : meetingIds) {
-            sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
+        for (Long meetingId : meetingIds)
+        {
+            SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+            if (meeting != null)
+            {
+                CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+                sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
+            }
         }
         return sysPropertyMeetingMapper.deleteSysPropertyMeetingByMeetingIds(meetingIds);
     }
 
-    /**
-     * 删除会议管理信息
-     * 
-     * @param meetingId 会议管理主键
-     * @return 结果
-     */
     @Override
     @Transactional
     public int deleteSysPropertyMeetingByMeetingId(Long meetingId)
     {
+        SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        if (meeting != null)
+        {
+            CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+        }
         sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
         return sysPropertyMeetingMapper.deleteSysPropertyMeetingByMeetingId(meetingId);
     }
 
-    /**
-     * 新增议题信息
-     * 
-     * @param sysPropertyMeeting 会议管理对象
-     */
     public void insertTopics(SysPropertyMeeting sysPropertyMeeting)
     {
         List<SysPropertyMeetingTopic> topics = sysPropertyMeeting.getTopics();
@@ -161,49 +138,74 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     }
 
     @Override
-    public List<Map<String, Object>> getMeetingMarks() {
-        return sysPropertyMeetingMapper.getMeetingMarks();
+    public List<Map<String, Object>> getMeetingMarks()
+    {
+        return sysPropertyMeetingMapper.getMeetingMarks(resolveCommunityIdForStatistics());
     }
 
     @Override
-    public Long countOngoingMeetings() {
+    public Long countOngoingMeetings()
+    {
         return null;
     }
 
     @Override
-    public Double getAverageParticipationRate() {
+    public Double getAverageParticipationRate()
+    {
         return null;
     }
 
     @Override
-    public Long countUpcomingMeetings() {
+    public Long countUpcomingMeetings()
+    {
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getVoteParticipationTrend() {
+    public List<Map<String, Object>> getVoteParticipationTrend()
+    {
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getMeetingActivityStats() {
+    public List<Map<String, Object>> getMeetingActivityStats()
+    {
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> getRecentVotes(int limit) {
+    public List<Map<String, Object>> getRecentVotes(int limit)
+    {
         return null;
     }
 
     @Override
-    public void sendCommitteeMeetingNotification(Long meetingId) {
-        // TODO: 业主委员会会议通知功能已移除，需要重新实现
+    public void sendCommitteeMeetingNotification(Long meetingId)
+    {
         log.warn("业主委员会会议通知功能已移除，会议ID: {}", meetingId);
     }
 
     @Override
-    public void sendGeneralMeetingNotification(Long meetingId) {
-        // TODO: 业主大会会议通知功能已移除，需要重新实现
+    public void sendGeneralMeetingNotification(Long meetingId)
+    {
         log.warn("业主大会会议通知功能已移除，会议ID: {}", meetingId);
+    }
+
+    private void enforceCommunityScope(Long communityId)
+    {
+        if (communityId == null)
+        {
+            throw new ServiceException("会议必须绑定所属小区");
+        }
+        CommunityUtils.checkCommunityPermission(communityId);
+    }
+
+    private Long resolveCommunityIdForStatistics()
+    {
+        if (CommunityUtils.isCurrentUserAdmin())
+        {
+            return CommunityUtils.getCurrentCommunityId();
+        }
+        return CommunityUtils.requireCurrentCommunityId("当前账号未绑定任何小区");
     }
 }

@@ -14,11 +14,11 @@ import org.springframework.context.annotation.Configuration;
     "com.ruoyi.system",
     "com.ruoyi.common",
     "com.ruoyi.framework",
-    "com.ruoyi.ruoyiuser"
+    "com.ruoyi.user"
 })
 @MapperScan(basePackages = {
     "com.ruoyi.system.mapper",
-    "com.ruoyi.ruoyiuser.mapper"
+    "com.ruoyi.user.mapper"
 })
 public class UserApplicationConfig {
     

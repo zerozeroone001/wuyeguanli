@@ -1,4 +1,4 @@
-package com.ruoyi.user.domain.dto;
+package com.ruoyi.system.domain.dto;
 
 import java.util.Map;
 

@@ -19,7 +19,6 @@
 
 <script>
 	import { listMyProperty } from "@/api/property.js";
-	import { getPropertyDetails } from "@/api/property.js";
 
 	export default {
 		data() {
@@ -34,20 +33,17 @@
 			getMyPropertyList() {
 				// status=1表示查询已通过的
 				listMyProperty({ status: '1' }).then(response => {
-					const userProperties = response.rows;
-					const promises = userProperties.map(up => getPropertyDetails(up.propertyId));
-					
-					Promise.all(promises).then(detailsResponses => {
-						this.propertyList = userProperties.map((up, index) => {
-							const details = detailsResponses[index].data;
-							return {
-								...up,
-								communityName: details.communityName, // 从房产详情中获取小区名
-								propertyInfo: `${details.buildingName}${details.unitName}${details.roomNumber}`
-							};
-						});
-					});
+					const rows = response.rows || [];
+					this.propertyList = rows.map(item => ({
+						...item,
+						communityName: item.communityName || '',
+						propertyInfo: this.buildPropertyInfo(item)
+					}));
 				});
+			},
+			buildPropertyInfo(item) {
+				const parts = [item.buildingName, item.unitName, item.roomNumber].filter(Boolean);
+				return parts.join('');
 			},
 			formatUserType(userType) {
 				const map = { '00': '业主', '01': '家属', '02': '租户' };

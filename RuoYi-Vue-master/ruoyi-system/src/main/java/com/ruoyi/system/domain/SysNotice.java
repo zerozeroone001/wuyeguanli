@@ -25,6 +25,9 @@ public class SysNotice extends BaseEntity
     /** 公告类型（1通知 2公告） */
     private String noticeType;
 
+    /** 小区ID */
+    private Long communityId;
+
     /** 公告内容 */
     private String noticeContent;
 
@@ -64,6 +67,16 @@ public class SysNotice extends BaseEntity
         return noticeType;
     }
 
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
+    }
+
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
     public void setNoticeContent(String noticeContent)
     {
         this.noticeContent = noticeContent;
@@ -90,6 +103,7 @@ public class SysNotice extends BaseEntity
             .append("noticeId", getNoticeId())
             .append("noticeTitle", getNoticeTitle())
             .append("noticeType", getNoticeType())
+            .append("communityId", getCommunityId())
             .append("noticeContent", getNoticeContent())
             .append("status", getStatus())
             .append("createBy", getCreateBy())

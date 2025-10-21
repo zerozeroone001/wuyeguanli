@@ -23,7 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectEstateCommunityVo">
-        select community_id, community_name, province, city, district, address, contact_person, contact_phone, status, del_flag, create_by, create_time, update_by, update_time, remark from estate_community
+        select community_id, community_name, province, city, district, address, contact_person, contact_phone, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_estate_community
     </sql>
 
     <select id="selectEstateCommunityList" parameterType="EstateCommunity" resultMap="EstateCommunityResult">
@@ -46,7 +46,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <insert id="insertEstateCommunity" parameterType="EstateCommunity" useGeneratedKeys="true" keyProperty="communityId">
-        insert into estate_community
+        insert into sys_estate_community
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="communityName != null and communityName != ''">community_name,</if>
             <if test="province != null">province,</if>
@@ -82,7 +82,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <update id="updateEstateCommunity" parameterType="EstateCommunity">
-        update estate_community
+        update sys_estate_community
         <trim prefix="SET" suffixOverrides=",">
             <if test="communityName != null and communityName != ''">community_name = #{communityName},</if>
             <if test="province != null">province = #{province},</if>
@@ -103,11 +103,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteEstateCommunityByCommunityId" parameterType="Long">
-        delete from estate_community where community_id = #{communityId}
+        delete from sys_estate_community where community_id = #{communityId}
     </delete>
 
-    <delete id="deleteEstateCommunityByCommunityIds" parameterType="String">
-        delete from estate_community where community_id in 
+    <delete id="deleteEstateCommunityByCommunityIds" parameterType="String">cd
+        delete from sys_estate_community where community_id in
         <foreach item="communityId" collection="array" open="(" separator="," close=")">
             #{communityId}
         </foreach>

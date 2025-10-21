@@ -24,6 +24,10 @@ public class SysPropertyComplaint extends BaseEntity
     @Excel(name = "投诉编号")
     private String complaintNo;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 投诉人ID */
     @Excel(name = "投诉人ID")
     private Long userId;
@@ -92,6 +96,16 @@ public class SysPropertyComplaint extends BaseEntity
     public String getComplaintNo() 
     {
         return complaintNo;
+    }
+
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
     }
 
     public void setUserId(Long userId) 
@@ -219,6 +233,7 @@ public class SysPropertyComplaint extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("complaintId", getComplaintId())
             .append("complaintNo", getComplaintNo())
+            .append("communityId", getCommunityId())
             .append("userId", getUserId())
             .append("complaintType", getComplaintType())
             .append("complaintTitle", getComplaintTitle())

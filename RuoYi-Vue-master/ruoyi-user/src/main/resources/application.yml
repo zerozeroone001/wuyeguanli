@@ -154,9 +154,4 @@ aliyun:
     bucketName: zhuote
     # 自定义域名，可选。配置后，返回的URL将使用此域名
     domain:
-  sms:
-    accessKeyId: LTAI5t8ub36MCNYE4uLwpgDw
-    accessKeySecret: jW56Mq5BiaCs0SQnmwsDlJfGHc75Vl
-    endpoint: dysmsapi.aliyuncs.com
-    signName: 卓特物业
-    templateCode: SMS_271525319
+

@@ -5,7 +5,7 @@ import { isHttp, isEmpty } from "@/utils/validate"
 import { login, logout, getInfo, wechatLogin } from '@/api/login'
 import { getMyProfile } from '@/api/profile' // 引入获取认证信息的API
 import { getToken, setToken, removeToken } from '@/utils/auth'
-import defAva from '@/static/images/profile.jpg'
+import defAva from '@/static/avatar.png'
 
 const baseUrl = config.baseUrl
 

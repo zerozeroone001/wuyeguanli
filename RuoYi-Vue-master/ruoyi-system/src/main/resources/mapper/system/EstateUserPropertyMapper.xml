@@ -5,42 +5,104 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.ruoyi.system.mapper.EstateUserPropertyMapper">
     
     <resultMap type="EstateUserProperty" id="EstateUserPropertyResult">
-        <result property="associationId"    column="association_id"    />
-        <result property="userId"    column="user_id"    />
-        <result property="propertyId"    column="property_id"    />
-        <result property="communityId"    column="community_id"    />
-        <result property="userType"    column="user_type"    />
-        <result property="status"    column="status"    />
-        <result property="delFlag"    column="del_flag"    />
-        <result property="createBy"    column="create_by"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="associationId" column="association_id" />
+        <result property="userId" column="user_id" />
+        <result property="propertyId" column="property_id" />
+        <result property="communityId" column="community_id" />
+        <result property="communityName" column="community_name" />
+        <result property="communityAddress" column="community_address" />
+        <result property="buildingName" column="building_name" />
+        <result property="unitName" column="unit_name" />
+        <result property="roomNumber" column="room_number" />
+        <result property="floor" column="floor" />
+        <result property="area" column="area" />
+        <result property="userType" column="user_type" />
+        <result property="userName" column="user_name" />
+        <result property="nickName" column="nick_name" />
+        <result property="phonenumber" column="phonenumber" />
+        <result property="realName" column="real_name" />
+        <result property="status" column="status" />
+        <result property="delFlag" column="del_flag" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
     </resultMap>
 
     <sql id="selectEstateUserPropertyVo">
-        select association_id, user_id, property_id, community_id, user_type, status, del_flag, create_by, create_time, update_by, update_time, remark from estate_user_property
+        select eup.association_id,
+               eup.user_id,
+               eup.property_id,
+               coalesce(eup.community_id, p.community_id) as community_id,
+               eup.user_type,
+               eup.status,
+               eup.del_flag,
+               eup.create_by,
+               eup.create_time,
+               eup.update_by,
+               eup.update_time,
+               eup.remark,
+               c.community_name,
+               c.address as community_address,
+               p.building_name,
+               p.unit_name,
+               p.room_number,
+               p.floor,
+               p.area,
+               u.user_name,
+               u.nick_name,
+               u.phonenumber,
+               coalesce(u.nick_name, u.user_name) as real_name
+        from sys_estate_user_property eup
+        left join sys_estate_property p on eup.property_id = p.property_id
+        left join sys_estate_community c on p.community_id = c.community_id
+        left join sys_user u on eup.user_id = u.user_id
     </sql>
 
     <select id="selectEstateUserPropertyList" parameterType="EstateUserProperty" resultMap="EstateUserPropertyResult">
         <include refid="selectEstateUserPropertyVo"/>
-        <where>  
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="propertyId != null "> and property_id = #{propertyId}</if>
-            <if test="communityId != null "> and community_id = #{communityId}</if>
-            <if test="userType != null  and userType != ''"> and user_type = #{userType}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
+        <where>
+            <if test="userId != null">and eup.user_id = #{userId}</if>
+            <if test="propertyId != null">and eup.property_id = #{propertyId}</if>
+            <if test="communityId != null">
+                and (
+                    eup.community_id = #{communityId}
+                    or (eup.community_id is null and p.community_id = #{communityId})
+                )
+            </if>
+            <if test="communityName != null and communityName != ''">
+                and c.community_name like concat('%', #{communityName}, '%')
+            </if>
+            <if test="buildingName != null and buildingName != ''">
+                and p.building_name like concat('%', #{buildingName}, '%')
+            </if>
+            <if test="unitName != null and unitName != ''">
+                and p.unit_name like concat('%', #{unitName}, '%')
+            </if>
+            <if test="roomNumber != null and roomNumber != ''">
+                and p.room_number like concat('%', #{roomNumber}, '%')
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    u.nick_name like concat('%', #{keyword}, '%')
+                    or u.user_name like concat('%', #{keyword}, '%')
+                    or u.phonenumber like concat('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="userType != null and userType != ''">and eup.user_type = #{userType}</if>
+            <if test="status != null and status != ''">and eup.status = #{status}</if>
         </where>
+        order by eup.create_time desc
     </select>
     
     <select id="selectEstateUserPropertyByAssociationId" parameterType="Long" resultMap="EstateUserPropertyResult">
         <include refid="selectEstateUserPropertyVo"/>
-        where association_id = #{associationId}
+        where eup.association_id = #{associationId}
     </select>
 
     <insert id="insertEstateUserProperty" parameterType="EstateUserProperty" useGeneratedKeys="true" keyProperty="associationId">
-        insert into estate_user_property
+        insert into sys_estate_user_property
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">user_id,</if>
             <if test="propertyId != null">property_id,</if>
@@ -70,7 +132,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <update id="updateEstateUserProperty" parameterType="EstateUserProperty">
-        update estate_user_property
+        update sys_estate_user_property
         <trim prefix="SET" suffixOverrides=",">
             <if test="userId != null">user_id = #{userId},</if>
             <if test="propertyId != null">property_id = #{propertyId},</if>
@@ -88,11 +150,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteEstateUserPropertyByAssociationId" parameterType="Long">
-        delete from estate_user_property where association_id = #{associationId}
+        delete from sys_estate_user_property where association_id = #{associationId}
     </delete>
 
     <delete id="deleteEstateUserPropertyByAssociationIds" parameterType="String">
-        delete from estate_user_property where association_id in 
+        delete from sys_estate_user_property where association_id in
         <foreach item="associationId" collection="array" open="(" separator="," close=")">
             #{associationId}
         </foreach>

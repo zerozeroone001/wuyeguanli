@@ -7,16 +7,14 @@ import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.exception.ServiceException;
-import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.MessageUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.http.HttpUtils;
-import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.framework.manager.AsyncManager;
 import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.service.ISysUserService;
-import com.ruoyi.user.domain.dto.WechatLoginDto;
+import com.ruoyi.system.domain.dto.WechatLoginDto;
 import com.ruoyi.user.service.IWechatLoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,16 +140,5 @@ public class WechatLoginServiceImpl implements IWechatLoginService {
         return tokenService.createToken(loginUser);
     }
 
-    /**
-     * 记录登录信息
-     *
-     * @param userId 用户ID
-     */
-    public void recordLoginInfo(Long userId) {
-        SysUser sysUser = new SysUser();
-        sysUser.setUserId(userId);
-        sysUser.setLoginIp(IpUtils.getIpAddr());
-        sysUser.setLoginDate(DateUtils.getNowDate());
-        userService.updateUserProfile(sysUser);
-    }
+
 }

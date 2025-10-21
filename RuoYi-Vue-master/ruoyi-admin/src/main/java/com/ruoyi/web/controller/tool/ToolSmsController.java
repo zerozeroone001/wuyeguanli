@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.tool;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.SmsUtils;
+import com.ruoyi.system.service.SmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class ToolSmsController {
 
     @Autowired
-    private SmsUtils smsUtils;
+    private SmsService smsService;
 
     @Autowired
     private RedisCache redisCache;
@@ -38,7 +39,7 @@ public class ToolSmsController {
         redisCache.setCacheObject(SMS_CODE_PREFIX + phoneNumber, code, 5, TimeUnit.MINUTES);
 
         // 3. 发送短信
-        boolean isSuccess = smsUtils.sendSms(phoneNumber, code);
+        boolean isSuccess = smsService.sendSms(phoneNumber, code);
 
         if (isSuccess) {
             return AjaxResult.success("短信发送成功");

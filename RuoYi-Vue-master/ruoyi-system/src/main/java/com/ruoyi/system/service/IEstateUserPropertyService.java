@@ -4,58 +4,66 @@ import java.util.List;
 import com.ruoyi.system.domain.EstateUserProperty;
 
 /**
- * ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»Serviceæ¥å£
- * 
+ * ÓÃ»§Óë·¿Îİ¹ØÁª Service ½Ó¿Ú
+ *
  * @author ruoyi
  * @date 2025-09-05
  */
-public interface IEstateUserPropertyService 
+public interface IEstateUserPropertyService
 {
     /**
-     * æŸ¥è¯¢ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * 
-     * @param associationId ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»ä¸»é”®
-     * @return ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
+     * ¸ù¾İÖ÷¼ü²éÑ¯
+     *
+     * @param associationId ¹ØÁªID
+     * @return ÓÃ»§·¿Îİ¹ØÁª
      */
-    public EstateUserProperty selectEstateUserPropertyByAssociationId(Long associationId);
+    EstateUserProperty selectEstateUserPropertyByAssociationId(Long associationId);
 
     /**
-     * æŸ¥è¯¢ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»åˆ—è¡¨
-     * 
-     * @param estateUserProperty ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * @return ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»é›†åˆ
+     * ²éÑ¯ÓÃ»§·¿Îİ¹ØÁªÁĞ±í
+     *
+     * @param estateUserProperty ²éÑ¯Ìõ¼ş
+     * @return ¹ØÁª¼¯ºÏ
      */
-    public List<EstateUserProperty> selectEstateUserPropertyList(EstateUserProperty estateUserProperty);
+    List<EstateUserProperty> selectEstateUserPropertyList(EstateUserProperty estateUserProperty);
 
     /**
-     * æ–°å¢ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * 
-     * @param estateUserProperty ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * @return ç»“æœ
+     * ĞÂÔöÓÃ»§·¿Îİ¹ØÁª
+     *
+     * @param estateUserProperty Êı¾İ
+     * @return Ó°ÏìĞĞÊı
      */
-    public int insertEstateUserProperty(EstateUserProperty estateUserProperty);
+    int insertEstateUserProperty(EstateUserProperty estateUserProperty);
 
     /**
-     * ä¿®æ”¹ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * 
-     * @param estateUserProperty ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * @return ç»“æœ
+     * ĞŞ¸ÄÓÃ»§·¿Îİ¹ØÁª
+     *
+     * @param estateUserProperty Êı¾İ
+     * @return Ó°ÏìĞĞÊı
      */
-    public int updateEstateUserProperty(EstateUserProperty estateUserProperty);
+    int updateEstateUserProperty(EstateUserProperty estateUserProperty);
 
     /**
-     * æ‰¹é‡åˆ é™¤ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»
-     * 
-     * @param associationIds éœ€è¦åˆ é™¤çš„ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»ä¸»é”®é›†åˆ
-     * @return ç»“æœ
+     * ÅúÁ¿É¾³ıÓÃ»§·¿Îİ¹ØÁª
+     *
+     * @param associationIds Ö÷¼ü¼¯ºÏ
+     * @return Ó°ÏìĞĞÊı
      */
-    public int deleteEstateUserPropertyByAssociationIds(Long[] associationIds);
+    int deleteEstateUserPropertyByAssociationIds(Long[] associationIds);
 
     /**
-     * åˆ é™¤ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»ä¿¡æ¯
-     * 
-     * @param associationId ç”¨æˆ·ä¸æˆ¿äº§å…³ç³»ä¸»é”®
-     * @return ç»“æœ
+     * É¾³ıµ¥ÌõÓÃ»§·¿Îİ¹ØÁª
+     *
+     * @param associationId Ö÷¼ü
+     * @return Ó°ÏìĞĞÊı
      */
-    public int deleteEstateUserPropertyByAssociationId(Long associationId);
+    int deleteEstateUserPropertyByAssociationId(Long associationId);
+
+    /**
+     * ÉóºËÓÃ»§·¿Îİ¹ØÁª
+     *
+     * @param estateUserProperty ÉóºË²ÎÊı
+     * @return Ó°ÏìĞĞÊı
+     */
+    int auditEstateUserProperty(EstateUserProperty estateUserProperty);
 }

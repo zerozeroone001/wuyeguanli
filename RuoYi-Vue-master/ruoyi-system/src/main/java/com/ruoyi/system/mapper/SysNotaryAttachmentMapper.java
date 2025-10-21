@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.SysNotaryAttachment;
  * 公证附件Mapper接口
  * 
  * @author ruoyi
- * @date 2025-09-11
+ * @date 2025-01-27
  */
 public interface SysNotaryAttachmentMapper 
 {

@@ -27,6 +27,10 @@ public class SysPropertyContract extends BaseEntity
     @Excel(name = "合同编号")
     private String contractNo;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 合同名称 */
     @Excel(name = "合同名称")
     private String contractName;
@@ -102,6 +106,16 @@ public class SysPropertyContract extends BaseEntity
     public String getContractNo()
     {
         return contractNo;
+    }
+
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
     }
 
     public void setContractName(String contractName)
@@ -261,6 +275,7 @@ public class SysPropertyContract extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("contractId", getContractId())
             .append("contractNo", getContractNo())
+            .append("communityId", getCommunityId())
             .append("contractName", getContractName())
             .append("contractVersion", getContractVersion())
             .append("fileUrl", getFileUrl())

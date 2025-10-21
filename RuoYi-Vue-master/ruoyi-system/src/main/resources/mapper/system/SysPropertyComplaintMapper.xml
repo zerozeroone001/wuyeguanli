@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysPropertyComplaint" id="SysPropertyComplaintResult">
         <result property="complaintId"    column="complaint_id"    />
         <result property="complaintNo"    column="complaint_no"    />
+        <result property="communityId"    column="community_id"    />
         <result property="userId"    column="user_id"    />
         <result property="complaintType"    column="complaint_type"    />
         <result property="complaintTitle"    column="complaint_title"    />
@@ -26,13 +27,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyComplaintVo">
-        select complaint_id, complaint_no, user_id, complaint_type, complaint_title, complaint_content, contact_phone, urgency, expected_time, status, handler_id, handle_time, complete_time, satisfaction, create_by, create_time, update_by, update_time from sys_property_complaint
+        select complaint_id, complaint_no, community_id, user_id, complaint_type, complaint_title, complaint_content, contact_phone, urgency, expected_time, status, handler_id, handle_time, complete_time, satisfaction, create_by, create_time, update_by, update_time from sys_property_complaint
     </sql>
 
     <select id="selectSysPropertyComplaintList" parameterType="SysPropertyComplaint" resultMap="SysPropertyComplaintResult">
         <include refid="selectSysPropertyComplaintVo"/>
         <where>  
             <if test="complaintNo != null  and complaintNo != ''"> and complaint_no = #{complaintNo}</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="userId != null "> and user_id = #{userId}</if>
             <if test="complaintType != null  and complaintType != ''"> and complaint_type = #{complaintType}</if>
             <if test="complaintTitle != null  and complaintTitle != ''"> and complaint_title = #{complaintTitle}</if>
@@ -57,6 +59,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into sys_property_complaint
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="complaintNo != null and complaintNo != ''">complaint_no,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="userId != null">user_id,</if>
             <if test="complaintType != null and complaintType != ''">complaint_type,</if>
             <if test="complaintTitle != null and complaintTitle != ''">complaint_title,</if>
@@ -76,6 +79,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="complaintNo != null and complaintNo != ''">#{complaintNo},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="userId != null">#{userId},</if>
             <if test="complaintType != null and complaintType != ''">#{complaintType},</if>
             <if test="complaintTitle != null and complaintTitle != ''">#{complaintTitle},</if>
@@ -98,8 +102,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateSysPropertyComplaint" parameterType="SysPropertyComplaint">
         update sys_property_complaint
         <trim prefix="SET" suffixOverrides=",">
-            <if test="complaintNo != null and complaintNo != ''">complaint_no = #{complaintNo},</if>
-            <if test="userId != null">user_id = #{userId},</if>
+              <if test="complaintNo != null and complaintNo != ''">complaint_no = #{complaintNo},</if>
+              <if test="communityId != null">community_id = #{communityId},</if>
+              <if test="userId != null">user_id = #{userId},</if>
             <if test="complaintType != null and complaintType != ''">complaint_type = #{complaintType},</if>
             <if test="complaintTitle != null and complaintTitle != ''">complaint_title = #{complaintTitle},</if>
             <if test="complaintContent != null and complaintContent != ''">complaint_content = #{complaintContent},</if>
@@ -130,7 +135,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
-    <select id="getComplaintStats" resultType="java.util.Map">
+    <select id="getComplaintStats" parameterType="java.lang.Long" resultType="java.util.Map">
         select
             count(*) as total,
             count(case when status = '0' then 1 end) as pending,
@@ -138,17 +143,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             count(case when status = '2' then 1 end) as completed,
             count(case when status = '3' then 1 end) as closed
         from sys_property_complaint
+        <where>
+            <if test="communityId != null"> community_id = #{communityId}</if>
+        </where>
     </select>
 
-    <select id="countPendingComplaints" resultType="java.lang.Long">
-        select count(*) from sys_property_complaint where status = '0'
+    <select id="countPendingComplaints" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select count(*) from sys_property_complaint
+        where status = '0'
+        <if test="communityId != null"> and community_id = #{communityId}</if>
     </select>
 
-    <select id="countUrgentComplaints" resultType="java.lang.Long">
-        select count(*) from sys_property_complaint where urgency = '1'
+    <select id="countUrgentComplaints" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select count(*) from sys_property_complaint
+        where urgency = '1'
+        <if test="communityId != null"> and community_id = #{communityId}</if>
     </select>
 
-    <select id="getComplaintGrowthRate" resultType="java.lang.Double">
+    <select id="getComplaintGrowthRate" parameterType="java.lang.Long" resultType="java.lang.Double">
         select 
             case 
                 when last_month_count = 0 then 0
@@ -158,18 +170,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             select 
                 count(*) as this_month_count,
                 (select count(*) from sys_property_complaint 
-                 where DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m')) as last_month_count
+                 where DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m')
+                 <if test="communityId != null"> and community_id = #{communityId}</if>) as last_month_count
             from sys_property_complaint 
             where DATE_FORMAT(create_time, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+            <if test="communityId != null"> and community_id = #{communityId}</if>
         ) t
     </select>
 
-    <select id="getComplaintTrend" resultType="java.util.Map">
+    <select id="getComplaintTrend" parameterType="java.lang.Long" resultType="java.util.Map">
         select 
             DATE_FORMAT(create_time, '%Y-%m-%d') as date,
             count(*) as count
         from sys_property_complaint 
         where create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        <if test="communityId != null"> and community_id = #{communityId}</if>
         group by DATE_FORMAT(create_time, '%Y-%m-%d')
         order by date
     </select>
@@ -185,11 +200,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             create_time,
             user_id
         from sys_property_complaint 
+        <where>
+            <if test="communityId != null"> community_id = #{communityId}</if>
+        </where>
         order by create_time desc 
         limit #{limit}
     </select>
 
-    <select id="getComplaintTypeStats" resultType="java.util.Map">
+    <select id="getComplaintTypeStats" parameterType="java.lang.Long" resultType="java.util.Map">
         select 
             complaint_type,
             case complaint_type
@@ -203,11 +221,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             end as type_name,
             count(*) as count
         from sys_property_complaint 
+        <where>
+            <if test="communityId != null"> community_id = #{communityId}</if>
+        </where>
         group by complaint_type
         order by count desc
     </select>
 
-    <select id="getComplaintStatusStats" resultType="java.util.Map">
+    <select id="getComplaintStatusStats" parameterType="java.lang.Long" resultType="java.util.Map">
         select 
             status,
             case status
@@ -219,6 +240,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             end as status_name,
             count(*) as count
         from sys_property_complaint 
+        <where>
+            <if test="communityId != null"> community_id = #{communityId}</if>
+        </where>
         group by status
         order by status
     </select>

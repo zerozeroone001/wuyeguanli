@@ -3,23 +3,23 @@
     <view class="logo-content align-center justify-center flex">
       <image style="width: 100rpx;height: 100rpx;" :src="globalConfig.appInfo.logo" mode="widthFix">
       </image>
-      <text class="title">卓特物业</text>
+      <text class="title">卓特智管系统</text>
     </view>
     <view class="login-form-content">
       
       <!-- #ifdef MP-WEIXIN -->
-      <view class="weixin-login-container">
-        <view class="avatar-wrapper">
-          <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
-            <image :src="avatarUrl" class="avatar-img"></image>
-          </button>
-          <view class="avatar-tips">点击选择头像</view>
-        </view>
-        <view class="input-item flex align-center">
-          <view class="iconfont icon-user icon"></view>
-          <input type="nickname" class="input" v-model="nickname" @blur="onNicknameBlur" placeholder="请输入昵称" />
-        </view>
-      </view>
+<!--      <view class="weixin-login-container">-->
+<!--        <view class="avatar-wrapper">-->
+<!--          <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">-->
+<!--            <image src="/static/avatar.png" class="avatar-img"></image>-->
+<!--          </button>-->
+<!--          <view class="avatar-tips">点击选择头像</view>-->
+<!--        </view>-->
+<!--        <view class="input-item flex align-center">-->
+<!--          <view class="iconfont icon-user icon"></view>-->
+<!--          <input type="nickname" class="input" v-model="nickname" @blur="onNicknameBlur" placeholder="请输入昵称" />-->
+<!--        </view>-->
+<!--      </view>-->
       <!-- #endif -->
 
       <!-- 用户协议和隐私协议勾选 -->
@@ -36,6 +36,10 @@
           </view>
         </view>
       </view>
+	  
+	  <view class="tishi" v-if="!isLoggedIn">
+	  	账号仅限特定人群登录并进行登录账号鉴权
+	  </view>
 
       <view class="action-btn">
         <button @click="handleWechatLogin" class="login-btn cu-btn block bg-green lg round">微信授权登录</button>
@@ -46,14 +50,13 @@
 </template>
 
 <script>
-  import defaultAvatar from '@/static/images/profile.jpg'
   import { handleAvatarSelection, getAvatarDisplayUrl } from '@/utils/avatarHandler'
 
   export default {
     data() {
       return {
         globalConfig: getApp().globalData.config,
-        avatarUrl: defaultAvatar,
+        avatarUrl: '',
         nickname: '',
         agreedToTerms: false
       }
@@ -106,48 +109,65 @@
       },
       // 微信登录
       handleWechatLogin() {
-        if (!this.nickname) {
-          this.$modal.msgError("请输入昵称")
-          return
-        }
-        
+
         if (!this.agreedToTerms) {
           this.$modal.msgError("请先阅读并同意用户协议和隐私协议")
           return
         }
 
         this.$modal.loading("登录中，请耐心等待...")
-
-        uni.login({
-          provider: 'weixin',
-          success: (loginRes) => {
-            const loginData = {
-              code: loginRes.code,
-              userInfo: {
-                nickName: this.nickname,
-                avatarUrl: this.avatarUrl
-              }
-            }
-            this.$store.dispatch('WechatLogin', loginData).then(() => {
-              this.$modal.closeLoading()
-              this.loginSuccess()
-            }).catch((err) => {
-              console.error(err)
-              this.$modal.closeLoading()
-            })
+        uni.getUserProfile({
+          desc: '用于完善会员资料',
+          success: (profileRes) => {
+            const userInfo = profileRes.userInfo || {}
+            // 授权成功后缓存头像和昵称，便于界面展示与后续请求
+            this.avatarUrl = userInfo.avatarUrl || ''
+            this.nickname = userInfo.nickName || ''
+            this.startWechatLogin()
           },
-          fail: (err) => {
-            console.error('uni.login failed', err);
-            this.$modal.closeLoading()
-            this.$modal.msgError("微信登录授权失败")
+          fail: (error) => {
+            console.error('getUserProfile failed', error)
+            this.$modal.msgError("用户未授权，无法登录")
           }
         })
+
+      },
+      startWechatLogin(){
+    uni.login({
+      provider: 'weixin',
+      success: (loginRes) => {
+        const loginData = {
+          code: loginRes.code,
+          userInfo: {
+            nickName: this.nickname,
+            avatarUrl: this.avatarUrl
+          }
+        }
+        this.$store.dispatch('WechatLogin', loginData).then(() => {
+          this.$modal.closeLoading()
+          this.loginSuccess()
+        }).catch((err) => {
+          console.error(err)
+          this.$modal.closeLoading()
+        })
+      },
+      fail: (err) => {
+        console.error('uni.login failed', err);
+        this.$modal.closeLoading()
+        this.$modal.msgError("微信登录授权失败")
       }
+    })
+  }
     }
   }
 </script>
 
 <style lang="scss" scoped>
+	.tishi{
+		      text-align: center;
+		      font-size: 12px;
+		      color: red;
+	}
   page {
     background-color: #ffffff;
   }

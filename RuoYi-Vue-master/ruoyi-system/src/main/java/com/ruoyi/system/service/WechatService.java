@@ -1,11 +1,18 @@
 package com.ruoyi.system.service;
 
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.domain.dto.WechatLoginDto;
+
 import java.util.Map;
 
 public interface WechatService {
     String getAccessToken();
 
-    boolean sendSubscribeMessage(String openId, String templateId,String title,String address);
+    SysUser wechatLogin(WechatLoginDto wechatLoginDto);
+
+    boolean sendSubscribeMessage(String openId, String templateId, String title, String address);
+
+    String getPageLink(Long meetingId);
     
     /**
      * 发送订阅消息

@@ -160,4 +160,11 @@ public interface SysUserMapper
     public List<SysUser> selectUnboundUsers(SysUser user);
 
     Long countMonthNewUsers();
+
+    /**
+     * 查询业主手机号码列表（is_owner=1 且 未删除、启用且手机号不为空）
+     *
+     * @return 手机号码列表
+     */
+    List<String> selectOwnerPhoneList();
 }

@@ -1,10 +1,12 @@
 package com.ruoyi.system.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
 
 import com.ruoyi.system.domain.SysPropertyComplaint;
-import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 投诉管理Mapper接口
@@ -60,7 +62,7 @@ public interface SysPropertyComplaintMapper
      *
      * @return 结果
      */
-    public Map<String, Object> getComplaintStats();
+    public Map<String, Object> getComplaintStats(@Param("communityId") Long communityId);
 
 
     /**
@@ -76,28 +78,28 @@ public interface SysPropertyComplaintMapper
      * 
      * @return 待处理投诉数量
      */
-    public Long countPendingComplaints();
+    public Long countPendingComplaints(@Param("communityId") Long communityId);
 
     /**
      * 统计紧急投诉数量
      * 
      * @return 紧急投诉数量
      */
-    public Long countUrgentComplaints();
+    public Long countUrgentComplaints(@Param("communityId") Long communityId);
 
     /**
      * 获取投诉增长率
      * 
      * @return 投诉增长率
      */
-    public Double getComplaintGrowthRate();
+    public Double getComplaintGrowthRate(@Param("communityId") Long communityId);
 
     /**
      * 获取投诉趋势数据
      * 
      * @return 投诉趋势数据
      */
-    public List<Map<String, Object>> getComplaintTrend();
+    public List<Map<String, Object>> getComplaintTrend(@Param("communityId") Long communityId);
 
     /**
      * 获取最近投诉记录
@@ -105,19 +107,19 @@ public interface SysPropertyComplaintMapper
      * @param limit 限制数量
      * @return 最近投诉记录
      */
-    public List<Map<String, Object>> getRecentComplaints(int limit);
+    public List<Map<String, Object>> getRecentComplaints(@Param("communityId") Long communityId, @Param("limit") int limit);
 
     /**
      * 按类型统计投诉
      * 
      * @return 按类型统计结果
      */
-    public List<Map<String, Object>> getComplaintTypeStats();
+    public List<Map<String, Object>> getComplaintTypeStats(@Param("communityId") Long communityId);
 
     /**
      * 按状态统计投诉
      * 
      * @return 按状态统计结果
      */
-    public List<Map<String, Object>> getComplaintStatusStats();
+    public List<Map<String, Object>> getComplaintStatusStats(@Param("communityId") Long communityId);
 }

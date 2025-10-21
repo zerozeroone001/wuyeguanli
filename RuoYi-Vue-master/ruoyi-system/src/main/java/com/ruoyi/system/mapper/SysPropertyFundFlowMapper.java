@@ -64,12 +64,12 @@ public interface SysPropertyFundFlowMapper
      *
      * @return 资金概览数据
      */
-    public java.util.Map<String, Object> getFundOverview();
+    public java.util.Map<String, Object> getFundOverview(Long communityId);
 
     /**
      * 获取月度收支统计
      *
      * @return 月度收支统计数据
      */
-    public java.util.Map<String, Object> getMonthlyStats();
+    public java.util.Map<String, Object> getMonthlyStats(Long communityId);
 }

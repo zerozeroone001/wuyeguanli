@@ -163,6 +163,11 @@
         <el-form-item label="会议标题" prop="meetingTitle">
           <el-input v-model="form.meetingTitle" placeholder="请输入会议标题" />
         </el-form-item>
+        <el-form-item label="所属小区" prop="communityId">
+          <!-- 显示当前小区名称，真实的 ID 通过隐藏域提交 -->
+          <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
+          <input type="hidden" v-model="form.communityId" />
+        </el-form-item>
 <!--        <el-form-item label="会议类型" prop="meetingType">-->
 <!--          <el-select v-model="form.meetingType" placeholder="请选择会议类型" style="width:100%">-->
 <!--            &lt;!&ndash; TODO: 此处应改为使用字典管理动态获取 &ndash;&gt;-->
@@ -314,6 +319,7 @@
 
 <script>
 import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting } from "@/api/system/meeting"
+import { mapGetters } from "vuex"
 
 export default {
   name: "Meeting",
@@ -343,6 +349,7 @@ export default {
         pageSize: 10,
         meetingTitle: null,
         meetingType: 1,
+        communityId: null,
         meetingContent: null,
         meetingTime: null,
         meetingLocation: null,
@@ -354,7 +361,9 @@ export default {
       },
       // 表单参数
       form: {
-        meetingType:'1'
+        meetingType:'1',
+        communityId: null,
+        communityName: ''
       },
       // 表单校验
       rules: {
@@ -363,6 +372,9 @@ export default {
         ],
         meetingType: [
           { required: true, message: "会议类型不能为空", trigger: "change" }
+        ],
+        communityId: [
+          { required: true, message: "所属小区不能为空", trigger: "change" }
         ],
         meetingTime: [
           { required: true, message: "会议时间不能为空", trigger: "blur" }
@@ -391,14 +403,84 @@ export default {
       currentTopicFeedbacks: [],
     }
   },
+  computed: {
+    ...mapGetters([
+      "currentCommunityId",
+      "currentCommunityName",
+      "communityOptions"
+    ]),
+    /**
+     * 判断是否处于“全部小区”模式。
+     */
+    isAllCommunitySelected() {
+      const value = this.currentCommunityId
+      if (value === null || value === undefined) {
+        return true
+      }
+      return Number(value) === 0
+    }
+  },
   created() {
     this.getList()
   },
   methods: {
+    /**
+     * 组装带小区筛选条件的查询参数。
+     */
+    buildQueryParams() {
+      const params = { ...this.queryParams }
+      if (this.isAllCommunitySelected) {
+        this.queryParams.communityId = null
+        delete params.communityId
+      } else {
+        const numericId = Number(this.currentCommunityId)
+        this.queryParams.communityId = numericId
+        params.communityId = numericId
+      }
+      return params
+    },
+    /**
+     * 将当前选择的小区写入表单，用于新增时直接提交。
+     */
+    applyCurrentCommunityToForm() {
+      if (this.isAllCommunitySelected) {
+        this.form.communityId = null
+        this.form.communityName = ""
+        return
+      }
+      const numericId = Number(this.currentCommunityId)
+      this.form.communityId = numericId
+      this.form.communityName = this.resolveCommunityName(numericId)
+    },
+    /**
+     * 根据小区 ID 返回名称，优先使用缓存的下拉数据。
+     */
+    resolveCommunityName(communityId) {
+      if (communityId === null || communityId === undefined) {
+        return ""
+      }
+      const numericId = Number(communityId)
+      const options = Array.isArray(this.communityOptions)
+        ? this.communityOptions
+        : []
+      const matched = options.find(item => Number(item.id) === numericId)
+      if (matched && matched.name) {
+        return matched.name
+      }
+      if (
+        this.currentCommunityId !== null &&
+        this.currentCommunityId !== undefined &&
+        Number(this.currentCommunityId) === numericId
+      ) {
+        return this.currentCommunityName || ""
+      }
+      return ""
+    },
     /** 查询会议管理列表 */
     getList() {
       this.loading = true
-      listMeeting(this.queryParams).then(response => {
+      const params = this.buildQueryParams()
+      listMeeting(params).then(response => {
         this.meetingList = response.rows
         this.total = response.total
         this.loading = false
@@ -415,6 +497,8 @@ export default {
         meetingId: null,
         meetingTitle: null,
         meetingType: null,
+        communityId: null,
+        communityName: '',
         meetingContent: null,
         meetingTime: null,
         meetingLocation: null,
@@ -429,6 +513,7 @@ export default {
         updateTime: null,
         topics: []
       }
+      this.applyCurrentCommunityToForm()
       this.resetForm("form")
     },
     /** 搜索按钮操作 */
@@ -449,6 +534,10 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
+      if (this.isAllCommunitySelected) {
+        this.$message.warning("请先在右上角选择具体小区，再新增会议。")
+        return
+      }
       this.reset()
       this.open = true
       this.title = "添加会议管理"
@@ -458,7 +547,15 @@ export default {
       this.reset()
       const meetingId = row.meetingId || this.ids
       getMeeting(meetingId).then(response => {
-        this.form = response.data
+        const numericId =
+          response.data.communityId !== null && response.data.communityId !== undefined
+            ? Number(response.data.communityId)
+            : null
+        this.form = {
+          ...response.data,
+          communityId: numericId,
+          communityName: this.resolveCommunityName(numericId)
+        }
         this.open = true
         this.title = "修改会议管理"
       })
@@ -467,6 +564,20 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (
+            (this.form.communityId === null || this.form.communityId === undefined) &&
+            !this.isAllCommunitySelected
+          ) {
+            this.form.communityId = Number(this.currentCommunityId)
+          }
+          if (
+            this.form.communityId === null ||
+            this.form.communityId === undefined ||
+            Number(this.form.communityId) === 0
+          ) {
+            this.$message.error("当前记录缺少小区信息，请选择具体小区后再提交。")
+            return
+          }
           if (this.form.meetingId != null) {
             updateMeeting(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
@@ -495,9 +606,8 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/meeting/export', {
-        ...this.queryParams
-      }, `meeting_${new Date().getTime()}.xlsx`)
+      const params = this.buildQueryParams()
+      this.download('system/meeting/export', params, `meeting_${new Date().getTime()}.xlsx`)
     },
     /** 查看议题按钮操作 */
     handleViewTopics(row) {

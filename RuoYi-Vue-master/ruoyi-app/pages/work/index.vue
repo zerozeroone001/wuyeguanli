@@ -6,10 +6,27 @@
         <uni-icons type="search" size="18" color="#8C8C8C" />
         <input class="search-input" placeholder="搜索物业服务" placeholder-style="color: #8C8C8C" />
       </view> -->
-      <view class="location-info">
-        <uni-icons type="location" size="16" color="#1890FF" />
-        <text class="location-text">{{ communityInfo.name }}</text>
-      </view>
+      <picker
+        class="location-picker"
+        mode="selector"
+        :range="communityOptions"
+        range-key="name"
+        :value="selectedCommunityIndex"
+        :disabled="communityOptions.length === 0"
+        @change="handleCommunityChange"
+      >
+        <view class="location-info">
+          <uni-icons type="location" size="16" color="#1890FF" />
+          <text class="location-text">{{ communityInfo.name }}</text>
+          <uni-icons
+            v-if="communityOptions.length > 0"
+            type="arrowdown"
+            size="12"
+            color="#1890FF"
+            class="location-arrow"
+          />
+        </view>
+      </picker>
     </view>
 
     <!-- 服务分类 -->
@@ -96,18 +113,24 @@
 <script>
 import config from '@/config'
 import { mapGetters } from 'vuex'
+import { listMyProperty, listCommunity } from '@/api/property.js'
+
+const COMMUNITY_STORAGE_KEY = 'app_current_community_id'
+const COMMUNITY_INFO_STORAGE_KEY = 'app_current_community_info'
 
 export default {
   computed: {
     ...mapGetters([
         'ownerProfile', // 直接获取ownerProfile对象
-        
+        'token'
     ]),
+    // 登录状态
+    isLoggedIn() {
+      return !!this.token
+    },
     // 过滤后的主要服务列表（根据用户身份过滤）
     filteredMainServices() {
-		console.log('-------------')
-		console.log(this.ownerProfile)
-		console.log('-------------')
+	
       return this.mainServices.filter(service => {
         // 如果是业委会会议，需要检查用户是否为业委会成员
         if (service.name === '业委会会议') {
@@ -119,7 +142,11 @@ export default {
   },
   data() {
     return {
-      communityInfo: config.property.communityInfo,
+      defaultCommunityInfo: { ...config.property.communityInfo },
+      communityInfo: { ...config.property.communityInfo },
+      communityOptions: [],
+      selectedCommunityIndex: 0,
+      selectedCommunityId: null,
       // 主要服务
       mainServices: [
         {
@@ -266,7 +293,99 @@ export default {
       ]
     }
   },
+  async onShow() {
+    if (this.isLoggedIn) {
+      try {
+        await this.$store.dispatch('GetProfileInfo')
+      } catch (error) {
+        console.warn('获取认证信息失败', error)
+      }
+    }
+    await this.loadCommunityOptions()
+  },
+
   methods: {
+    async loadCommunityOptions() {
+      if (!this.isLoggedIn) {
+        this.communityOptions = []
+        this.resetCommunityInfo()
+        return
+      }
+      try {
+        const propertyRes = await listMyProperty({ status: '1', pageNum: 1, pageSize: 100 })
+        const propertyRows = propertyRes.rows || []
+        const communityIds = Array.from(new Set(propertyRows.map(item => item.communityId).filter(Boolean)))
+        if (communityIds.length === 0) {
+          this.communityOptions = []
+          this.resetCommunityInfo({ clearStorage: true })
+          return
+        }
+        const communityRes = await listCommunity({ pageNum: 1, pageSize: 1000 })
+        const communities = (communityRes.rows || []).filter(item => communityIds.includes(item.communityId))
+        const options = communities.map(item => ({
+          value: item.communityId,
+          name: item.communityName,
+          address: item.address,
+          phone: item.contactPhone,
+          raw: item
+        }))
+        this.communityOptions = options
+        if (options.length > 0) {
+          const storedId = uni.getStorageSync(COMMUNITY_STORAGE_KEY)
+          let index = options.findIndex(option => option.value === storedId)
+          if (index === -1) {
+            index = 0
+          }
+          this.applyCommunity(options[index], index)
+        } else {
+          this.resetCommunityInfo({ clearStorage: true })
+        }
+      } catch (error) {
+        console.error('加载小区信息失败', error)
+        this.communityOptions = []
+        this.resetCommunityInfo({ fallbackToStored: true })
+      }
+    },
+    handleCommunityChange(event) {
+      const index = Number(event.detail.value)
+      const option = this.communityOptions[index]
+      if (option) {
+        this.applyCommunity(option, index)
+      }
+    },
+    applyCommunity(option, index = 0) {
+      if (option) {
+        this.selectedCommunityIndex = index
+        this.selectedCommunityId = option.value
+        this.communityInfo = {
+          ...this.defaultCommunityInfo,
+          name: option.name || this.defaultCommunityInfo.name,
+          address: option.address || this.defaultCommunityInfo.address,
+          phone: option.phone || this.defaultCommunityInfo.phone
+        }
+        uni.setStorageSync(COMMUNITY_STORAGE_KEY, option.value)
+        uni.setStorageSync(COMMUNITY_INFO_STORAGE_KEY, this.communityInfo)
+      } else {
+        this.resetCommunityInfo()
+      }
+    },
+    resetCommunityInfo(options = {}) {
+      const { fallbackToStored = false, clearStorage = false } = options
+      let info = null
+      if (fallbackToStored) {
+        const storedInfo = uni.getStorageSync(COMMUNITY_INFO_STORAGE_KEY)
+        if (storedInfo && storedInfo.name) {
+          info = storedInfo
+        }
+      }
+      this.communityInfo = info || { ...this.defaultCommunityInfo }
+      this.selectedCommunityId = null
+      this.selectedCommunityIndex = 0
+      if (clearStorage) {
+        uni.removeStorageSync(COMMUNITY_STORAGE_KEY)
+        uni.removeStorageSync(COMMUNITY_INFO_STORAGE_KEY)
+      }
+    },
     handleServiceClick(service) {
       console.log('点击了服务:', service.name, service.path)
       
@@ -304,7 +423,7 @@ export default {
     
     makePhoneCall() {
       uni.makePhoneCall({
-        phoneNumber: this.communityInfo.phone,
+        phoneNumber: this.communityInfo.phone || this.defaultCommunityInfo.phone,
         success: function () {
           console.log('拨打电话成功')
         },
@@ -362,6 +481,11 @@ page {
     }
   }
   
+  .location-picker {
+    display: flex;
+    align-items: center;
+  }
+  
   .location-info {
     display: flex;
     align-items: center;
@@ -371,6 +495,10 @@ page {
       color: #262626;
       font-size: 28rpx;
       font-weight: 600;
+    }
+    
+    .location-arrow {
+      margin-left: 8rpx;
     }
   }
 }

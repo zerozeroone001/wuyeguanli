@@ -90,7 +90,7 @@
         </view>
         
         <!-- 投票选项 -->
-        <view class="vote-options-btn" v-if="meetingInfo.meetingStatus !== '2'">
+        <view class="vote-options-btn" v-if="meetingInfo.meetingStatus == '1'">
           <button 
             size="mini"
             class="vote-btn agree"
@@ -123,7 +123,7 @@
     </view>
 
     <!-- 意见征询弹窗 -->
-    <uni-popup ref="opinionPopup" type="center">
+    <uni-popup ref="opinionPopup" type="center" v-if="meetingInfo.meetingStatus == '1'">
       <view class="opinion-popup-content">
         <text class="popup-title">填写意见</text>
         <textarea class="opinion-textarea" v-model="opinionText" placeholder="请输入您的意见" />
@@ -152,7 +152,6 @@ export default {
       voteData: {}, // topicId -> choice
       countdown: 0,
       timer: null,
-      opinionPopup: null,
       currentTopicForOpinion: null,
       opinionText: ''
     }
@@ -172,7 +171,7 @@ export default {
     }
   },
   onReady() {
-    this.opinionPopup = this.$refs.opinionPopup;
+    // 组件准备就绪
   },
   onUnload() {
     if (this.timer) {
@@ -219,8 +218,22 @@ export default {
       }
     },
     
+    
     async handleTopicVote(topic, choice) {
+      
       const choiceText = {0: '同意', 1: '反对', 2: '弃权'};
+
+      // 检查投票是否已截止
+      const currentTime = new Date().getTime();
+      const endTime = new Date(this.meetingInfo.voteEndTime).getTime();
+      if (currentTime > endTime) {
+        uni.showToast({
+          title: '投票已截止，无法进行投票',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
+      }
 
       // 如果重复点击同一个选项，则不处理
       if (this.voteData[topic.topicId] === choice) {
@@ -233,7 +246,6 @@ export default {
         confirmText: '确认',
         cancelText: '取消'
       });
-console.log(confirm[1].confirm)
       if (!confirm[1].confirm) return;
 
       uni.showLoading({ title: '提交中...' });
@@ -259,6 +271,8 @@ console.log(confirm[1].confirm)
         });
 
       } catch (error) {
+		  let { msg } = error
+		  console.log(error)
         uni.hideLoading();
         uni.showToast({
           title: error.msg || '投票失败',
@@ -270,14 +284,29 @@ console.log(confirm[1].confirm)
     handleConsultation(topic) {
       this.currentTopicForOpinion = topic;
       this.opinionText = ''; // Clear previous text
-      this.opinionPopup.open();
+      // 确保ref存在后再打开弹窗
+      this.$nextTick(() => {
+        if (this.$refs.opinionPopup) {
+          this.$refs.opinionPopup.open();
+        } else {
+          uni.showToast({
+            title: '弹窗组件未准备好',
+            icon: 'none'
+          });
+        }
+      });
     },
 
     closeOpinionPopup() {
-      this.opinionPopup.close();
+      if (this.$refs.opinionPopup) {
+        this.$refs.opinionPopup.close();
+      }
     },
 
     async submitOpinionForm() {
+
+      
+
       if (!this.opinionText.trim()) {
         uni.showToast({ title: '意见不能为空', icon: 'none' });
         return;

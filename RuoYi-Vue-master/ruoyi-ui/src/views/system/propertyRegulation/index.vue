@@ -148,6 +148,15 @@
               </el-col>
             </el-row>
             <el-row>
+              <el-col :span="24">
+                <el-form-item label="所属小区" prop="communityId">
+                  <!-- 展示当前小区名称，隐藏字段用于表单提交 -->
+                  <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
+                  <input type="hidden" v-model="form.communityId" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
               <el-col :span="12">
                 <el-form-item label="制度类型" prop="regulationType">
                   <el-input v-model="form.regulationType" placeholder="例如: 管理规约, 议事规则" />
@@ -286,6 +295,7 @@
 <script>
 import { listRegulation, getRegulation, delRegulation, addRegulation, updateRegulation } from "@/api/system/propertyRegulation";
 import { listCategory } from "@/api/system/regulationCategory"; // 假设分类API已创建
+import { mapGetters } from "vuex"
 
 export default {
   name: "PropertyRegulation",
@@ -310,7 +320,8 @@ export default {
         regulationName: null,
         categoryId: null,
         regulationType: null,
-        status: null
+        status: null,
+        communityId: null
       },
       // 表单参数
       form: {},
@@ -321,6 +332,9 @@ export default {
         ],
         categoryId: [
           { required: true, message: "制度分类不能为空", trigger: "change" }
+        ],
+        communityId: [
+          { required: true, message: "所属小区不能为空", trigger: "change" }
         ],
         publishDept: [
           { required: true, message: "发布部门不能为空", trigger: "blur" }
@@ -337,19 +351,93 @@ export default {
       }
     };
   },
+  computed: {
+    ...mapGetters([
+      "currentCommunityId",
+      "currentCommunityName",
+      "communityOptions"
+    ]),
+    /**
+     * 识别是否选择了“全部小区”
+     */
+    isAllCommunitySelected() {
+      const value = this.currentCommunityId
+      if (value === null || value === undefined) {
+        return true
+      }
+      return Number(value) === 0
+    }
+  },
   created() {
     this.getList();
     this.getCategoryList();
   },
   methods: {
+    /**
+     * 组合查询条件，自动带上小区筛选。
+     */
+    buildQueryParams() {
+      const params = { ...this.queryParams }
+      if (this.isAllCommunitySelected) {
+        this.queryParams.communityId = null
+        delete params.communityId
+      } else {
+        const numericId = Number(this.currentCommunityId)
+        this.queryParams.communityId = numericId
+        params.communityId = numericId
+      }
+      return params
+    },
+    /**
+     * 将当前小区写入表单，保证提交时包含 communityId。
+     */
+    applyCurrentCommunityToForm() {
+      if (this.isAllCommunitySelected) {
+        this.form.communityId = null
+        this.form.communityName = ""
+        return
+      }
+      const numericId = Number(this.currentCommunityId)
+      this.form.communityId = numericId
+      this.form.communityName = this.resolveCommunityName(numericId)
+    },
+    /**
+     * 根据小区 ID 获取名称，优先使用缓存数据。
+     */
+    resolveCommunityName(communityId) {
+      if (communityId === null || communityId === undefined) {
+        return ""
+      }
+      const numericId = Number(communityId)
+      const options = Array.isArray(this.communityOptions)
+        ? this.communityOptions
+        : []
+      const matched = options.find(item => Number(item.id) === numericId)
+      if (matched && matched.name) {
+        return matched.name
+      }
+      if (
+        this.currentCommunityId !== null &&
+        this.currentCommunityId !== undefined &&
+        Number(this.currentCommunityId) === numericId
+      ) {
+        return this.currentCommunityName || ""
+      }
+      return ""
+    },
     /** 查询制度列表 */
     getList() {
       this.loading = true;
-      listRegulation(this.queryParams).then(response => {
+      const params = this.buildQueryParams()
+      listRegulation(params).then(response => {
         this.regulationList = response.rows.map(item => {
             const category = this.categoryList.find(c => c.categoryId === item.categoryId);
-            item.categoryName = category ? category.categoryName : '未知';
-            return item;
+            const categoryName = category ? category.categoryName : '未知';
+            return {
+              ...item,
+              categoryName,
+              communityName: this.resolveCommunityName(item.communityId)
+            };
         });
         this.total = response.total;
         this.loading = false;
@@ -372,6 +460,8 @@ export default {
         regulationId: null,
         regulationName: null,
         categoryId: null,
+        communityId: null,
+        communityName: '',
         regulationType: null,
         summary: null,
         publishDept: null,
@@ -393,6 +483,7 @@ export default {
         remark: null
       };
       this.activeTab = 'basic';
+      this.applyCurrentCommunityToForm()
       this.resetForm("form");
     },
     /** 搜索按钮操作 */
@@ -412,6 +503,10 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
+      if (this.isAllCommunitySelected) {
+        this.$message.warning("请先在右上角选择具体小区，再新增制度。")
+        return
+      }
       this.reset();
       this.open = true;
       this.title = "添加物业制度";
@@ -421,7 +516,15 @@ export default {
       this.reset();
       const regulationId = row.regulationId || this.ids[0];
       getRegulation(regulationId).then(response => {
-        this.form = response.data;
+        const numericId =
+          response.data.communityId !== null && response.data.communityId !== undefined
+            ? Number(response.data.communityId)
+            : null
+        this.form = {
+          ...response.data,
+          communityId: numericId,
+          communityName: this.resolveCommunityName(numericId)
+        };
         // 解析JSON字符串
         try {
             this.form.chapters = JSON.parse(response.data.chapters);
@@ -441,6 +544,20 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (
+            (this.form.communityId === null || this.form.communityId === undefined) &&
+            !this.isAllCommunitySelected
+          ) {
+            this.form.communityId = Number(this.currentCommunityId)
+          }
+          if (
+            this.form.communityId === null ||
+            this.form.communityId === undefined ||
+            Number(this.form.communityId) === 0
+          ) {
+            this.$message.error("当前记录缺少小区信息，请选择具体小区后再提交。")
+            return
+          }
           let formData = JSON.parse(JSON.stringify(this.form));
           // 转换JSON为字符串
           formData.chapters = JSON.stringify(formData.chapters);

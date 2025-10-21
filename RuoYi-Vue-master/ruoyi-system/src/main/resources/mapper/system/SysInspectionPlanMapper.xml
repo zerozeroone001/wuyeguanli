@@ -6,6 +6,7 @@
         <result property="planId" column="plan_id"/>
         <result property="planName" column="plan_name"/>
         <result property="inspectionType" column="inspection_type"/>
+        <result property="communityId" column="community_id"/>
         <result property="startDate" column="start_date"/>
         <result property="endDate" column="end_date"/>
         <result property="inspector" column="inspector"/>
@@ -20,7 +21,7 @@
     </resultMap>
 
     <sql id="selectSysInspectionPlanVo">
-        select plan_id, plan_name, inspection_type, start_date, end_date, inspector, supervision_target, description, status, create_by, create_time, update_by, update_time, remark from sys_inspection_plan
+        select plan_id, plan_name, inspection_type, community_id, start_date, end_date, inspector, supervision_target, description, status, create_by, create_time, update_by, update_time, remark from sys_inspection_plan
     </sql>
 
     <select id="selectSysInspectionPlanList" parameterType="com.ruoyi.system.domain.SysInspectionPlan" resultMap="SysInspectionPlanResult">
@@ -28,6 +29,7 @@
         <where>
             <if test="planName != null and planName != ''"> and plan_name like concat('%', #{planName}, '%')</if>
             <if test="inspectionType != null and inspectionType != ''"> and inspection_type = #{inspectionType}</if>
+            <if test="communityId != null"> and community_id = #{communityId}</if>
             <if test="supervisionTarget != null and supervisionTarget != ''"> and supervision_target like concat('%', #{supervisionTarget}, '%')</if>
             <if test="status != null and status != ''"> and status = #{status}</if>
         </where>
@@ -39,8 +41,8 @@
     </select>
         
     <insert id="insertSysInspectionPlan" parameterType="com.ruoyi.system.domain.SysInspectionPlan" useGeneratedKeys="true" keyProperty="planId">
-        insert into sys_inspection_plan (plan_name, inspection_type, start_date, end_date, inspector, supervision_target, description, status, create_by, create_time, update_by, update_time, remark)
-        values (#{planName}, #{inspectionType}, #{startDate}, #{endDate}, #{inspector}, #{supervisionTarget}, #{description}, #{status}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark})
+        insert into sys_inspection_plan (plan_name, inspection_type, community_id, start_date, end_date, inspector, supervision_target, description, status, create_by, create_time, update_by, update_time, remark)
+        values (#{planName}, #{inspectionType}, #{communityId}, #{startDate}, #{endDate}, #{inspector}, #{supervisionTarget}, #{description}, #{status}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark})
     </insert>
 
     <update id="updateSysInspectionPlan" parameterType="com.ruoyi.system.domain.SysInspectionPlan">
@@ -48,6 +50,7 @@
         <set>
             <if test="planName != null and planName != ''">plan_name = #{planName},</if>
             <if test="inspectionType != null and inspectionType != ''">inspection_type = #{inspectionType},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="startDate != null">start_date = #{startDate},</if>
             <if test="endDate != null">end_date = #{endDate},</if>
             <if test="inspector != null and inspector != ''">inspector = #{inspector},</if>

@@ -52,6 +52,7 @@ public class SysPropertyMeetingController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyMeeting sysPropertyMeeting)
     {
+        sysPropertyMeeting.setCommunityId(resolveCommunityId(sysPropertyMeeting.getCommunityId()));
         startPage();
         List<SysPropertyMeeting> list = sysPropertyMeetingService.selectSysPropertyMeetingList(sysPropertyMeeting);
         return getDataTable(list);
@@ -65,6 +66,7 @@ public class SysPropertyMeetingController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, SysPropertyMeeting sysPropertyMeeting)
     {
+        sysPropertyMeeting.setCommunityId(resolveCommunityId(sysPropertyMeeting.getCommunityId()));
         List<SysPropertyMeeting> list = sysPropertyMeetingService.selectSysPropertyMeetingList(sysPropertyMeeting);
         ExcelUtil<SysPropertyMeeting> util = new ExcelUtil<SysPropertyMeeting>(SysPropertyMeeting.class);
         util.exportExcel(response, list, "会议管理数据");
@@ -88,6 +90,7 @@ public class SysPropertyMeetingController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody SysPropertyMeeting sysPropertyMeeting)
     {
+        sysPropertyMeeting.setCommunityId(requireResolvedCommunityId(sysPropertyMeeting.getCommunityId(), "请选择小区后再新增会议"));
         return toAjax(sysPropertyMeetingService.insertSysPropertyMeeting(sysPropertyMeeting));
     }
 
@@ -99,6 +102,7 @@ public class SysPropertyMeetingController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody SysPropertyMeeting sysPropertyMeeting)
     {
+        sysPropertyMeeting.setCommunityId(requireResolvedCommunityId(sysPropertyMeeting.getCommunityId(), "请选择小区后再修改会议"));
         return toAjax(sysPropertyMeetingService.updateSysPropertyMeeting(sysPropertyMeeting));
     }
 

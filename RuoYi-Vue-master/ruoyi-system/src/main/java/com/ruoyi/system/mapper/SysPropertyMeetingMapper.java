@@ -4,10 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.ruoyi.system.domain.SysPropertyMeeting;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * 会议管理Mapper接口
+ * 浼氳绠＄悊Mapper鎺ュ彛
  * 
  * @author ruoyi
  * @date 2025-08-21
@@ -16,58 +17,59 @@ import org.apache.ibatis.annotations.Mapper;
 public interface SysPropertyMeetingMapper 
 {
     /**
-     * 查询会议管理
+     * 鏌ヨ浼氳绠＄悊
      * 
-     * @param meetingId 会议管理主键
-     * @return 会议管理
+     * @param meetingId 浼氳绠＄悊涓婚敭
+     * @return 浼氳绠＄悊
      */
     public SysPropertyMeeting selectSysPropertyMeetingByMeetingId(Long meetingId);
 
     /**
-     * 查询会议管理列表
+     * 鏌ヨ浼氳绠＄悊鍒楄〃
      * 
-     * @param sysPropertyMeeting 会议管理
-     * @return 会议管理集合
+     * @param sysPropertyMeeting 浼氳绠＄悊
+     * @return 浼氳绠＄悊闆嗗悎
      */
     public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting);
 
     /**
-     * 新增会议管理
+     * 鏂板浼氳绠＄悊
      * 
-     * @param sysPropertyMeeting 会议管理
-     * @return 结果
+     * @param sysPropertyMeeting 浼氳绠＄悊
+     * @return 缁撴灉
      */
     public int insertSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting);
 
     /**
-     * 修改会议管理
+     * 淇敼浼氳绠＄悊
      * 
-     * @param sysPropertyMeeting 会议管理
-     * @return 结果
+     * @param sysPropertyMeeting 浼氳绠＄悊
+     * @return 缁撴灉
      */
     public int updateSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting);
 
     /**
-     * 删除会议管理信息
+     * 鍒犻櫎浼氳绠＄悊淇℃伅
      * 
-     * @param meetingId 会议管理主键
-     * @return 结果
+     * @param meetingId 浼氳绠＄悊涓婚敭
+     * @return 缁撴灉
      */
     public int deleteSysPropertyMeetingByMeetingId(Long meetingId);
 
     /**
-     * 获取会议标记
+     * 鑾峰彇浼氳鏍囪
      *
-     * @return 结果
+     * @return 缁撴灉
      */
-    public List<Map<String, Object>> getMeetingMarks();
+    public List<Map<String, Object>> getMeetingMarks(@Param("communityId") Long communityId);
 
 
     /**
-     * 批量删除会议管理
+     * 鎵归噺鍒犻櫎浼氳绠＄悊
      * 
-     * @param meetingIds 需要删除的数据主键集合
-     * @return 结果
+     * @param meetingIds 闇€瑕佸垹闄ょ殑鏁版嵁涓婚敭闆嗗悎
+     * @return 缁撴灉
      */
     public int deleteSysPropertyMeetingByMeetingIds(Long[] meetingIds);
 }
+

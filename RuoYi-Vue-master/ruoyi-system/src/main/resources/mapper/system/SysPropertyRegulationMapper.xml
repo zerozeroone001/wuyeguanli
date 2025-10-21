@@ -8,6 +8,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="regulationId"    column="regulation_id"    />
         <result property="regulationName"    column="regulation_name"    />
         <result property="categoryId"    column="category_id"    />
+        <result property="communityId"    column="community_id"    />
         <result property="regulationType"    column="regulation_type"    />
         <result property="summary"    column="summary"    />
         <result property="publishDept"    column="publish_dept"    />
@@ -30,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyRegulationVo">
-        select regulation_id, regulation_name, category_id, regulation_type, summary, publish_dept, is_important, chapters, revision_history, file_path, effective_date, version, status, view_count, download_count, favorite_count, file_size, create_by, create_time, update_by, update_time, remark from sys_property_regulation
+        select regulation_id, regulation_name, category_id, community_id, regulation_type, summary, publish_dept, is_important, chapters, revision_history, file_path, effective_date, version, status, view_count, download_count, favorite_count, file_size, create_by, create_time, update_by, update_time, remark from sys_property_regulation
     </sql>
 
     <select id="selectSysPropertyRegulationList" parameterType="SysPropertyRegulation" resultMap="SysPropertyRegulationResult">
@@ -38,6 +39,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>  
             <if test="regulationName != null  and regulationName != ''"> and regulation_name like concat('%', #{regulationName}, '%')</if>
             <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="regulationType != null  and regulationType != ''"> and regulation_type = #{regulationType}</if>
             <if test="publishDept != null  and publishDept != ''"> and publish_dept like concat('%', #{publishDept}, '%')</if>
             <if test="isImportant != null "> and is_important = #{isImportant}</if>
@@ -56,6 +58,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="regulationName != null and regulationName != ''">regulation_name,</if>
             <if test="categoryId != null">category_id,</if>
+            <if test="communityId != null">community_id,</if>
             <if test="regulationType != null and regulationType != ''">regulation_type,</if>
             <if test="summary != null">summary,</if>
             <if test="publishDept != null and publishDept != ''">publish_dept,</if>
@@ -79,6 +82,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="regulationName != null and regulationName != ''">#{regulationName},</if>
             <if test="categoryId != null">#{categoryId},</if>
+            <if test="communityId != null">#{communityId},</if>
             <if test="regulationType != null and regulationType != ''">#{regulationType},</if>
             <if test="summary != null">#{summary},</if>
             <if test="publishDept != null and publishDept != ''">#{publishDept},</if>
@@ -106,6 +110,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="regulationName != null and regulationName != ''">regulation_name = #{regulationName},</if>
             <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
             <if test="regulationType != null and regulationType != ''">regulation_type = #{regulationType},</if>
             <if test="summary != null">summary = #{summary},</if>
             <if test="publishDept != null and publishDept != ''">publish_dept = #{publishDept},</if>

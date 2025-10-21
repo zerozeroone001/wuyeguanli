@@ -79,12 +79,12 @@
           <text class="optional-mark">（选填）</text>
         </view>
         <view class="image-upload">
-          <view 
-            class="upload-item" 
-            v-for="(image, index) in imageList" 
+          <view
+            class="upload-item"
+            v-for="(image, index) in imageList"
             :key="index"
           >
-            <image :src="image" class="upload-image" @click="previewImage(index)" />
+            <image :src="image.url" class="upload-image" @click="previewImage(index)" />
             <view class="delete-btn" @click="deleteImage(index)">
               <uni-icons type="clear" size="16" color="#FFFFFF" />
             </view>
@@ -144,6 +144,7 @@
 
 <script>
 import { addComplaint } from '@/api/complaint'
+import { uploadFile } from '@/api/common'
 
 export default {
   data() {
@@ -160,7 +161,7 @@ export default {
       complaintTypes: [
         { value: '1', label: '物业服务', icon: 'gear' },
         { value: '2', label: '设施设备', icon: 'settings' },
-        { value: '3', label: '环境卫生', icon: 'leaf' },
+        { value: '3', label: '环境卫生', icon: 'trash' },
         { value: '4', label: '安全管理', icon: 'locked' },
         { value: '5', label: '收费争议', icon: 'wallet' },
         { value: '6', label: '其他问题', icon: 'more' }
@@ -205,37 +206,70 @@ export default {
     
     async chooseImage() {
       try {
-        const res = await uni.chooseImage({
-          count: 3 - this.imageList.length,
-          sizeType: ['compressed'],
-          sourceType: ['camera', 'album']
+        const [chooseErr, chooseRes] = this.normalizeUniResult(
+          await uni.chooseImage({
+            count: 3 - this.imageList.length,
+            sizeType: ['compressed'],
+            sourceType: ['camera', 'album']
         })
-        
-        // 检查图片大小
-        for (let tempFilePath of res.tempFilePaths) {
-          const fileInfo = await uni.getFileInfo({
-            filePath: tempFilePath
+        )
+
+        if (chooseErr) {
+          throw chooseErr
+        }
+
+        const tempFilePaths = chooseRes?.tempFilePaths?.length
+          ? chooseRes.tempFilePaths
+          : (chooseRes?.tempFiles || []).map(item => item.path).filter(Boolean)
+
+        if (!tempFilePaths || tempFilePaths.length === 0) {
+          uni.showToast({
+            title: '未选择图片',
+            icon: 'none'
           })
-          
-          if (fileInfo.size > 5 * 1024 * 1024) {
+
+          return
+        }
+
+        for (const tempFilePath of tempFilePaths) {
+          const [fileErr, fileInfo] = this.normalizeUniResult(
+            await uni.getFileInfo({
+              filePath: tempFilePath
+            })
+          )
+
+          if (fileErr) {
+            console.error('获取图片信息失败', fileErr)
+            uni.showToast({
+              title: '获取图片信息失败',
+              icon: 'none'
+            })
+            continue
+          }
+
+          if ((fileInfo?.size || 0) > 5 * 1024 * 1024) {
             uni.showToast({
               title: '图片大小不能超过5MB',
               icon: 'none'
             })
             continue
           }
-          
-          this.imageList.push(tempFilePath)
+
+          await this.uploadImage(tempFilePath)
         }
       } catch (error) {
         console.error('选择图片失败', error)
+        uni.showToast({
+          title: '选择图片失败，请重试',
+          icon: 'none'
+        })
       }
     },
     
     previewImage(index) {
       uni.previewImage({
         current: index,
-        urls: this.imageList
+        urls: this.imageList.map(item => item.url)
       })
     },
     
@@ -243,6 +277,52 @@ export default {
       this.imageList.splice(index, 1)
     },
     
+    normalizeUniResult(result) {
+      return Array.isArray(result) ? result : [null, result]
+    },
+    
+    async uploadImage(filePath) {
+      if (this.imageList.length >= 3) {
+        uni.showToast({
+          title: '最多上传3张图片',
+          icon: 'none'
+        })
+        return
+      }
+
+      uni.showLoading({
+        title: '上传中...'
+      })
+
+      try {
+        const uploadRes = await uploadFile(filePath)
+        const imageUrl = uploadRes.url || uploadRes.data?.url
+        const fileName = uploadRes.fileName || uploadRes.data?.fileName
+        if (uploadRes.code === 200 && imageUrl) {
+          this.imageList.push({
+            url: imageUrl,
+            name: fileName || `图片${this.imageList.length + 1}`
+          })
+          uni.showToast({
+            title: '上传成功',
+            icon: 'success'
+          })
+        } else {
+          uni.showToast({
+            title: uploadRes.msg || '上传失败，请重试',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        uni.showToast({
+          title: error?.msg || error?.message || '上传失败，请检查网络',
+          icon: 'none'
+        })
+      } finally {
+        uni.hideLoading()
+      }
+    },
+
     async submitComplaint() {
       if (!this.canSubmit) {
         uni.showToast({
@@ -267,9 +347,13 @@ export default {
           title: '提交中...'
         })
         
-        // TODO: aihaitao, 图片上传功能
-        
-        addComplaint(this.formData).then(res => {
+        const imageUrls = this.imageList.map(item => item.url)
+        const submissionData = {
+          ...this.formData,
+          ...(imageUrls.length ? { params: { imageUrls } } : {})
+        }
+
+        addComplaint(submissionData).then(res => {
           uni.hideLoading()
           uni.showModal({
             title: '提交成功',

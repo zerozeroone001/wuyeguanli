@@ -14,11 +14,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="sex"           column="sex"             />
         <result property="avatar"        column="avatar"          />
         <result property="password"      column="password"        />
+        <result property="userType"      column="user_type"       />
         <result property="status"        column="status"          />
         <result property="delFlag"       column="del_flag"        />
         <result property="loginIp"       column="login_ip"        />
         <result property="loginDate"     column="login_date"      />
         <result property="pwdUpdateDate" column="pwd_update_date" />
+        <result property="communityId"   column="community_id"    />
         <result property="createBy"      column="create_by"       />
         <result property="createTime"    column="create_time"     />
         <result property="updateBy"      column="update_by"       />
@@ -49,7 +51,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 	
 	<sql id="selectUserVo">
-        select u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.pwd_update_date, u.create_by, u.create_time, u.remark, 
+        select u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.user_type, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.pwd_update_date, u.community_id, u.create_by, u.create_time, u.remark, 
         d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status,
         r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.status as role_status
         from sys_user u
@@ -59,12 +61,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
 	<sql id="selectUser">
-		select u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.pwd_update_date, u.create_by, u.create_time, u.remark
+		select u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.user_type, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.pwd_update_date, u.community_id, u.create_by, u.create_time, u.remark
 		from sys_user u
 	</sql>
     
     <select id="selectUserList" parameterType="SysUser" resultMap="SysUserResult">
-		select u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader from sys_user u
+		select u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.user_type, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.community_id, u.create_by, u.create_time, u.remark, d.dept_name, d.leader from sys_user u
 		left join sys_dept d on u.dept_id = d.dept_id
 		where u.del_flag = '0'
 		<if test="userId != null and userId != 0">
@@ -90,11 +92,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		</if>
 		<!-- 数据范围过滤 -->
 		${params.dataScope}
-		 order by u.id desc
 	</select>
 	
 	<select id="selectAllocatedList" parameterType="SysUser" resultMap="SysUserResult">
-	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
+	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.user_type, u.status, u.community_id, u.create_time
 	    from sys_user u
 			 left join sys_dept d on u.dept_id = d.dept_id
 			 left join sys_user_role ur on u.user_id = ur.user_id
@@ -111,7 +112,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	</select>
 	
 	<select id="selectUnallocatedList" parameterType="SysUser" resultMap="SysUserResult">
-	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
+	    select distinct u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.user_type, u.status, u.community_id, u.create_time
 	    from sys_user u
 			 left join sys_dept d on u.dept_id = d.dept_id
 			 left join sys_user_role ur on u.user_id = ur.user_id
@@ -161,11 +162,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	</select>
 
 	<select id="selectUserListWithOpenId" resultMap="SysUserResult">
-		select user_id, user_name, nick_name, openid from sys_user where del_flag = '0' and openid is not null and openid != ''
+		select user_id, user_name, nick_name, user_type, openid from sys_user where del_flag = '0' and openid is not null and openid != ''
 	</select>
 
 	<select id="selectUnboundUsers" parameterType="SysUser" resultMap="SysUserResult">
-		select u.user_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, u.is_owner
+		select u.user_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.user_type, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.community_id, u.create_by, u.create_time, u.remark, u.is_owner
 		from sys_user u
 		left join sys_owner_profile p on u.user_id = p.user_id
 		where u.del_flag = '0' 
@@ -185,6 +186,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		</if>
 		order by u.create_time desc
 	</select>
+
+	<select id="selectOwnerPhoneList" resultType="String">
+		select u.phonenumber
+		from sys_user u
+		where u.del_flag = '0'
+		and u.status = '0'
+		and u.is_owner = 1
+		and u.phonenumber is not null
+		and u.phonenumber != ''
+	</select>
 	
 	<insert id="insertUser" parameterType="SysUser" useGeneratedKeys="true" keyProperty="userId">
  		insert into sys_user(
@@ -197,10 +208,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  			<if test="phonenumber != null and phonenumber != ''">phonenumber,</if>
  			<if test="sex != null and sex != ''">sex,</if>
  			<if test="password != null and password != ''">password,</if>
+ 			<if test="userType != null and userType != ''">user_type,</if>
  			<if test="status != null and status != ''">status,</if>
- 			<if test="pwdUpdateDate != null">pwd_update_date,</if>
- 			<if test="createBy != null and createBy != ''">create_by,</if>
- 			<if test="remark != null and remark != ''">remark,</if>
+			<if test="pwdUpdateDate != null">pwd_update_date,</if>
+			<if test="communityId != null">community_id,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			<if test="remark != null and remark != ''">remark,</if>
 		<if test="openid != null and openid != ''">openid,</if>
  			create_time
  		)values(
@@ -213,8 +226,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  			<if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
  			<if test="sex != null and sex != ''">#{sex},</if>
  			<if test="password != null and password != ''">#{password},</if>
+ 			<if test="userType != null and userType != ''">#{userType},</if>
  			<if test="status != null and status != ''">#{status},</if>
  			<if test="pwdUpdateDate != null">#{pwdUpdateDate},</if>
+			<if test="communityId != null">#{communityId},</if>
  			<if test="createBy != null and createBy != ''">#{createBy},</if>
  			<if test="remark != null and remark != ''">#{remark},</if>
 		<if test="openid != null and openid != ''">#{openid},</if>
@@ -232,11 +247,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  			<if test="sex != null and sex != ''">sex = #{sex},</if>
  			<if test="avatar != null and avatar != ''">avatar = #{avatar},</if>
  			<if test="password != null and password != ''">password = #{password},</if>
+ 			<if test="userType != null and userType != ''">user_type = #{userType},</if>
  			<if test="status != null and status != ''">status = #{status},</if>
  			<if test="loginIp != null and loginIp != ''">login_ip = #{loginIp},</if>
  			<if test="loginDate != null">login_date = #{loginDate},</if>
  			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
- 			<if test="remark != null">remark = #{remark},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="communityId != null">community_id = #{communityId},</if>
 			<if test="openid != null">openid = #{openid},</if>
  			update_time = sysdate()
  		</set>

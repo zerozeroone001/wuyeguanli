@@ -25,6 +25,10 @@ public class SysPropertyFundFlow extends BaseEntity
     @Excel(name = "流水编号")
     private String flowNo;
 
+    /** 小区ID */
+    @Excel(name = "小区ID")
+    private Long communityId;
+
     /** 流水类型(1-经营性收入,2-经营性支出,3-维修资金收入,4-维修资金支出) */
     @Excel(name = "流水类型(1-经营性收入,2-经营性支出,3-维修资金收入,4-维修资金支出)")
     private String flowType;
@@ -85,6 +89,16 @@ public class SysPropertyFundFlow extends BaseEntity
     public String getFlowNo() 
     {
         return flowNo;
+    }
+
+    public Long getCommunityId()
+    {
+        return communityId;
+    }
+
+    public void setCommunityId(Long communityId)
+    {
+        this.communityId = communityId;
     }
 
     public void setFlowType(String flowType) 
@@ -192,6 +206,7 @@ public class SysPropertyFundFlow extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("flowId", getFlowId())
             .append("flowNo", getFlowNo())
+            .append("communityId", getCommunityId())
             .append("flowType", getFlowType())
             .append("amount", getAmount())
             .append("title", getTitle())
