@@ -105,6 +105,18 @@
       "navigationBarTitleText": "浏览文本"
     }
   }, {
+    "path": "pages/common/notice/list",
+    "style": {
+      "navigationBarTitleText": "公告列表",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+  }, {
+    "path": "pages/common/notice/detail",
+    "style": {
+      "navigationBarTitleText": "公告详情"
+    }
+  }, {
     "path": "pages/property/meeting/index",
     "style": {
       "navigationBarTitleText": "业主大会",

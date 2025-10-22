@@ -106,16 +106,17 @@
         indicator-style="bottom: 16rpx;"
       >
         <swiper-item v-for="notice in noticeList" :key="notice.noticeId">
-          <view class="notice-item" @click="viewNotice(notice)">
+          {{notice.noticeId}}
+          <view class="notice-item" @click="viewNotice(notice.noticeId)">
             <view class="notice-left">
             <!--  <view class="notice-badge" :class="notice.noticeType === '1' ? 'urgent' : 'normal'">
                 <text class="notice-type">{{ notice.noticeType === '1' ? '重要' : '通知' }}</text>
               </view> -->
               <view class="notice-content">
                 <text class="notice-title">{{ notice.noticeTitle }}</text>
-                <text class="notice-summary">{{ notice.noticeContent }}</text>
+                <text class="notice-summary">{{ notice.summary }}</text>
                 <view class="notice-meta">
-                  <text class="notice-time">{{ notice.createTime }}</text>
+                  <text class="notice-time">{{ notice.formattedCreateTime }}</text>
                   <view class="notice-status" v-if="notice.isNew">
                     <text class="status-text">NEW</text>
                   </view>
@@ -490,18 +491,15 @@ export default {
     // 获取公告列表
     getNoticeList() {
       // 只获取最新的几条，比如5条
-      listNotice({ pageNum: 1, pageSize: 5 }).then(response => {
-        console.log("获取到公告数据", response);
-        this.noticeList = response.rows.map(notice => {
-          // 后端返回的 noticeContent 可能包含HTML标签，这里直接用
-          // createTime 格式化
-          notice.createTime = this.parseTime(notice.createTime, '{y}-{m}-{d}');
-          return notice;
+      listNotice({ pageNum: 1, pageSize: 5 })
+        .then(response => {
+          const rows = Array.isArray(response?.rows) ? response.rows : [];
+          this.noticeList = rows.map(item => this.normalizeNotice(item));
+        })
+        .catch(error => {
+          console.error("获取公告失败", error);
+          this.noticeList = [];
         });
-      }).catch(error => {
-        console.error("获取公告失败", error);
-        // 静默处理错误，不显示错误提示
-      });
     },
     
     // 获取模拟公告列表（用于未登录状态）
@@ -531,10 +529,7 @@ export default {
         }
       ];
       
-      this.noticeList = mockNotices.map(notice => {
-        notice.createTime = this.parseTime(notice.createTime, '{y}-{m}-{d}');
-        return notice;
-      });
+      this.noticeList = mockNotices.map(notice => this.normalizeNotice(notice));
     },
     
     updateDynamicData() {
@@ -622,17 +617,54 @@ export default {
     },
     
     // 查看详情方法
-    viewNotice(notice) {
+    viewNotice(noticeId) {
+console.log(noticeId)
       uni.navigateTo({
-        url: `/pages/common/notice/detail?id=${notice.noticeId}`
+        url: `/pages/common/notice/detail?id=${noticeId}`,
+        success: (res) => {
+          if (res && res.eventChannel && typeof res.eventChannel.emit === 'function') {
+            res.eventChannel.emit('noticeDetailParams', { noticeId: noticeId })
+          }
+        }
       })
     },
-    
-    viewRegulation(regulation) {
-      uni.navigateTo({
-        url: `/pages/property/regulation/detail?id=${regulation.regulationId}`
-      })
+
+    normalizeNotice(notice = {}) {
+      const formattedCreateTime = notice.createTime
+        ? this.parseTime(notice.createTime, '{y}-{m}-{d}')
+        : ''
+      return {
+        ...notice,
+        summary: this.getNoticeSummary(
+          notice.noticeContent || notice.noticeContentText || notice.remark || ''
+        ),
+        formattedCreateTime
+      }
     },
+
+    getNoticeSummary(content) {
+      const text = this.stripHtml(content)
+        .replace(/\s+/g, ' ')
+        .trim()
+      if (!text) {
+        return '暂无公告内容'
+      }
+      return text.length > 60 ? `${text.slice(0, 60)}...` : text
+    },
+
+    stripHtml(content = '') {
+      return content
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+    },
+
+
+
     
     viewNews(news) {
       uni.navigateTo({

@@ -41,8 +41,9 @@ public class CommunityUtils
      */
     public static Long requireCurrentCommunityId(String errorMessage)
     {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
         Long communityId = getCurrentCommunityId();
-        if (communityId == null)
+        if (communityId == null && "00".equals(loginUser.getUser().getUserType()))
         {
             throw new ServiceException(StringUtils.isNotBlank(errorMessage) ? errorMessage : "当前账号未绑定任何小区");
         }
@@ -71,10 +72,15 @@ public class CommunityUtils
         {
             return;
         }
+        LoginUser loginUser = SecurityUtils.getLoginUser();
         Long current = requireCurrentCommunityId("当前账号未绑定任何小区");
-        if (targetCommunityId == null || !current.equals(targetCommunityId))
-        {
-            throw new ServiceException("无权访问其他小区的数据");
+        if("00".equals(loginUser.getUser().getUserType())){
+            if (targetCommunityId == null || !current.equals(targetCommunityId))
+            {
+                System.out.println(loginUser.getUser().getUserType());
+                throw new ServiceException("无权访问其他小区的数据");
+            }
         }
+
     }
 }

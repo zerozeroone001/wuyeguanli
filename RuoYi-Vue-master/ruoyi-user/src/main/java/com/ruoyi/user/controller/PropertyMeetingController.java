@@ -125,7 +125,7 @@ public class PropertyMeetingController extends BaseController
      */
     @GetMapping("/{meetingId}/my-votes")
     public AjaxResult getMyVotes(@PathVariable("meetingId") Long meetingId) {
-        try {
+//        try {
             Long userId = getUserId();
             if (userId == null) {
                 return AjaxResult.error("用户未登录");
@@ -143,10 +143,10 @@ public class PropertyMeetingController extends BaseController
 
             Map<Long, String> voteData = meetingVoteService.selectUserVotesInMeeting(userId, meetingId);
             return AjaxResult.success(voteData);
-        } catch (Exception e) {
-            log.error("获取用户投票记录失败", e);
-            return AjaxResult.error("获取投票记录失败：" + e.getMessage());
-        }
+//        } catch (Exception e) {
+//            log.error("获取用户投票记录失败", e);
+//            return AjaxResult.error("获取投票记录失败：" + e.getMessage());
+//        }
     }
 
     /**
