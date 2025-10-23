@@ -54,6 +54,27 @@ public class SysFormSubmission extends BaseEntity
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date submitTime;
 
+    /** 用户名 */
+    private String userName;
+
+    /** 用户昵称 */
+    private String nickName;
+
+    /** 手机号码 */
+    private String phonenumber;
+
+    /** 小区名称 */
+    private String communityName;
+
+    /** 楼栋名称 */
+    private String buildingName;
+
+    /** 单元名称 */
+    private String unitName;
+
+    /** 房号 */
+    private String roomNumber;
+
     public Long getSubmissionId()
     {
         return submissionId;
@@ -152,6 +173,76 @@ public class SysFormSubmission extends BaseEntity
     public void setSubmitTime(Date submitTime)
     {
         this.submitTime = submitTime;
+    }
+
+    public String getUserName()
+    {
+        return userName;
+    }
+
+    public void setUserName(String userName)
+    {
+        this.userName = userName;
+    }
+
+    public String getNickName()
+    {
+        return nickName;
+    }
+
+    public void setNickName(String nickName)
+    {
+        this.nickName = nickName;
+    }
+
+    public String getPhonenumber()
+    {
+        return phonenumber;
+    }
+
+    public void setPhonenumber(String phonenumber)
+    {
+        this.phonenumber = phonenumber;
+    }
+
+    public String getCommunityName()
+    {
+        return communityName;
+    }
+
+    public void setCommunityName(String communityName)
+    {
+        this.communityName = communityName;
+    }
+
+    public String getBuildingName()
+    {
+        return buildingName;
+    }
+
+    public void setBuildingName(String buildingName)
+    {
+        this.buildingName = buildingName;
+    }
+
+    public String getUnitName()
+    {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName)
+    {
+        this.unitName = unitName;
+    }
+
+    public String getRoomNumber()
+    {
+        return roomNumber;
+    }
+
+    public void setRoomNumber(String roomNumber)
+    {
+        this.roomNumber = roomNumber;
     }
 
     @Override

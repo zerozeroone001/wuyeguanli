@@ -20,55 +20,72 @@
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
+        <!-- 用户信息扩展字段 -->
+        <result property="userName" column="user_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="communityName" column="community_name"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomNumber" column="room_number"/>
     </resultMap>
 
     <sql id="selectSysFormSubmissionColumns">
-        select submission_id,
-               form_id,
-               poll_id,
-               user_id,
-               community_id,
-               client_type,
-               submit_ip,
-               status,
-               answers_data,
-               submit_time,
-               create_by,
-               create_time,
-               update_by,
-               update_time,
-               remark
-          from sys_form_submission
+        select s.submission_id,
+               s.form_id,
+               s.poll_id,
+               s.user_id,
+               s.community_id,
+               s.client_type,
+               s.submit_ip,
+               s.status,
+               s.answers_data,
+               s.submit_time,
+               s.create_by,
+               s.create_time,
+               s.update_by,
+               s.update_time,
+               s.remark,
+               u.user_name,
+               u.nick_name,
+               u.phonenumber,
+               c.community_name,
+               '' as building_name,
+               '' as unit_name,
+               '' as room_number
+          from sys_form_submission s
+          left join sys_user u on s.user_id = u.user_id
+          left join sys_estate_community c on s.community_id = c.community_id
     </sql>
 
     <select id="selectSysFormSubmissionList" parameterType="SysFormSubmission" resultMap="SysFormSubmissionResult">
         <include refid="selectSysFormSubmissionColumns"/>
         <where>
             <if test="formId != null">
-                and form_id = #{formId}
+                and s.form_id = #{formId}
             </if>
             <if test="pollId != null">
-                and poll_id = #{pollId}
+                and s.poll_id = #{pollId}
             </if>
             <if test="userId != null">
-                and user_id = #{userId}
+                and u.user_id = #{userId}
             </if>
             <if test="status != null and status != ''">
-                and status = #{status}
+                and s.status = #{status}
             </if>
         </where>
-        order by submit_time desc, submission_id desc
+        order by s.submit_time desc, s.submission_id desc
     </select>
 
     <select id="selectSysFormSubmissionBySubmissionId" parameterType="Long" resultMap="SysFormSubmissionResult">
         <include refid="selectSysFormSubmissionColumns"/>
-        where submission_id = #{submissionId}
+        where s.submission_id = #{submissionId}
     </select>
 
     <select id="selectByPollIdAndUserId" resultMap="SysFormSubmissionResult">
         <include refid="selectSysFormSubmissionColumns"/>
-        where poll_id = #{pollId}
-          and user_id = #{userId}
+        where s.poll_id = #{pollId}
+          and u.user_id = #{userId}
         limit 1
     </select>
 

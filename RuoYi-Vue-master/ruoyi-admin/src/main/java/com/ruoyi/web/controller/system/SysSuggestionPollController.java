@@ -17,7 +17,9 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SysSuggestionPoll;
+import com.ruoyi.system.domain.SysFormSubmission;
 import com.ruoyi.system.service.ISysSuggestionPollService;
+import com.ruoyi.system.service.ISysFormSubmissionService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
@@ -33,6 +35,9 @@ public class SysSuggestionPollController extends BaseController
 {
     @Autowired
     private ISysSuggestionPollService sysSuggestionPollService;
+
+    @Autowired
+    private ISysFormSubmissionService formSubmissionService;
 
     /**
      * 查询意见征询主列表
@@ -102,5 +107,29 @@ public class SysSuggestionPollController extends BaseController
     public AjaxResult remove(@PathVariable Long[] pollIds)
     {
         return toAjax(sysSuggestionPollService.deleteSysSuggestionPollByPollIds(pollIds));
+    }
+
+    /**
+     * 获取投票提交记录列表
+     */
+    @PreAuthorize("@ss.hasPermi('system:poll:query')")
+    @GetMapping("/{pollId}/submissions")
+    public TableDataInfo getSubmissions(@PathVariable("pollId") Long pollId, SysFormSubmission query)
+    {
+        query.setPollId(pollId);
+        startPage();
+        List<SysFormSubmission> list = formSubmissionService.selectSysFormSubmissionList(query);
+        return getDataTable(list);
+    }
+
+    /**
+     * 获取提交记录详情
+     */
+    @PreAuthorize("@ss.hasPermi('system:poll:query')")
+    @GetMapping("/submission/{submissionId}")
+    public AjaxResult getSubmissionDetail(@PathVariable("submissionId") Long submissionId)
+    {
+        SysFormSubmission submission = formSubmissionService.selectSysFormSubmissionBySubmissionId(submissionId);
+        return success(submission);
     }
 }

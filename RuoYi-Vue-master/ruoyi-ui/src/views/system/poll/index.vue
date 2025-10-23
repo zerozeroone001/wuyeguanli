@@ -95,10 +95,11 @@
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="220">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="280">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:poll:edit']">修改</el-button>
           <el-button size="mini" type="text" icon="el-icon-edit-outline" @click="handleDesign(scope.row)" v-hasPermi="['system:poll:edit']">设计表单</el-button>
+          <el-button size="mini" type="text" icon="el-icon-view" @click="handleViewSubmissions(scope.row)" v-hasPermi="['system:poll:query']">提交记录</el-button>
           <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)" v-hasPermi="['system:poll:remove']">删除</el-button>
         </template>
       </el-table-column>
@@ -212,11 +213,82 @@
         <el-button @click="cancelTemplateForm">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 提交记录弹窗 -->
+    <el-dialog title="提交记录" :visible.sync="submissionsDialogVisible" width="1000px" append-to-body>
+      <div class="submissions-toolbar">
+        <span class="submissions-title">{{ currentPollTitle }} - 提交记录</span>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="loadSubmissions">刷新</el-button>
+      </div>
+      <el-table v-loading="submissionsLoading" :data="submissionsList" border size="small">
+        <el-table-column label="提交ID" prop="submissionId" align="center" width="100" />
+        <el-table-column label="用户ID" prop="userId" align="center" width="100" />
+        <el-table-column label="提交终端" prop="clientType" align="center" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.clientType === 'pc' ? 'primary' : 'success'" size="mini">
+              {{ scope.row.clientType === 'pc' ? 'PC端' : '移动端' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="提交IP" prop="submitIp" align="center" width="120" />
+        <el-table-column label="状态" prop="status" align="center" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.status === '0' ? 'success' : 'danger'" size="mini">
+              {{ scope.row.status === '0' ? '有效' : '撤销' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="提交时间" prop="submitTime" align="center" width="160">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.submitTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" prop="remark" align="center" />
+        <el-table-column label="操作" align="center" width="120">
+          <template slot-scope="scope">
+            <el-button type="text" size="mini" icon="el-icon-view" @click="handleViewSubmissionDetail(scope.row)">查看详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination
+        v-show="submissionsTotal > 0"
+        :total="submissionsTotal"
+        :page.sync="submissionsQueryParams.pageNum"
+        :limit.sync="submissionsQueryParams.pageSize"
+        @pagination="loadSubmissions"
+      />
+    </el-dialog>
+
+    <!-- 提交记录详情弹窗 -->
+    <el-dialog title="提交记录详情" :visible.sync="submissionDetailVisible" width="900px" append-to-body>
+      <div v-if="currentSubmission">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="提交用户昵称">{{ currentSubmission.nickName || currentSubmission.userName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="手机号码">{{ currentSubmission.phonenumber || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="提交时间">{{ parseTime(currentSubmission.submitTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</el-descriptions-item>
+          <el-descriptions-item label="所属小区门牌号">{{ formatPropertyAddress(currentSubmission) }}</el-descriptions-item>
+
+          <el-descriptions-item label="状态">
+            <el-tag :type="currentSubmission.status === '0' ? 'success' : 'danger'" size="mini">
+              {{ currentSubmission.status === '0' ? '有效' : '撤销' }}
+            </el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <div style="margin-top: 20px;">
+          <h4>提交内容：</h4>
+          <el-table :data="formatAnswersTable(currentSubmission.answersData)" border size="small" style="margin-top: 10px;">
+            <el-table-column label="字段名称" prop="fieldName" width="200" />
+            <el-table-column label="用户填写内容" prop="fieldValue" />
+          </el-table>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listPoll, getPoll, delPoll, addPoll, updatePoll } from '@/api/system/poll'
+import { listPoll, getPoll, delPoll, addPoll, updatePoll, getPollSubmissions, getSubmissionDetail } from '@/api/system/poll'
 import { listFormTemplateOptions, addFormTemplate, updateFormTemplate, delFormTemplate, getFormTemplate } from '@/api/system/formTemplate'
 
 export default {
@@ -271,7 +343,20 @@ export default {
       templateFormTitle: '新增模板',
       templateRules: {
         formName: [{ required: true, message: '模板名称不能为空', trigger: 'blur' }]
-      }
+      },
+      // 提交记录相关
+      submissionsDialogVisible: false,
+      submissionsLoading: false,
+      submissionsList: [],
+      submissionsTotal: 0,
+      submissionsQueryParams: {
+        pageNum: 1,
+        pageSize: 10
+      },
+      currentPollId: null,
+      currentPollTitle: '',
+      submissionDetailVisible: false,
+      currentSubmission: null
     }
   },
   created() {
@@ -538,6 +623,80 @@ export default {
       const key = String(status)
       if (key === '1') return 'info'
       return 'success'
+    },
+    // 提交记录相关方法
+    handleViewSubmissions(row) {
+      this.currentPollId = row.pollId
+      this.currentPollTitle = row.title
+      this.submissionsQueryParams.pageNum = 1
+      this.submissionsDialogVisible = true
+      this.loadSubmissions()
+    },
+    loadSubmissions() {
+      this.submissionsLoading = true
+      getPollSubmissions(this.currentPollId, this.submissionsQueryParams).then(response => {
+        this.submissionsList = response.rows || []
+        this.submissionsTotal = response.total || 0
+        this.submissionsLoading = false
+      }).catch(() => {
+        this.submissionsLoading = false
+      })
+    },
+    handleViewSubmissionDetail(row) {
+      this.currentSubmission = row
+      this.submissionDetailVisible = true
+    },
+    formatAnswersData(answersData) {
+      if (!answersData) return '暂无提交内容'
+      try {
+        const data = JSON.parse(answersData)
+        return JSON.stringify(data, null, 2)
+      } catch (e) {
+        return answersData
+      }
+    },
+    formatPropertyAddress(submission) {
+      if (!submission) return '-'
+      const parts = []
+      if (submission.communityName) parts.push(submission.communityName)
+      if (submission.buildingName) parts.push(submission.buildingName)
+      if (submission.unitName) parts.push(submission.unitName)
+      if (submission.roomNumber) parts.push(submission.roomNumber)
+      return parts.length > 0 ? parts.join(' ') : '-'
+    },
+    formatAnswersTable(answersData) {
+      if (!answersData) return []
+      try {
+        const data = JSON.parse(answersData)
+        const tableData = []
+
+        // 如果是对象，转换为表格数据
+        if (typeof data === 'object' && data !== null) {
+          for (const [key, value] of Object.entries(data)) {
+            tableData.push({
+              fieldName: key,
+              fieldValue: this.formatFieldValue(value)
+            })
+          }
+        }
+
+        return tableData
+      } catch (e) {
+        return [{
+          fieldName: '原始数据',
+          fieldValue: answersData
+        }]
+      }
+    },
+    formatFieldValue(value) {
+      if (value === null || value === undefined) return '-'
+      if (typeof value === 'object') {
+        return JSON.stringify(value, null, 2)
+      }
+      if (Array.isArray(value)) {
+        return value.join(', ')
+      }
+      return String(value)
     }
   }
 }
@@ -560,5 +719,18 @@ export default {
 .template-toolbar {
   margin-bottom: 12px;
   text-align: right;
+}
+
+.submissions-toolbar {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.submissions-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
 }
 </style>

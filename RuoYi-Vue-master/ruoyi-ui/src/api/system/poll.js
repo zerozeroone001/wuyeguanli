@@ -42,3 +42,20 @@ export function delPoll(pollId) {
     method: 'delete'
   })
 }
+
+// 获取投票提交记录列表
+export function getPollSubmissions(pollId, query) {
+  return request({
+    url: '/system/poll/' + pollId + '/submissions',
+    method: 'get',
+    params: query
+  })
+}
+
+// 获取提交记录详情
+export function getSubmissionDetail(submissionId) {
+  return request({
+    url: '/system/poll/submission/' + submissionId,
+    method: 'get'
+  })
+}

@@ -33,9 +33,9 @@
           <text class="status-title">您已完成此问卷</text>
           <text class="status-desc">提交时间：{{ formatDate(submissionData.submitTime) }}</text>
         </view>
-        <view class="status-action">
+       <!-- <view class="status-action">
           <button size="mini" type="primary" plain @click="viewSubmission">查看答案</button>
-        </view>
+        </view> -->
       </view>
     </view>
 
@@ -45,18 +45,18 @@
         <view 
           class="form-field" 
           v-for="(field, index) in formSchema.fields" 
-          :key="field.field"
+          :key="field.label"
         >
           <!-- 文本输入框 -->
           <uni-forms-item
             v-if="field.type === 'input'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <uni-easyinput 
-              v-model="formData[field.field]" 
+              v-model="formData[field.label]" 
               :placeholder="field.placeholder || `请输入${field.label}`"
               :maxlength="field.maxlength || 100"
             />
@@ -65,13 +65,13 @@
           <!-- 文本域 -->
           <uni-forms-item 
             v-if="field.type === 'textarea'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <textarea 
-              v-model="formData[field.field]" 
+              v-model="formData[field.label]" 
               :placeholder="field.placeholder || `请输入${field.label}`"
               :maxlength="field.maxlength || 500"
               class="textarea-input"
@@ -81,13 +81,13 @@
           <!-- 单选框 -->
           <uni-forms-item 
             v-if="field.type === 'radio'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <uni-data-checkbox 
-              v-model="formData[field.field]" 
+              v-model="formData[field.label]" 
               :localdata="field.options"
               :multiple="false"
             />
@@ -96,13 +96,13 @@
           <!-- 多选框 -->
           <uni-forms-item 
             v-if="field.type === 'checkbox'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <uni-data-checkbox 
-              v-model="formData[field.field]" 
+              v-model="formData[field.label]" 
               :localdata="field.options"
               :multiple="true"
             />
@@ -111,19 +111,19 @@
           <!-- 下拉选择 -->
           <uni-forms-item 
             v-if="field.type === 'select'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <picker 
-              :value="getSelectIndex(field.field)" 
+              :value="getSelectIndex(field.label)" 
               :range="field.options" 
               range-key="label"
-              @change="handleSelectChange(field.field, $event)"
+              @change="handleSelectChange(field.label, $event)"
             >
               <view class="picker-input">
-                <text class="picker-text">{{ getSelectText(field.field) || `请选择${field.label}` }}</text>
+                <text class="picker-text">{{ getSelectText(field.label) || `请选择${field.label}` }}</text>
                 <uni-icons type="arrowdown" size="16" color="#C0C4CC" />
               </view>
             </picker>
@@ -132,18 +132,18 @@
           <!-- 日期选择 -->
           <uni-forms-item 
             v-if="field.type === 'date'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <picker 
               mode="date" 
-              :value="formData[field.field]" 
-              @change="handleDateChange(field.field, $event)"
+              :value="formData[field.label]" 
+              @change="handleDateChange(field.label, $event)"
             >
               <view class="picker-input">
-                <text class="picker-text">{{ formData[field.field] || `请选择${field.label}` }}</text>
+                <text class="picker-text">{{ formData[field.label] || `请选择${field.label}` }}</text>
                 <uni-icons type="calendar" size="16" color="#C0C4CC" />
               </view>
             </picker>
@@ -152,13 +152,13 @@
           <!-- 数字输入 -->
           <uni-forms-item 
             v-if="field.type === 'number'" 
-            :name="field.field" 
+            :name="field.label" 
             :label="field.label"
             :required="field.required"
             class="form-item-full-width"
           >
             <uni-easyinput 
-              v-model="formData[field.field]" 
+              v-model="formData[field.label]" 
               type="number"
               :placeholder="field.placeholder || `请输入${field.label}`"
             />
@@ -309,9 +309,9 @@ export default {
       const data = {}
       this.formSchema.fields.forEach(field => {
         if (field.type === 'checkbox') {
-          data[field.field] = []
+          data[field.label] = []
         } else {
-          data[field.field] = ''
+          data[field.label] = ''
         }
       })
       this.formData = data
@@ -323,7 +323,7 @@ export default {
       const rules = {}
       this.formSchema.fields.forEach(field => {
         if (field.required) {
-          rules[field.field] = {
+          rules[field.label] = {
             required: true,
             message: `请填写${field.label}`,
             trigger: 'blur'
@@ -404,7 +404,7 @@ export default {
       
       let content = '您的答案：\n\n'
       Object.keys(answers).forEach(key => {
-        const field = this.formSchema?.fields?.find(f => f.field === key)
+        const field = this.formSchema?.label?.find(f => f.label === key)
         if (field) {
           content += `${field.label}：${answers[key]}\n`
         }
