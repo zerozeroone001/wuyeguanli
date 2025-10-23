@@ -77,6 +77,7 @@ public class SysSuggestionPollController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody SysSuggestionPoll sysSuggestionPoll)
     {
+        sysSuggestionPoll.setCreateBy(getUsername());
         return toAjax(sysSuggestionPollService.insertSysSuggestionPoll(sysSuggestionPoll));
     }
 
@@ -88,6 +89,7 @@ public class SysSuggestionPollController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody SysSuggestionPoll sysSuggestionPoll)
     {
+        sysSuggestionPoll.setUpdateBy(getUsername());
         return toAjax(sysSuggestionPollService.updateSysSuggestionPoll(sysSuggestionPoll));
     }
 

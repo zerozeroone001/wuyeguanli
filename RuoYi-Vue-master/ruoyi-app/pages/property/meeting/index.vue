@@ -60,8 +60,8 @@
       >
         <view class="meeting-header">
           <text class="meeting-title">{{ meeting.meetingTitle }}</text>
-          <view class="meeting-status" :class="{ 'status-upcoming': meeting.meetingStatus == '0', 'status-ongoing': meeting.meetingStatus == '1', 'status-finished': meeting.meetingStatus == '2' }">
-            {{ getStatusText(meeting.meetingStatus) }}
+          <view class="meeting-status" :class="statusClassMap[meeting.meetingStatus]">
+            {{ statusText(meeting.meetingStatus) }}
           </view>
         </view>
         <view class="meeting-info">
@@ -107,7 +107,10 @@
         <uni-icons type="calendar" size="80" color="#D9D9D9" />
         <text class="empty-text">暂无会议信息</text>
       </view>
-      <uni-load-more v-if="loading || meetingList.length > 0" :status="loading ? 'loading' : (finished ? 'noMore' : 'more')"></uni-load-more>
+      <uni-load-more
+        v-if="loading || meetingList.length > 0"
+        :status="loadMoreStatus"
+      ></uni-load-more>
     </view>
 
   </view>
@@ -118,33 +121,62 @@ import config from "@/config";
 import { listMyProperty, listCommunity } from "@/api/property.js";
 import { listMeeting } from "@/api/property/meeting";
 import { mapGetters } from "vuex";
+
 const COMMUNITY_STORAGE_KEY = 'app_current_community_id';
 const COMMUNITY_INFO_STORAGE_KEY = 'app_current_community_info';
+const TAB_STATUS_MAP = Object.freeze({
+  ongoing: '1',
+  upcoming: '0',
+  finished: '2'
+});
+const STATUS_TEXT_MAP = Object.freeze({
+  '0': '筹备中',
+  '1': '进行中',
+  '2': '已结束'
+});
+const STATUS_CLASS_MAP = Object.freeze({
+  '0': 'status-upcoming',
+  '1': 'status-ongoing',
+  '2': 'status-finished'
+});
+const BASE_COMMUNITY_INFO = (config && config.property && config.property.communityInfo) || {};
+const createDefaultCommunityInfo = () => ({ ...BASE_COMMUNITY_INFO });
+const createDefaultQueryParams = () => ({
+  pageNum: 1,
+  pageSize: 10,
+  meetingStatus: TAB_STATUS_MAP.ongoing,
+  communityId: null
+});
 
 export default {
   computed: {
     ...mapGetters(['token']),
     isLoggedIn() {
       return !!this.token;
+    },
+    currentMeetingStatus() {
+      return TAB_STATUS_MAP[this.activeTab] || TAB_STATUS_MAP.ongoing;
+    },
+    loadMoreStatus() {
+      if (this.loading) {
+        return 'loading';
+      }
+      return this.finished ? 'noMore' : 'more';
     }
   },
   data() {
     return {
       activeTab: 'ongoing',
       meetingList: [],
-      defaultCommunityInfo: { ...config.property.communityInfo },
-      communityInfo: { ...config.property.communityInfo },
+      defaultCommunityInfo: createDefaultCommunityInfo(),
+      communityInfo: createDefaultCommunityInfo(),
+      statusClassMap: STATUS_CLASS_MAP,
       communityOptions: [],
       selectedCommunityIndex: 0,
       selectedCommunityId: null,
       communityPromptShown: false,
       // 查询参数
-      queryParams: {
-        pageNum: 1,
-        pageSize: 10,
-        meetingStatus: '1', // 默认加载进行中
-        communityId: null
-      },
+      queryParams: createDefaultQueryParams(),
       // 加载状态
       loading: false,
       // 是否已加载全部数据
@@ -292,9 +324,13 @@ export default {
         uni.removeStorageSync(COMMUNITY_INFO_STORAGE_KEY);
       }
     },
+    resetPagination() {
+      Object.assign(this.queryParams, createDefaultQueryParams(), {
+        meetingStatus: this.currentMeetingStatus
+      });
+    },
     clearMeetingData() {
-      this.queryParams.pageNum = 1;
-      this.queryParams.communityId = null;
+      this.resetPagination();
       this.meetingList = [];
       this.total = 0;
       this.finished = true;
@@ -325,41 +361,56 @@ export default {
     },
     // 重置并加载
     resetAndLoad() {
-      this.queryParams.pageNum = 1;
+      this.resetPagination();
       this.meetingList = [];
       this.total = 0;
       this.finished = false;
       if (!this.selectedCommunityId) {
-        this.clearMeetingData();
+        this.finished = true;
+        this.loading = false;
         return;
       }
       this.loadMeetings();
     },
     // 加载会议列表
-    loadMeetings() {
-      if (this.loading || (this.queryParams.pageNum > 1 && this.finished)) {
-        return;
-      }
-      if (!this.selectedCommunityId) {
-        this.clearMeetingData();
-        return;
-      }
-      const communityId = Number(this.selectedCommunityId);
-      this.queryParams.communityId = Number.isNaN(communityId) ? this.selectedCommunityId : communityId;
-      this.loading = true;
-      this.queryParams.meetingStatus = this.getStatusByTab(this.activeTab);
-
-      listMeeting(this.queryParams).then(response => {
-        const { rows, total } = response;
-        if (rows && rows.length > 0) {
-          this.meetingList = this.queryParams.pageNum === 1 ? rows : this.meetingList.concat(rows);
+    async loadMeetings() {
+      if (this.loading || (!this.selectedCommunityId && this.selectedCommunityId !== 0)) {
+        if (!this.selectedCommunityId) {
+          this.clearMeetingData();
         }
+        return;
+      }
+      if (this.queryParams.pageNum > 1 && this.finished) {
+        return;
+      }
+      const currentPage = this.queryParams.pageNum;
+      const previousPage = currentPage > 1 ? currentPage - 1 : 1;
+      const communityId = this.normalizeCommunityId(this.selectedCommunityId);
+      const payload = {
+        ...this.queryParams,
+        pageNum: currentPage,
+        meetingStatus: this.currentMeetingStatus,
+        communityId: communityId
+      };
+      this.loading = true;
+      try {
+        const { rows = [], total = 0 } = await listMeeting(payload);
+        const isFirstPage = payload.pageNum === 1;
         this.total = total;
-        this.finished = this.meetingList.length >= this.total;
+        this.meetingList = isFirstPage ? rows : this.meetingList.concat(rows);
+        this.finished = this.meetingList.length >= total || rows.length === 0;
+        Object.assign(this.queryParams, {
+          pageNum: currentPage,
+          meetingStatus: payload.meetingStatus,
+          communityId: communityId
+        });
+      } catch (error) {
+        console.error('加载会议列表失败', error);
+        this.finished = false;
+        this.queryParams.pageNum = previousPage;
+      } finally {
         this.loading = false;
-      }).catch(err => {
-        this.loading = false;
-      });
+      }
     },
     // 切换Tab
     switchTab(tab) {
@@ -369,43 +420,34 @@ export default {
       this.activeTab = tab;
       this.resetAndLoad();
     },
-    
-    getStatusByTab(tab) {
-      const statusMap = {
-        ongoing: '1',
-        upcoming: '0', 
-        finished: '2'
+    normalizeCommunityId(id) {
+      if (id === null || id === undefined) {
+        return id;
       }
-      return statusMap[tab]
+      const numericId = Number(id);
+      return Number.isNaN(numericId) ? id : numericId;
     },
-    
-    
-    
-    getStatusText(status) {
-      const textMap = {
-        '0': '筹备中',
-        '1': '进行中',
-        '2': '已结束'
-      }
-      return textMap[status] || '未知'
+    statusText(status) {
+      return STATUS_TEXT_MAP[status] || '未知';
     },
-    
     viewMeeting(meeting) {
-      // 统一跳转到投票页，因为那里信息最全
-      this.goVote(meeting);
+      this.navigateToMeeting(meeting);
     },
     
     goVote(meeting) {
-      uni.navigateTo({
-        url: `/pages/property/meeting/vote?id=${meeting.meetingId}`
-      })
+      this.navigateToMeeting(meeting);
     },
     
     viewDetail(meeting) {
-      // 详情页也可以与投票页合并
+      this.navigateToMeeting(meeting);
+    },
+    navigateToMeeting(meeting = {}) {
+      if (!meeting.meetingId) {
+        return;
+      }
       uni.navigateTo({
         url: `/pages/property/meeting/vote?id=${meeting.meetingId}`
-      })
+      });
     }
   }
 }

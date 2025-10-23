@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysFormTemplateMapper">
+
+    <resultMap id="SysFormTemplateResult" type="SysFormTemplate">
+        <id property="formId" column="form_id"/>
+        <result property="formName" column="form_name"/>
+        <result property="formType" column="form_type"/>
+        <result property="formSchema" column="form_schema"/>
+        <result property="mobileSchema" column="mobile_schema"/>
+        <result property="formConfig" column="form_config"/>
+        <result property="appearanceConfig" column="appearance_config"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectSysFormTemplateColumns">
+        select form_id,
+               form_name,
+               form_type,
+               form_schema,
+               mobile_schema,
+               form_config,
+               appearance_config,
+               status,
+               del_flag,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               remark
+          from sys_form_template
+    </sql>
+
+    <select id="selectSysFormTemplateList" parameterType="SysFormTemplate" resultMap="SysFormTemplateResult">
+        <include refid="selectSysFormTemplateColumns"/>
+        <where>
+            <if test="formName != null and formName != ''">
+                and form_name like concat('%', #{formName}, '%')
+            </if>
+            <if test="formType != null and formType != ''">
+                and form_type = #{formType}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                and del_flag = #{delFlag}
+            </if>
+        </where>
+        order by update_time desc, form_id desc
+    </select>
+
+    <select id="selectSysFormTemplateOptions" parameterType="SysFormTemplate" resultMap="SysFormTemplateResult">
+        select form_id,
+               form_name,
+               form_type,
+               status,
+               del_flag,
+               remark
+          from sys_form_template
+        <where>
+            <if test="formName != null and formName != ''">
+                and form_name like concat('%', #{formName}, '%')
+            </if>
+            <if test="formType != null and formType != ''">
+                and form_type = #{formType}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="delFlag == null or delFlag == ''">
+                and del_flag = '0'
+            </if>
+        </where>
+        order by update_time desc, form_id desc
+    </select>
+
+    <select id="selectSysFormTemplateByFormId" parameterType="Long" resultMap="SysFormTemplateResult">
+        <include refid="selectSysFormTemplateColumns"/>
+        where form_id = #{formId}
+    </select>
+
+    <insert id="insertSysFormTemplate" parameterType="SysFormTemplate" useGeneratedKeys="true" keyProperty="formId">
+        insert into sys_form_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="formName != null">form_name,</if>
+            <if test="formType != null">form_type,</if>
+            <if test="formSchema != null">form_schema,</if>
+            <if test="mobileSchema != null">mobile_schema,</if>
+            <if test="formConfig != null">form_config,</if>
+            <if test="appearanceConfig != null">appearance_config,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="formName != null">#{formName},</if>
+            <if test="formType != null">#{formType},</if>
+            <if test="formSchema != null">#{formSchema},</if>
+            <if test="mobileSchema != null">#{mobileSchema},</if>
+            <if test="formConfig != null">#{formConfig},</if>
+            <if test="appearanceConfig != null">#{appearanceConfig},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysFormTemplate" parameterType="SysFormTemplate">
+        update sys_form_template
+        <trim prefix="set" suffixOverrides=",">
+            <if test="formName != null">form_name = #{formName},</if>
+            <if test="formType != null">form_type = #{formType},</if>
+            <if test="formSchema != null">form_schema = #{formSchema},</if>
+            <if test="mobileSchema != null">mobile_schema = #{mobileSchema},</if>
+            <if test="formConfig != null">form_config = #{formConfig},</if>
+            <if test="appearanceConfig != null">appearance_config = #{appearanceConfig},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where form_id = #{formId}
+    </update>
+
+    <delete id="deleteSysFormTemplateByFormId" parameterType="Long">
+        delete from sys_form_template where form_id = #{formId}
+    </delete>
+
+    <delete id="deleteSysFormTemplateByFormIds" parameterType="Long">
+        delete from sys_form_template where form_id in
+        <foreach collection="array" item="formId" open="(" separator="," close=")">
+            #{formId}
+        </foreach>
+    </delete>
+
+</mapper>

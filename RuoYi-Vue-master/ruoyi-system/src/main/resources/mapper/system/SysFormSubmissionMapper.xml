@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysFormSubmissionMapper">
+
+    <resultMap id="SysFormSubmissionResult" type="SysFormSubmission">
+        <id property="submissionId" column="submission_id"/>
+        <result property="formId" column="form_id"/>
+        <result property="pollId" column="poll_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="clientType" column="client_type"/>
+        <result property="submitIp" column="submit_ip"/>
+        <result property="status" column="status"/>
+        <result property="answersData" column="answers_data"/>
+        <result property="submitTime" column="submit_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectSysFormSubmissionColumns">
+        select submission_id,
+               form_id,
+               poll_id,
+               user_id,
+               community_id,
+               client_type,
+               submit_ip,
+               status,
+               answers_data,
+               submit_time,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               remark
+          from sys_form_submission
+    </sql>
+
+    <select id="selectSysFormSubmissionList" parameterType="SysFormSubmission" resultMap="SysFormSubmissionResult">
+        <include refid="selectSysFormSubmissionColumns"/>
+        <where>
+            <if test="formId != null">
+                and form_id = #{formId}
+            </if>
+            <if test="pollId != null">
+                and poll_id = #{pollId}
+            </if>
+            <if test="userId != null">
+                and user_id = #{userId}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+        order by submit_time desc, submission_id desc
+    </select>
+
+    <select id="selectSysFormSubmissionBySubmissionId" parameterType="Long" resultMap="SysFormSubmissionResult">
+        <include refid="selectSysFormSubmissionColumns"/>
+        where submission_id = #{submissionId}
+    </select>
+
+    <select id="selectByPollIdAndUserId" resultMap="SysFormSubmissionResult">
+        <include refid="selectSysFormSubmissionColumns"/>
+        where poll_id = #{pollId}
+          and user_id = #{userId}
+        limit 1
+    </select>
+
+    <insert id="insertSysFormSubmission" parameterType="SysFormSubmission" useGeneratedKeys="true" keyProperty="submissionId">
+        insert into sys_form_submission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="formId != null">form_id,</if>
+            <if test="pollId != null">poll_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="clientType != null">client_type,</if>
+            <if test="submitIp != null">submit_ip,</if>
+            <if test="status != null">status,</if>
+            <if test="answersData != null">answers_data,</if>
+            <if test="submitTime != null">submit_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="formId != null">#{formId},</if>
+            <if test="pollId != null">#{pollId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="clientType != null">#{clientType},</if>
+            <if test="submitIp != null">#{submitIp},</if>
+            <if test="status != null">#{status},</if>
+            <if test="answersData != null">#{answersData},</if>
+            <if test="submitTime != null">#{submitTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysFormSubmission" parameterType="SysFormSubmission">
+        update sys_form_submission
+        <trim prefix="set" suffixOverrides=",">
+            <if test="formId != null">form_id = #{formId},</if>
+            <if test="pollId != null">poll_id = #{pollId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="clientType != null">client_type = #{clientType},</if>
+            <if test="submitIp != null">submit_ip = #{submitIp},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="answersData != null">answers_data = #{answersData},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where submission_id = #{submissionId}
+    </update>
+
+    <delete id="deleteSysFormSubmissionBySubmissionId" parameterType="Long">
+        delete from sys_form_submission where submission_id = #{submissionId}
+    </delete>
+
+    <delete id="deleteSysFormSubmissionBySubmissionIds" parameterType="Long">
+        delete from sys_form_submission where submission_id in
+        <foreach collection="array" item="submissionId" open="(" separator="," close=")">
+            #{submissionId}
+        </foreach>
+    </delete>
+
+</mapper>

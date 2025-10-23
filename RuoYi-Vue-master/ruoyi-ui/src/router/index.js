@@ -161,6 +161,20 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
+  },
+  {
+    path: '/system/poll',
+    component: Layout,
+    hidden: true,
+    permissions: ['system:poll:edit'],
+    children: [
+      {
+        path: 'designer',
+        component: () => import('@/views/system/poll/designer/index'),
+        name: 'PollDesigner',
+        meta: { title: '问卷表单设计', activeMenu: '/system/poll' }
+      }
+    ]
   }
 ]
 

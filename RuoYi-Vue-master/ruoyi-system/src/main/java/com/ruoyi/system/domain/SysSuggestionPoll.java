@@ -32,6 +32,9 @@ public class SysSuggestionPoll extends BaseEntity
     @Excel(name = "关联的自定义表单ID")
     private Long formId;
 
+    /** 关联表单名称 */
+    private String formName;
+
     /** 开始时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "开始时间", width = 30, dateFormat = "yyyy-MM-dd")
@@ -89,6 +92,16 @@ public class SysSuggestionPoll extends BaseEntity
         return formId;
     }
 
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName(String formName)
+    {
+        this.formName = formName;
+    }
+
     public void setStartTime(Date startTime) 
     {
         this.startTime = startTime;
@@ -136,6 +149,7 @@ public class SysSuggestionPoll extends BaseEntity
             .append("title", getTitle())
             .append("description", getDescription())
             .append("formId", getFormId())
+            .append("formName", getFormName())
             .append("startTime", getStartTime())
             .append("endTime", getEndTime())
             .append("status", getStatus())

@@ -211,6 +211,13 @@ export default {
           icon: 'flag',
           bgColor: '#389E0D',
           path: '/pages/handover/index'
+        },
+        {
+          name: '意见征询',
+          desc: '问卷调查',
+          icon: 'compose',
+          bgColor: '#389E0D',
+          path: '/pages/work/opinion/index'
         }
       ],
       // 生活服务
