@@ -41,7 +41,7 @@
 
     <!-- 动态表单 -->
     <view class="form-container" v-if="!submissionData && formSchema">
-      <uni-forms ref="formRef" :model="formData" :rules="formRules" label-position="top">
+      <uni-forms ref="formRef" :model="formData" :rules="formRules" label-position="top" label-width="100%">
         <view 
           class="form-field" 
           v-for="(field, index) in formSchema.fields" 
@@ -49,11 +49,11 @@
         >
           <!-- 文本输入框 -->
           <uni-forms-item
-		    style="width: 100%;"
             v-if="field.type === 'input'" 
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <uni-easyinput 
               v-model="formData[field.field]" 
@@ -68,6 +68,7 @@
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <textarea 
               v-model="formData[field.field]" 
@@ -83,6 +84,7 @@
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <uni-data-checkbox 
               v-model="formData[field.field]" 
@@ -97,6 +99,7 @@
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <uni-data-checkbox 
               v-model="formData[field.field]" 
@@ -111,6 +114,7 @@
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <picker 
               :value="getSelectIndex(field.field)" 
@@ -131,6 +135,7 @@
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <picker 
               mode="date" 
@@ -150,6 +155,7 @@
             :name="field.field" 
             :label="field.label"
             :required="field.required"
+            class="form-item-full-width"
           >
             <uni-easyinput 
               v-model="formData[field.field]" 
@@ -607,6 +613,23 @@ page {
     
     &:last-child {
       margin-bottom: 0;
+    }
+  }
+  
+  .form-item-full-width {
+    width: 100%;
+    
+    /deep/ .uni-forms-item__label {
+      width: 100% !important;
+      text-align: left;
+      font-size: 28rpx;
+      font-weight: 500;
+      color: #262626;
+      margin-bottom: 16rpx;
+    }
+    
+    /deep/ .uni-forms-item__content {
+      width: 100%;
     }
   }
   
