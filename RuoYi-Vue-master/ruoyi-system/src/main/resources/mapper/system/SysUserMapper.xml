@@ -214,6 +214,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="communityId != null">community_id,</if>
 			<if test="createBy != null and createBy != ''">create_by,</if>
 			<if test="remark != null and remark != ''">remark,</if>
+			<if test="isOwner != null and is_owner != ''">remark,</if>
 		<if test="openid != null and openid != ''">openid,</if>
  			create_time
  		)values(
@@ -232,6 +233,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="communityId != null">#{communityId},</if>
  			<if test="createBy != null and createBy != ''">#{createBy},</if>
  			<if test="remark != null and remark != ''">#{remark},</if>
+ 			<if test="isOwner != null and is_wner != ''">#{remark},</if>
 		<if test="openid != null and openid != ''">#{openid},</if>
  			sysdate()
  		)
@@ -255,6 +257,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="remark != null">remark = #{remark},</if>
 			<if test="communityId != null">community_id = #{communityId},</if>
 			<if test="openid != null">openid = #{openid},</if>
+			<if test="isOwner != null">is_owner = #{isOwner},</if>
  			update_time = sysdate()
  		</set>
  		where user_id = #{userId}

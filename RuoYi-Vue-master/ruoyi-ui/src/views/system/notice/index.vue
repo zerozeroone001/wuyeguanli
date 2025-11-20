@@ -154,6 +154,26 @@
               </el-radio-group>
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="关联类型">
+              <el-select v-model="form.relationType" placeholder="请选择关联类型" clearable @change="handleRelationTypeChange">
+                <el-option label="业主大会" value="meeting"></el-option>
+                <el-option label="意见征询" value="opinion"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" v-if="form.relationType">
+            <el-form-item :label="relationLabel">
+              <el-select v-model="form.relationId" placeholder="请选择" clearable filterable :loading="relationLoading">
+                <el-option
+                  v-for="item in relationOptions"
+                  :key="item.id"
+                  :label="item.title"
+                  :value="item.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="24">
             <el-form-item label="内容">
               <editor v-model="form.noticeContent" :min-height="192"/>
@@ -171,6 +191,8 @@
 
 <script>
 import { listNotice, getNotice, delNotice, addNotice, updateNotice } from "@/api/system/notice"
+import { listMeeting } from "@/api/system/meeting"
+import { listOpinionConsultation } from "@/api/system/opinionConsultation"
 
 export default {
   name: "Notice",
@@ -213,7 +235,20 @@ export default {
         noticeType: [
           { required: true, message: "公告类型不能为空", trigger: "change" }
         ]
+      },
+      // 关联数据
+      relationLoading: false,
+      relationOptions: []
+    }
+  },
+  computed: {
+    relationLabel() {
+      if (this.form.relationType === 'meeting') {
+        return '选择业主大会'
+      } else if (this.form.relationType === 'opinion') {
+        return '选择意见征询'
       }
+      return '关联内容'
     }
   },
   created() {
@@ -241,8 +276,11 @@ export default {
         noticeTitle: undefined,
         noticeType: undefined,
         noticeContent: undefined,
-        status: "0"
+        status: "0",
+        relationType: undefined,
+        relationId: undefined
       }
+      this.relationOptions = []
       this.resetForm("form")
     },
     /** 搜索按钮操作 */
@@ -273,9 +311,48 @@ export default {
       const noticeId = row.noticeId || this.ids
       getNotice(noticeId).then(response => {
         this.form = response.data
+        // 如果有关联类型，加载关联数据
+        if (this.form.relationType) {
+          this.loadRelationOptions(this.form.relationType)
+        }
         this.open = true
         this.title = "修改公告"
       })
+    },
+    /** 关联类型改变 */
+    handleRelationTypeChange(value) {
+      this.form.relationId = undefined
+      this.relationOptions = []
+      if (value) {
+        this.loadRelationOptions(value)
+      }
+    },
+    /** 加载关联数据选项 */
+    loadRelationOptions(type) {
+      this.relationLoading = true
+      this.relationOptions = []
+
+      if (type === 'meeting') {
+        // 加载业主大会列表
+        listMeeting({ pageNum: 1, pageSize: 100 }).then(response => {
+          this.relationOptions = response.rows.map(item => ({
+            id: item.meetingId,
+            title: item.meetingTitle
+          }))
+        }).finally(() => {
+          this.relationLoading = false
+        })
+      } else if (type === 'opinion') {
+        // 加载意见征询列表
+        listOpinionConsultation({ pageNum: 1, pageSize: 100 }).then(response => {
+          this.relationOptions = response.rows.map(item => ({
+            id: item.consultationId,
+            title: item.title
+          }))
+        }).finally(() => {
+          this.relationLoading = false
+        })
+      }
     },
     /** 提交按钮 */
     submitForm: function() {

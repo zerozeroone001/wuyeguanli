@@ -80,26 +80,26 @@ public class SysUserServiceImpl implements ISysUserService
     private void applyCommunityBinding(SysUser user)
     {
         LoginUser loginUser = SecurityUtils.getLoginUser();
-        boolean operatorIsAdmin = loginUser != null && SecurityUtils.isAdmin(loginUser.getUserId());
-        if (loginUser == null)
-        {
-            // 无登录上下文（例如系统任务）时，仅允许超级管理员账号为空小区
-            if (!SysUser.isAdmin(user.getUserId()) && user.getCommunityId() == null)
-            {
-                throw new ServiceException("非超级管理员账号必须绑定所属小区");
-            }
+//        boolean operatorIsAdmin = loginUser != null && SecurityUtils.isAdmin(loginUser.getUserId());
+//        if (loginUser == null)
+//        {
+//            // 无登录上下文（例如系统任务）时，仅允许超级管理员账号为空小区
+//            if (!SysUser.isAdmin(user.getUserId()) && user.getCommunityId() == null)
+//            {
+//                throw new ServiceException("非超级管理员账号必须绑定所属小区");
+//            }
             return;
-        }
-        if (!operatorIsAdmin)
-        {
-            Long operatorCommunityId = loginUser.getUser() != null ? loginUser.getUser().getCommunityId() : null;
-            if (operatorCommunityId == null)
-            {
-                throw new ServiceException("当前账号未绑定小区，请联系管理员处理");
-            }
-            // 非超级管理员不允许越权切换小区，直接覆盖为自身绑定的小区
-            user.setCommunityId(operatorCommunityId);
-        }
+//        }
+//        if (!operatorIsAdmin)
+//        {
+//            Long operatorCommunityId = loginUser.getUser() != null ? loginUser.getUser().getCommunityId() : null;
+//            if (operatorCommunityId == null)
+//            {
+//                throw new ServiceException("当前账号未绑定小区，请联系管理员处理");
+//            }
+//            // 非超级管理员不允许越权切换小区，直接覆盖为自身绑定的小区
+//            user.setCommunityId(operatorCommunityId);
+//        }
 //        else
 //        {
 //            // 超级管理员可操作任意小区，但除超级管理员账号外必须指定具体小区

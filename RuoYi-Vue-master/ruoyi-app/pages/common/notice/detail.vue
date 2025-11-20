@@ -9,6 +9,15 @@
       <view class="content">
         <rich-text :nodes="notice.noticeContent || '<p>暂无公告内容</p>'"></rich-text>
       </view>
+
+      <!-- 关联跳转按钮 -->
+      <view class="relation-section" v-if="notice.relationType && notice.relationId">
+        <view class="relation-btn" @click="navigateToRelation">
+          <text class="btn-icon">📋</text>
+          <text class="btn-text">{{ relationBtnText }}</text>
+          <text class="btn-arrow">›</text>
+        </view>
+      </view>
     </view>
   </view>
 </template>
@@ -35,6 +44,17 @@ export default {
         return ''
       }
       return this.parseTime(this.notice.createTime, '{y}-{m}-{d}')
+    },
+    relationBtnText() {
+      if (!this.notice.relationType) {
+        return ''
+      }
+      if (this.notice.relationType === 'meeting') {
+        return '查看业主大会详情'
+      } else if (this.notice.relationType === 'opinion') {
+        return '查看意见征询详情'
+      }
+      return '查看详情'
     }
   },
   onLoad(options = {}) {
@@ -174,6 +194,34 @@ export default {
         clearTimeout(this.missingNoticeTimer)
         this.missingNoticeTimer = null
       }
+    },
+
+    navigateToRelation() {
+      if (!this.notice.relationType || !this.notice.relationId) {
+        return
+      }
+
+      let url = ''
+      if (this.notice.relationType === 'meeting') {
+        // 跳转到业主大会详情页
+        url = `/pageB/property/meeting/detail?id=${this.notice.relationId}`
+      } else if (this.notice.relationType === 'opinion') {
+        // 跳转到意见征询详情页
+        url = `/pages/work/opinion/detail?id=${this.notice.relationId}`
+      }
+
+      if (url) {
+        uni.navigateTo({
+          url: url,
+          fail: (err) => {
+            console.error('页面跳转失败', err)
+            uni.showToast({
+              title: '页面跳转失败',
+              icon: 'none'
+            })
+          }
+        })
+      }
     }
   }
 }
@@ -214,6 +262,48 @@ export default {
     line-height: 1.8;
     color: #333333;
     word-break: break-word;
+  }
+
+  .relation-section {
+    margin-top: 40rpx;
+    padding-top: 32rpx;
+    border-top: 1rpx solid #f0f0f0;
+  }
+
+  .relation-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24rpx 32rpx;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16rpx;
+    box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+
+    .btn-icon {
+      font-size: 36rpx;
+      margin-right: 16rpx;
+    }
+
+    .btn-text {
+      flex: 1;
+      font-size: 30rpx;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.5rpx;
+    }
+
+    .btn-arrow {
+      font-size: 40rpx;
+      color: #ffffff;
+      font-weight: 600;
+      margin-left: 16rpx;
+    }
+
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+    }
   }
 }
 </style>

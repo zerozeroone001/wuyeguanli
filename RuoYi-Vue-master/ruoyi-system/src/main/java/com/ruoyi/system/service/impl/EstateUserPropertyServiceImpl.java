@@ -52,7 +52,19 @@ public class EstateUserPropertyServiceImpl implements IEstateUserPropertyService
     {
         estateUserProperty.setCreateTime(DateUtils.getNowDate());
         estateUserProperty.setCreateBy(SecurityUtils.getUsername());
-        return estateUserPropertyMapper.insertEstateUserProperty(estateUserProperty);
+
+        try {
+            return estateUserPropertyMapper.insertEstateUserProperty(estateUserProperty);
+        } catch (Exception e) {
+            // 捕获数据库唯一索引约束异常
+            if (e.getMessage() != null &&
+                (e.getMessage().contains("Duplicate entry") ||
+                 e.getMessage().contains("uniq_user_property"))) {
+                throw new ServiceException("您已提交过该房产的认证申请，请勿重复提交");
+            }
+            // 其他异常继续抛出
+            throw e;
+        }
     }
 
     @Override
@@ -114,7 +126,7 @@ public class EstateUserPropertyServiceImpl implements IEstateUserPropertyService
                 ownerProfile.setBuildingNo(current.getBuildingName());
                 ownerProfile.setUnitNo(current.getUnitName());
                 ownerProfile.setRoomNo(current.getRoomNumber());
-                ownerProfile.setRealName(StringUtils.defaultIfBlank(user.getUserName(), user.getNickName()));
+                ownerProfile.setRealName(StringUtils.defaultIfBlank(current.getRealName(), user.getNickName()));
                 ownerProfile.setPhonenumber(user.getPhonenumber());
                 ownerProfile.setAuthStatus(2);
                 ownerProfile.setIsOwner(1);

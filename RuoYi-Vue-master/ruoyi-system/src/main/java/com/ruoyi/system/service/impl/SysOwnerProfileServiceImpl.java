@@ -162,7 +162,7 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
         sysOwnerProfile.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
 
         //判断审核状态，审核通过修改用户信息
-        if (sysOwnerProfile.getAuthStatus() == 2) {
+        if ("1".equals(sysOwnerProfile.getStatus())) {
             SysUser user = userService.selectUserById(sysOwnerProfile.getUserId());
             if (user != null) {
                 user.setIsOwner(1);

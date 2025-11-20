@@ -34,6 +34,12 @@ public class SysNotice extends BaseEntity
     /** 公告状态（0正常 1关闭） */
     private String status;
 
+    /** 关联类型（meeting-业主大会，opinion-意见征询） */
+    private String relationType;
+
+    /** 关联的业务ID */
+    private Long relationId;
+
     public Long getNoticeId()
     {
         return noticeId;
@@ -97,6 +103,26 @@ public class SysNotice extends BaseEntity
         return status;
     }
 
+    public void setRelationType(String relationType)
+    {
+        this.relationType = relationType;
+    }
+
+    public String getRelationType()
+    {
+        return relationType;
+    }
+
+    public void setRelationId(Long relationId)
+    {
+        this.relationId = relationId;
+    }
+
+    public Long getRelationId()
+    {
+        return relationId;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -106,6 +132,8 @@ public class SysNotice extends BaseEntity
             .append("communityId", getCommunityId())
             .append("noticeContent", getNoticeContent())
             .append("status", getStatus())
+            .append("relationType", getRelationType())
+            .append("relationId", getRelationId())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

@@ -52,33 +52,33 @@
       </view>
 
       <!-- 便民服务 -->
-      <view class="convenience-services">
-        <view class="section-header">
-          <text class="section-title">便民服务</text>
-        </view>
-        <view class="service-list">
-          <view 
-            class="service-row" 
-            v-for="(service, index) in convenienceServices" 
-            :key="index"
-            @click="handleServiceClick(service)"
-          >
-            <view class="service-left">
-              <view class="service-icon tiny" :style="{ backgroundColor: service.bgColor }">
-                <uni-icons :type="service.icon" size="16" color="white" />
-              </view>
-              <view class="service-info">
-                <text class="service-name">{{ service.name }}</text>
-                <text class="service-desc">{{ service.desc }}</text>
-              </view>
-            </view>
-            <view class="service-right">
-              <text class="service-status" :class="service.statusClass">{{ service.status }}</text>
-              <uni-icons type="right" size="14" color="#C0C4CC" />
-            </view>
-          </view>
-        </view>
-      </view>
+<!--      <view class="convenience-services">-->
+<!--        <view class="section-header">-->
+<!--          <text class="section-title">便民服务</text>-->
+<!--        </view>-->
+<!--        <view class="service-list">-->
+<!--          <view -->
+<!--            class="service-row" -->
+<!--            v-for="(service, index) in convenienceServices" -->
+<!--            :key="index"-->
+<!--            @click="handleServiceClick(service)"-->
+<!--          >-->
+<!--            <view class="service-left">-->
+<!--              <view class="service-icon tiny" :style="{ backgroundColor: service.bgColor }">-->
+<!--                <uni-icons :type="service.icon" size="16" color="white" />-->
+<!--              </view>-->
+<!--              <view class="service-info">-->
+<!--                <text class="service-name">{{ service.name }}</text>-->
+<!--                <text class="service-desc">{{ service.desc }}</text>-->
+<!--              </view>-->
+<!--            </view>-->
+<!--            <view class="service-right">-->
+<!--              <text class="service-status" :class="service.statusClass">{{ service.status }}</text>-->
+<!--              <uni-icons type="right" size="14" color="#C0C4CC" />-->
+<!--            </view>-->
+<!--          </view>-->
+<!--        </view>-->
+<!--      </view>-->
 
       <!-- 联系我们 -->
       <view class="contact-section">
@@ -154,35 +154,35 @@ export default {
           desc: '会议投票',
           icon: 'compose',
           bgColor: '#1890FF',
-          path: '/pages/property/meeting/index'
+          path: '/pageB/property/meeting/index'
         },
         {
           name: '业委会会议',
           desc: '会议投票',
           icon: 'compose',
           bgColor: '#52C41A',
-          path: '/pages/property/committee-meeting/index'
+          path: '/pageB/property/committee-meeting/index'
         },
         {
           name: '合同查阅',
           desc: '合同管理',
           icon: 'paperplane',
           bgColor: '#FAAD14',
-          path: '/pages/contract-fulfillment/index'
+          path: '/pageB/contract-fulfillment/index'
         },
         {
           name: '资金公示',
           desc: '财务透明',
           icon: 'wallet',
           bgColor: '#722ED1',
-          path: '/pages/fund-management/index'
+          path: '/pageB/fund-management/index'
         },
         {
           name: '法律咨询',
           desc: '专业服务',
           icon: 'help',
           bgColor: '#F5222D',
-          path: '/pages/legal-consultation/index'
+          path: '/pageB/legal-consultation/index'
         },
         {
           name: '制度查阅',
@@ -196,7 +196,7 @@ export default {
           desc: '权威认证',
           icon: 'checkmarkempty',
           bgColor: '#EB2F96',
-          path: '/pages/notary-service/index'
+          path: '/pageB/notary-service/index'
         },
         {
           name: '指导监督',
@@ -265,38 +265,38 @@ export default {
       ],
       // 便民服务
       convenienceServices: [
-        {
-          name: '物业费查询',
-          desc: '查看缴费记录和余额',
-          icon: 'wallet',
-          bgColor: '#1890FF',
-          status: '可用',
-          statusClass: 'available'
-        },
-        {
-          name: '停车位管理',
-          desc: '车位信息和临时停车',
-          icon: 'car',
-          bgColor: '#52C41A',
-          status: '可用',
-          statusClass: 'available'
-        },
-        {
-          name: '门禁管理',
-          desc: '门禁卡申请和管理',
-          icon: 'locked',
-          bgColor: '#FAAD14',
-          status: '可用',
-          statusClass: 'available'
-        },
-        {
-          name: '装修申请',
-          desc: '装修许可和押金管理',
-          icon: 'gear',
-          bgColor: '#F5222D',
-          status: '暂停',
-          statusClass: 'unavailable'
-        }
+        // {
+        //   name: '物业费查询',
+        //   desc: '查看缴费记录和余额',
+        //   icon: 'wallet',
+        //   bgColor: '#1890FF',
+        //   status: '可用',
+        //   statusClass: 'available'
+        // },
+        // {
+        //   name: '停车位管理',
+        //   desc: '车位信息和临时停车',
+        //   icon: 'car',
+        //   bgColor: '#52C41A',
+        //   status: '可用',
+        //   statusClass: 'available'
+        // },
+        // {
+        //   name: '门禁管理',
+        //   desc: '门禁卡申请和管理',
+        //   icon: 'locked',
+        //   bgColor: '#FAAD14',
+        //   status: '可用',
+        //   statusClass: 'available'
+        // },
+        // {
+        //   name: '装修申请',
+        //   desc: '装修许可和押金管理',
+        //   icon: 'gear',
+        //   bgColor: '#F5222D',
+        //   status: '暂停',
+        //   statusClass: 'unavailable'
+        // }
       ]
     }
   },

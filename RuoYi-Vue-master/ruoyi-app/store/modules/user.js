@@ -21,6 +21,7 @@ const user = {
     nickName: storage.get(constant.nickName) || '',
     authStatus: storage.get(constant.authStatus) || false,
     phone: storage.get(constant.phone),
+    phonenumber: storage.get(constant.phone), // 添加phonenumber字段,与phone保持一致
     building: storage.get(constant.building),
     unit: storage.get(constant.unit),
     room: storage.get(constant.room),
@@ -74,6 +75,7 @@ const user = {
     },
     SET_PHONE: (state, phone) => {
       state.phone = phone
+      state.phonenumber = phone // 同时更新phonenumber
       storage.set(constant.phone, phone)
     },
     SET_PROPERTY_INFO: (state, propertyInfo) => {

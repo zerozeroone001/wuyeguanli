@@ -1,5 +1,8 @@
 <template>
   <view class="home-container">
+    <!-- 手机号绑定弹窗 -->
+    <phone-bind-modal ref="phoneBindModal" @success="onPhoneBindSuccess" />
+
     <!-- 自定义导航栏 -->
     <view class="custom-navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="navbar-content">
@@ -33,13 +36,15 @@
       </view>
     </view>
 
+   
+
     <!-- 用户信息区 -->
     <view class="user-info-section">
       <view class="user-card">
         <view class="user-avatar-wrap">
           <image 
             class="user-avatar" 
-            :src="isLoggedIn ? (avatar || 'https://img.icons8.com/fluency/96/user-male-circle.png') : 'https://img.icons8.com/fluency/96/user-male-circle.png'" 
+            :src="isLoggedIn ? (avatar || '/static/logo.png') : '/static/logo.png'" 
             mode="aspectFill"
           />
         </view>
@@ -55,7 +60,7 @@
             </view>
             <view class="auth-status" v-if="!authStatus" @click="goAuth">
               <text class="status-text">{{ ownerStatusText }}</text>
-              <text class="auth-link">去认证 ></text>
+              <text class="auth-link">去绑定 ></text>
             </view>
             <view class="auth-status verified" v-else>
               <uni-icons type="home-filled" size="16" color="#52C41A" />
@@ -84,122 +89,103 @@
 	  	账号仅限特定人群登录并进行登录账号鉴权
 	  </view>
     </view>
+	
+	<!-- 轮播图 -->
+	<view class="banner-section">
+	  <swiper
+	    class="banner-swiper"
+	    indicator-dots
+	    circular
+	    autoplay
+	    interval="3000"
+	    indicator-color="rgba(255, 255, 255, 0.5)"
+	    indicator-active-color="#FFFFFF"
+	  >
+	    <swiper-item v-for="(banner, index) in bannerList" :key="index">
+	      <image
+	        class="banner-image"
+	        :src="banner.image"
+	        mode="aspectFill"
+	        @click="handleBannerClick(banner)"
+	      />
+	    </swiper-item>
+	  </swiper>
+	</view>
 
-    <!-- 公告轮播 -->
-    <view class="notice-section" v-if="noticeList.length > 0">
-      <view class="notice-header">
-        <view class="notice-title-wrap">
-          <uni-icons type="sound" size="18" color="#1890FF" />
-          <text class="notice-main-title">最新公告</text>
+    <!-- 快捷入口魔方按钮 -->
+    <view class="quick-entry-section">
+      <view class="quick-entry-grid">
+        <view class="quick-entry-item" @click="goToOwnerChange">
+          <view class="quick-entry-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <uni-icons type="person-filled" size="32" color="#fff" />
+          </view>
+          <text class="quick-entry-text">业主变更</text>
         </view>
-        <text class="notice-more" @click="goToNoticeList">全部 ></text>
-      </view>
-      
-      <swiper 
-        class="notice-swiper" 
-        indicator-dots 
-        circular 
-        autoplay 
-        interval="5000"
-        indicator-color="rgba(24, 144, 255, 0.3)"
-        indicator-active-color="#1890FF"
-        indicator-style="bottom: 16rpx;"
-      >
-        <swiper-item v-for="notice in noticeList" :key="notice.noticeId">
-          {{notice.noticeId}}
-          <view class="notice-item" @click="viewNotice(notice.noticeId)">
-            <view class="notice-left">
-            <!--  <view class="notice-badge" :class="notice.noticeType === '1' ? 'urgent' : 'normal'">
-                <text class="notice-type">{{ notice.noticeType === '1' ? '重要' : '通知' }}</text>
-              </view> -->
-              <view class="notice-content">
-                <text class="notice-title">{{ notice.noticeTitle }}</text>
-                <text class="notice-summary">{{ notice.summary }}</text>
-                <view class="notice-meta">
-                  <text class="notice-time">{{ notice.formattedCreateTime }}</text>
-                  <view class="notice-status" v-if="notice.isNew">
-                    <text class="status-text">NEW</text>
-                  </view>
-                </view>
-              </view>
-            </view>
-            <view class="notice-right">
-              <uni-icons type="right" size="16" color="#8C8C8C" />
-            </view>
+        <view class="quick-entry-item" @click="goToPropertyAuth">
+          <view class="quick-entry-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <uni-icons type="home-filled" size="32" color="#fff" />
           </view>
-        </swiper-item>
-      </swiper>
-    </view>
-
-    <!-- 快捷功能网格 -->
-    <view class="quick-functions">
-     <!-- <view class="section-header">
-        <text class="section-title">便民服务</text>
-        <text class="more-link" @click="uni.switchTab({ url: '/pages/work/index' })">更多 ></text>
-      </view> -->
-      <view class="function-grid">
-        <view 
-          class="grid-item" 
-          v-for="item in quickFunctions" 
-          :key="item.id"
-          @click="navigateTo(item.path)"
-        >
-          <view class="grid-icon" :style="{ backgroundColor: item.bgColor }">
-            <uni-icons :type="item.iconType" size="20" color="white" />
-          </view>
-          <text class="grid-text">{{ item.name }}</text>
-          <text class="grid-desc">{{ item.desc }}</text>
-          <view class="grid-badge" v-if="item.badge">
-            <text class="badge-text">{{ item.badge }}</text>
-          </view>
+          <text class="quick-entry-text">产权认证</text>
         </view>
       </view>
     </view>
 
-    <!-- 制度文件查阅 -->
-   <!-- <view class="regulations-section">
-      <view class="section-header">
-        <text class="section-title">制度文件</text>
-        <text class="more-link" @click="goRegulations">更多 ></text>
-      </view>
-      <view class="regulation-list">
-        <view 
-          class="regulation-item" 
-          v-for="regulation in regulationList" 
-          :key="regulation.regulationId"
-          @click="viewRegulation(regulation)"
-        >
-          <view class="regulation-icon">
-            <uni-icons type="paperplane-filled" size="20" color="#1890FF" />
+    <!-- 主要服务 -->
+    <view class="main-services">
+      <uni-grid :column="3" :showBorder="false" :square="false">
+        <uni-grid-item v-for="(service, index) in filteredMainServices" :key="index">
+          <view class="service-item main-service" @click="handleServiceClick(service)">
+            <view class="service-icon" :style="{ backgroundColor: service.bgColor }">
+              <uni-icons :type="service.icon" size="28" color="white" />
+            </view>
+            <text class="service-name">{{ service.name }}</text>
+            <text class="service-desc">{{ service.desc }}</text>
           </view>
-          <view class="regulation-info">
-            <text class="regulation-name">{{ regulation.regulationName }}</text>
-            <text class="regulation-date">发布时间：{{ regulation.createTime }}</text>
-          </view>
-          <uni-icons type="right" size="14" color="#8C8C8C" />
-        </view>
-      </view>
-    </view> -->
+        </uni-grid-item>
+      </uni-grid>
+    </view>
 
-    <!-- 最新动态 -->
-    <view class="latest-news">
+
+    <!-- 小区公告 -->
+    <view class="community-notice-section">
       <view class="section-header">
-        <text class="section-title">最新动态</text>
-        <text class="more-link" @click="goNews">更多 ></text>
+        <text class="section-title">小区公告</text>
+        <text class="more-link" @click="goToNoticeList">查看全部 ></text>
       </view>
-      <view class="news-list">
-        <view 
-          class="news-item" 
-          v-for="news in newsList" 
-          :key="news.id"
-          @click="viewNews(news)"
+      <view class="notice-list">
+        <view
+          class="notice-list-item"
+          v-for="notice in communityNoticeList"
+          :key="notice.noticeId"
+          @click="viewNotice(notice.noticeId)"
         >
-          <view class="news-dot"></view>
-          <view class="news-content">
-            <text class="news-title">{{ news.title }}</text>
-            <text class="news-date">{{ news.date }}</text>
+          <view class="notice-content">
+            <text class="notice-item-title">{{ notice.noticeTitle }}</text>
+            <text class="notice-item-date">{{ notice.formattedCreateTime }}</text>
+          </view>
+          <view class="notice-thumbnail">
+            <image
+              v-if="notice.thumbnail"
+              :src="notice.thumbnail"
+              mode="aspectFill"
+              class="thumbnail-image"
+            />
+            <view v-else class="thumbnail-placeholder">
+              <image
+                :src="getNoticeIcon(notice)"
+                mode="aspectFill"
+                class="thumbnail-icon"
+              />
+            </view>
           </view>
         </view>
+      </view>
+      <view v-if="communityNoticeList.length === 0" class="empty-notice">
+        <uni-icons type="sound" size="48" color="#C5D9FF" />
+        <text class="empty-text">暂无公告</text>
+      </view>
+      <view v-if="communityNoticeList.length > 0" class="load-more-tip">
+        继续上拉查看更多
       </view>
     </view>
 
@@ -213,12 +199,17 @@ import { mapGetters } from 'vuex'
 import config from '@/config'
 import { listNotice } from '@/api/notice.js'
 import { listMyProperty, listCommunity } from '@/api/property.js'
+import { listBanner } from '@/api/banner.js'
 import { isAuthenticated, getAuthStatusText, getAuthStatusColor, getAuthStatusIcon } from '@/utils/authHelper'
+import PhoneBindModal from '@/components/phone-bind-modal/phone-bind-modal.vue'
 
 const COMMUNITY_STORAGE_KEY = 'app_current_community_id'
 const COMMUNITY_INFO_STORAGE_KEY = 'app_current_community_info'
 
 export default {
+  components: {
+    PhoneBindModal
+  },
   data() {
     return {
       statusBarHeight: 0,
@@ -232,44 +223,84 @@ export default {
         text: '晴',
         temp: 22
       },
+      // 轮播图数据（从API获取）
+      bannerList: [],
       // 公告数据改为空数组，将从API获取
       noticeList: [],
-      // 快捷功能数据
-      quickFunctions: [
-		  {
-		    id: 1,
-		    name: '来访登记',
-		    desc: '',
-		    iconType: 'wallet',
-		              path: '/pages/visitor/add',
-		    bgColor: '#F5222D'
-		  },
-        
+      // 小区公告数据（显示10条）
+      communityNoticeList: [],
+      // 主要服务数据
+      mainServices: [
         {
-          id: 2,
-          name: '意见投诉',
-          desc: '',
-          iconType: 'chat',
-          path: '/pages/property/complaint/add',
-          bgColor: '#52C41A'
-        },
-        {
-          id: 3,
-          name: '设备报修',
-          desc: '',
-          iconType: 'gear',
-          path: '/pages/repair/index',
-          bgColor: '#FAAD14'
-        },
-        {
-          id: 4,
-          name: '会议投票',
-          desc: '',
-          iconType: 'compose',
-          path: '/pages/property/meeting/index',
+          name: '业主大会',
+          desc: '会议投票',
+          icon: 'compose',
           bgColor: '#1890FF',
-          badge: '2'
+          path: '/pageB/property/meeting/index'
         },
+        {
+          name: '业委会会议',
+          desc: '会议投票',
+          icon: 'compose',
+          bgColor: '#52C41A',
+          path: '/pageB/property/committee-meeting/index'
+        },
+        {
+          name: '意见征询',
+          desc: '问卷调查',
+          icon: 'compose',
+          bgColor: '#389E0D',
+          path: '/pages/work/opinion/index'
+        },
+        {
+          name: '合同查阅',
+          desc: '合同管理',
+          icon: 'paperplane',
+          bgColor: '#FAAD14',
+          path: '/pageB/contract-fulfillment/index'
+        },
+        {
+          name: '资金公示',
+          desc: '财务透明',
+          icon: 'wallet',
+          bgColor: '#722ED1',
+          path: '/pageB/fund-management/index'
+        },
+        {
+          name: '法律咨询',
+          desc: '专业服务',
+          icon: 'help',
+          bgColor: '#F5222D',
+          path: '/pageB/legal-consultation/index'
+        },
+        {
+          name: '制度查阅',
+          desc: '规章制度',
+          icon: 'list',
+          bgColor: '#13C2C2',
+          path: '/pages/work/regulation'
+        },
+        {
+          name: '联名签名',
+          desc: '权威认证',
+          icon: 'checkmarkempty',
+          bgColor: '#EB2F96',
+          path: '/pageB/notary-service/index'
+        },
+        {
+          name: '指导监督',
+          desc: '业务指导',
+          icon: 'eye',
+          bgColor: '#FA8C16',
+          path: '/pages/supervision/index'
+        },
+        {
+          name: '承接查验',
+          desc: '物业交接',
+          icon: 'flag',
+          bgColor: '#389E0D',
+          path: '/pages/handover/index'
+        }
       ],
       // 制度文件数据
       regulationList: [
@@ -352,6 +383,16 @@ export default {
       if (hour < 12) return '早上好'
       if (hour < 18) return '下午好'
       return '晚上好'
+    },
+    // 过滤后的主要服务列表（根据用户身份过滤）
+    filteredMainServices() {
+      return this.mainServices.filter(service => {
+        // 如果是业委会会议，需要检查用户是否为业委会成员
+        if (service.name === '业委会会议') {
+          return this.ownerProfile.isOwner === 2 // 2表示业委会成员
+        }
+        return true // 其他服务都显示
+      })
     }
   },
   onLoad() {
@@ -481,11 +522,49 @@ export default {
     loadData() {
       // 只有在已登录时才调用需要认证的API，否则使用模拟数据
       // if (this.isLoggedIn) {
+        this.getBannerList(); // 获取轮播图
         this.getNoticeList(); // 调用真实API
+        this.getCommunityNoticeList(); // 获取小区公告
       // } else {
       //   this.getMockNoticeList(); // 使用模拟数据
       // }
       this.updateDynamicData()
+    },
+
+    // 获取轮播图列表
+    getBannerList() {
+      listBanner()
+        .then(response => {
+          const data = response.data || [];
+          this.bannerList = data.map(item => ({
+            bannerId: item.bannerId,
+            image: item.bannerImage,
+            title: item.bannerTitle,
+            linkType: item.linkType,
+            linkId: item.linkId,
+            linkUrl: item.linkUrl
+          }));
+        })
+        .catch(error => {
+          console.error("获取轮播图失败", error);
+          // 失败时使用默认轮播图
+          this.bannerList = [
+            {
+              image: 'https://img.icons8.com/color/480/apartment.png',
+              title: '智慧物业管理',
+              linkType: null,
+              linkId: null,
+              linkUrl: null
+            },
+            {
+              image: 'https://img.icons8.com/color/480/home.png',
+              title: '温馨家园',
+              linkType: null,
+              linkId: null,
+              linkUrl: null
+            }
+          ];
+        });
     },
 
     // 获取公告列表
@@ -499,6 +578,19 @@ export default {
         .catch(error => {
           console.error("获取公告失败", error);
           this.noticeList = [];
+        });
+    },
+
+    // 获取小区公告列表（显示10条）
+    getCommunityNoticeList() {
+      listNotice({ pageNum: 1, pageSize: 10 })
+        .then(response => {
+          const rows = Array.isArray(response?.rows) ? response.rows : [];
+          this.communityNoticeList = rows.map(item => this.normalizeNotice(item));
+        })
+        .catch(error => {
+          console.error("获取小区公告失败", error);
+          this.communityNoticeList = [];
         });
     },
     
@@ -571,12 +663,97 @@ export default {
         })
       }
     },
+
+    handleServiceClick(service) {
+      console.log('点击了服务:', service.name, service.path)
+
+      // 检查是否绑定手机号
+      if (!this.checkPhoneBound()) {
+        return
+      }
+
+      // 检查业委会会议权限
+      if (service.name === '业委会会议' && this.ownerProfile.isOwner !== 2) {
+        uni.showModal({
+          title: '权限不足',
+          content: '您不是业委会成员，无法访问业委会会议功能',
+          showCancel: false,
+          confirmText: '我知道了'
+        })
+        return
+      }
+
+      if (service.path) {
+        uni.navigateTo({
+          url: service.path,
+          fail: (err) => {
+            console.error('导航失败:', err)
+            uni.showToast({
+              title: '页面跳转失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        })
+      } else {
+        uni.showToast({
+          title: `${service.name}功能开发中`,
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    },
     
     goAuth() {
-      // 如果未认证，则跳转到认证页面
+      // 如果未认证，先检查是否绑定手机号
       if (!this.authStatus) {
-        uni.navigateTo({ url: '/pages/mine/auth' })
+        // 检查是否绑定手机号
+        if (!this.checkPhoneBound()) {
+          return
+        }
+
+        // 已绑定手机号，跳转到业主认证页面
+        uni.navigateTo({
+          url: '/pageB/property/add',
+          fail: (err) => {
+            console.error('跳转业主认证页面失败:', err)
+            uni.showToast({
+              title: '页面跳转失败',
+              icon: 'none'
+            })
+          }
+        })
       }
+    },
+
+    // 检查是否绑定手机号（仅检查，不弹窗）
+    isPhoneBound() {
+      // 从store中获取用户手机号
+      const phonenumber = this.$store.state.user.phonenumber
+      return this.ownerProfile.phonenumber && this.ownerProfile.phonenumber.trim() !== ''
+    },
+
+    // 检查是否绑定手机号（检查并弹窗）
+    checkPhoneBound() {
+      if (!this.isPhoneBound()) {
+        // 未绑定手机号，弹出绑定弹窗
+        this.$refs.phoneBindModal.open()
+        return false
+      }
+      return true
+    },
+
+    // 手机号绑定成功回调
+    onPhoneBindSuccess() {
+      // 绑定成功后刷新用户信息
+      this.$store.dispatch('GetInfo').then(() => {
+        uni.showToast({
+          title: '手机号绑定成功',
+          icon: 'success'
+        })
+      }).catch(error => {
+        console.error('刷新用户信息失败:', error)
+      })
     },
     
     goToLogin() {
@@ -605,7 +782,7 @@ export default {
     },
     
     goRegulations() {
-      uni.navigateTo({ url: '/pages/property/regulation/index' })
+      uni.navigateTo({ url: '/pageB/property/regulation/index' })
     },
     
     goNews() {
@@ -670,6 +847,152 @@ console.log(noticeId)
       uni.navigateTo({
         url: `/pages/common/news/detail?id=${news.id}`
       })
+    },
+
+    // 快捷入口点击事件
+    goToOwnerChange() {
+      // 检查是否绑定手机号
+      if (!this.checkPhoneBound()) {
+        return
+      }
+
+      uni.navigateTo({
+        url: '/pageB/owner-change/submit',
+        fail: (err) => {
+          console.error('跳转业主变更页面失败:', err);
+          uni.showToast({
+            title: '页面跳转失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+
+    goToPropertyAuth() {
+      // 检查是否绑定手机号
+      if (!this.checkPhoneBound()) {
+        return
+      }
+
+      uni.navigateTo({
+        url: '/pageB/property/index',
+        fail: (err) => {
+          console.error('跳转产权认证页面失败:', err);
+          uni.showToast({
+            title: '页面跳转失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+
+    // 轮播图点击事件
+    handleBannerClick(banner) {
+      console.log('点击轮播图:', banner);
+
+      // 如果没有链接类型，则不跳转
+      if (!banner.linkType) {
+        console.log('轮播图没有设置链接');
+        return;
+      }
+
+      // 根据链接类型进行不同的跳转
+      switch (banner.linkType) {
+        case 'meeting':
+          // 跳转到业主大会详情
+          if (banner.linkId) {
+            uni.navigateTo({
+              url: `/pageB/property/meeting/detail?id=${banner.linkId}`,
+              fail: (err) => {
+                console.error('跳转业主大会详情失败:', err);
+                uni.showToast({
+                  title: '页面跳转失败',
+                  icon: 'none'
+                });
+              }
+            });
+          } else {
+            uni.showToast({
+              title: '业主大会ID无效',
+              icon: 'none'
+            });
+          }
+          break;
+
+        case 'opinion':
+          // 跳转到意见征询详情
+          if (banner.linkId) {
+            uni.navigateTo({
+              url: `/pages/work/opinion/detail?id=${banner.linkId}`,
+              fail: (err) => {
+                console.error('跳转意见征询详情失败:', err);
+                uni.showToast({
+                  title: '页面跳转失败',
+                  icon: 'none'
+                });
+              }
+            });
+          } else {
+            uni.showToast({
+              title: '意见征询ID无效',
+              icon: 'none'
+            });
+          }
+          break;
+
+        case 'url':
+          // 自定义链接跳转
+          if (banner.linkUrl) {
+            uni.navigateTo({
+              url: banner.linkUrl,
+              fail: (err) => {
+                console.error('自定义链接跳转失败:', err);
+                uni.showToast({
+                  title: '页面跳转失败',
+                  icon: 'none'
+                });
+              }
+            });
+          } else {
+            uni.showToast({
+              title: '链接地址无效',
+              icon: 'none'
+            });
+          }
+          break;
+
+        default:
+          console.log('未知的链接类型:', banner.linkType);
+      }
+    },
+
+    // 根据公告获取对应的图标
+    getNoticeIcon(notice) {
+      // 根据公告标题关键词返回不同样式的图标背景
+      const title = notice.noticeTitle || '';
+
+      // 业主大会相关
+      if (title.includes('业主大会') || title.includes('会议')) {
+        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0ZGNjY2NiIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI0ZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+5Lia5Li75aSn5LygPC90ZXh0Pjwvc3ZnPg==';
+      }
+
+      // 投票相关
+      if (title.includes('投票') || title.includes('表决')) {
+        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0VEMzkzOSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI0ZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+5oqV56Wo5rWB56iLPC90ZXh0Pjwvc3ZnPg==';
+      }
+
+      // 规则相关
+      if (title.includes('规约') || title.includes('规则') || title.includes('制度')) {
+        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0VEMzkzOSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI0ZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+5Lia5Li75aSn5LygPC90ZXh0Pjwvc3ZnPg==';
+      }
+
+      // 管理规约
+      if (title.includes('管理')) {
+        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0VEMzkzOSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI0ZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+5Lia5Li75aSn5LygPC90ZXh0Pjwvc3ZnPg==';
+      }
+
+      // 默认图标
+      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0VEMzkzOSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI0ZGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+5Lia5Li75aSn5LygPC90ZXh0Pjwvc3ZnPg==';
     }
   }
 }
@@ -683,13 +1006,74 @@ console.log(noticeId)
   background: #FFFFFF;
 }
 
+/* 轮播图区域 */
+.banner-section {
+  margin: 0 30rpx 30rpx;
+
+  .banner-swiper {
+    height: 360rpx;
+    border-radius: 24rpx;
+    overflow: hidden;
+
+    .banner-image {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+/* 快捷入口魔方按钮 */
+.quick-entry-section {
+  margin: 0 30rpx 30rpx;
+
+  .quick-entry-grid {
+    display: flex;
+    gap: 24rpx;
+  }
+
+  .quick-entry-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40rpx 20rpx;
+    background: #FFFFFF;
+    border-radius: 24rpx;
+    box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+    border: 1rpx solid #F0F0F0;
+    transition: all 0.3s;
+
+    &:active {
+      transform: scale(0.96);
+      box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.04);
+    }
+
+    .quick-entry-icon {
+      width: 100rpx;
+      height: 100rpx;
+      border-radius: 24rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20rpx;
+      box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+    }
+
+    .quick-entry-text {
+      font-size: 28rpx;
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+}
+
 /* 自定义导航栏 */
 .custom-navbar {
   position: sticky;
   top: 0;
   z-index: 100;
   background: #FFFFFF;
-  
+
   .navbar-content {
     display: flex;
     align-items: center;
@@ -983,7 +1367,7 @@ console.log(noticeId)
 }
 
 /* 主内容区 */
-.quick-functions,
+.main-services,
 .regulations-section,
 .latest-news {
   margin: 0 30rpx 40rpx;
@@ -998,78 +1382,52 @@ console.log(noticeId)
   align-items: center;
   justify-content: space-between;
   margin-bottom: 30rpx;
-  
+
   .section-title {
     font-size: 36rpx;
     font-weight: 600;
     color: #262626;
   }
-  
+
   .more-link {
     font-size: 28rpx;
     color: #1890FF;
   }
 }
 
-/* 快捷功能网格 */
-.function-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24rpx;
-  
-  .grid-item {
-    position: relative;
+/* 主要服务模块 */
+.main-services {
+  margin-bottom: 50rpx;
+
+  .service-item.main-service {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24rpx 15rpx;
+    padding: 40rpx 20rpx;
+    background: #FFFFFF;
     border-radius: 24rpx;
-    background: #FAFBFC;
     border: 1rpx solid #F0F0F0;
-    transition: all 0.2s ease;
-    
-    &:active {
-      transform: translateY(2rpx);
-      background: #F5F6F7;
-      border-color: #E0E0E0;
-    }
-    
-    .grid-icon {
-      width: 60rpx;
-      height: 60rpx;
+
+    .service-icon {
+      width: 88rpx;
+      height: 88rpx;
       border-radius: 44rpx;
       display: flex;
-    align-items: center;
-    justify-content: center;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 24rpx;
     }
-    
-    .grid-text {
-      font-size: 20rpx;
-      color: #262626;
+
+    .service-name {
+      font-size: 28rpx;
       font-weight: 600;
+      color: #262626;
       margin-bottom: 8rpx;
     }
-    
-    .grid-desc {
+
+    .service-desc {
       font-size: 24rpx;
       color: #8C8C8C;
-    }
-    
-    .grid-badge {
-      position: absolute;
-      top: 20rpx;
-      right: 20rpx;
-      
-      .badge-text {
-        padding: 4rpx 12rpx;
-        background: #FF4D4F;
-        color: #fff;
-        font-size: 20rpx;
-        border-radius: 20rpx;
-        min-width: 32rpx;
-        text-align: center;
-      }
     }
   }
 }
@@ -1152,14 +1510,125 @@ console.log(noticeId)
   }
 }
 
+/* 小区公告模块 */
+.community-notice-section {
+  margin: 0 30rpx 40rpx;
+  padding: 40rpx 30rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+
+  .section-header {
+    margin-bottom: 30rpx;
+  }
+
+  .notice-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notice-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 32rpx 0;
+    border-bottom: 1rpx solid #F0F0F0;
+    transition: all 0.3s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:active {
+      opacity: 0.7;
+    }
+
+    .notice-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12rpx;
+      overflow: hidden;
+      margin-right: 24rpx;
+
+      .notice-item-title {
+        font-size: 30rpx;
+        font-weight: 500;
+        color: #262626;
+        line-height: 1.5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .notice-item-date {
+        font-size: 26rpx;
+        color: #8C8C8C;
+      }
+    }
+
+    .notice-thumbnail {
+      width: 132rpx;
+      height: 132rpx;
+      border-radius: 16rpx;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #F5F5F5;
+
+      .thumbnail-image {
+        width: 100%;
+        height: 100%;
+      }
+
+      .thumbnail-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #FFE7E7, #FFEDED);
+
+        .thumbnail-icon {
+          width: 80%;
+          height: 80%;
+        }
+      }
+    }
+  }
+
+  .empty-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80rpx 0;
+    gap: 24rpx;
+
+    .empty-text {
+      font-size: 28rpx;
+      color: #8C8C8C;
+    }
+  }
+
+  .load-more-tip {
+    text-align: center;
+    font-size: 24rpx;
+    color: #BFBFBF;
+    padding: 30rpx 0 10rpx;
+  }
+}
+
 /* 底部安全距离 */
 .safe-area-bottom {
   height: env(safe-area-inset-bottom);
   background: #fff;
-  }
-  .tishi{
-	      text-align: center;
-	      font-size: 12px;
-	      color: red;
-  }
+}
+
+.tishi {
+  text-align: center;
+  font-size: 12px;
+  color: red;
+}
 </style>

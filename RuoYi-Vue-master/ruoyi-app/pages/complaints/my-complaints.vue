@@ -196,13 +196,13 @@ export default {
     
     addComplaint() {
       uni.navigateTo({
-        url: '/pages/property/complaint/add'
+        url: '/pageB/property/complaint/add'
       })
     },
     
     viewComplaintDetail(item) {
       uni.navigateTo({
-        url: `/pages/property/complaint/detail?id=${item.id}`
+        url: `/pageB/property/complaint/detail?id=${item.id}`
       })
     },
     

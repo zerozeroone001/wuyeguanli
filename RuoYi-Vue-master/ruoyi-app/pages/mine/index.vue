@@ -116,25 +116,25 @@ export default {
           name: '我的合同',
           icon: 'list',
           bgColor: '#1890FF',
-          path: '/pages/property/contract/index'
+          path: '/pageB/property/contract/index'
         },
         {
           name: '缴费记录',
           icon: 'wallet',
           bgColor: '#52C41A',
-          path: '/pages/fund-management/index'
+          path: '/pageB/fund-management/index'
         },
         {
           name: '投票记录',
           icon: 'compose',
           bgColor: '#FAAD14',
-          path: '/pages/property/meeting/my-votes'
+          path: '/pageB/property/meeting/my-votes'
         },
         {
           name: '我的投诉',
           icon: 'chat',
           bgColor: '#F5222D',
-          path: '/pages/complaints/my-complaints'
+          path: '/pageB/complaints/my-complaints'
         }
       ],
       // 设置菜单
@@ -145,17 +145,17 @@ export default {
           bgColor: '#8C8C8C',
           path: '/pages/mine/info/index'
         },
-        {
-          name: '实名认证',
-          icon: 'shield-filled',
-          bgColor: '#1890FF',
-          path: '/pages/mine/auth'
-        },
+        // {
+        //   name: '实名认证',
+        //   icon: 'shield-filled',
+        //   bgColor: '#1890FF',
+        //   path: '/pages/mine/auth'
+        // },
         {
           name: '我的房产',
           icon: 'home-filled',
           bgColor: '#FA8C16',
-          path: '/pages/property/index'
+          path: '/pageB/property/index'
         },
         {
           name: '消息设置',
@@ -287,7 +287,7 @@ export default {
         this.goToLogin()
         return
       }
-      uni.navigateTo({ url: '/pages/property/meeting/my-votes' })
+      uni.navigateTo({ url: '/pageB/property/meeting/my-votes' })
     },
     
     goToMessages() {

@@ -48,7 +48,6 @@ public class SmsServiceImpl implements SmsService {
                     .setTemplateParam("{\"code\":\"" + code + "\"}");
 
             SendSmsResponse response = client.sendSms(sendSmsRequest);
-            System.out.println(response.getBody().toString());
             // 根据阿里云返回的Code判断发送是否成功
             return "OK".equals(response.getBody().getCode());
         } catch (Exception e) {

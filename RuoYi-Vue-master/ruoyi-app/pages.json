@@ -43,18 +43,6 @@
         "navigationBarTitleText": "设备报修"
     }
   }, {
-    "path": "pages/work/index"
-  }, {
-    "path": "pages/work/opinion/index",
-    "style": {
-      "navigationBarTitleText": "问卷调查"
-    }
-  }, {
-    "path": "pages/work/opinion/detail",
-    "style": {
-      "navigationBarTitleText": "问卷详情"
-    }
-  }, {
     "path": "pages/mine/index",
     "style": {
       "navigationBarTitleText": "我的"
@@ -127,170 +115,11 @@
       "navigationBarTitleText": "公告详情"
     }
   }, {
-    "path": "pages/property/meeting/index",
-    "style": {
-      "navigationBarTitleText": "业主大会",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    },
-    "usingComponents": {
-      "uni-calendar": "/uni_modules/uni-calendar/components/uni-calendar/uni-calendar"
-    }
-  }, {
-    "path": "pages/property/meeting/detail",
-    "style": {
-      "navigationBarTitleText": "会议详情"
-    }
-  }, {
-    "path": "pages/property/meeting/vote",
-    "style": {
-      "navigationBarTitleText": "参与投票"
-    }
-  },  {
-    "path": "pages/property/meeting/result",
-    "style": {
-      "navigationBarTitleText": "投票结果"
-    }
-  }, {
-    "path": "pages/property/meeting/my-votes",
-    "style": {
-      "navigationBarTitleText": "我的投票记录",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/property/committee-meeting/index",
-    "style": {
-      "navigationBarTitleText": "业委会会议",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/property/committee-meeting/detail",
-    "style": {
-      "navigationBarTitleText": "会议详情"
-    }
-  }, {
-    "path": "pages/property/committee-meeting/vote",
-    "style": {
-      "navigationBarTitleText": "参与投票"
-    }
-  }, {
-    "path": "pages/property/committee-meeting/result",
-    "style": {
-      "navigationBarTitleText": "投票结果"
-    }
-  }, {
-    "path": "pages/property/committee-meeting/my-votes",
-    "style": {
-      "navigationBarTitleText": "我的投票记录",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/property/complaint/index",
-    "style": {
-      "navigationBarTitleText": "意见征询",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/property/complaint/add",
-    "style": {
-      "navigationBarTitleText": "提交投诉"
-    }
-  }, {
-    "path": "pages/property/complaint/detail",
-    "style": {
-      "navigationBarTitleText": "投诉详情"
-    }
-  }, {
     "path": "pages/complaints/my-complaints",
     "style": {
       "navigationBarTitleText": "我的投诉",
       "enablePullDownRefresh": true,
       "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/property/contract/index",
-    "style": {
-      "navigationBarTitleText": "我的合同",
-      "enablePullDownRefresh": true
-    }
-  }, {
-    "path": "pages/contract-fulfillment/index",
-    "style": {
-      "navigationBarTitleText": "合同查阅",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/contract-fulfillment/detail",
-    "style": {
-      "navigationBarTitleText": "合同详情"
-    }
-  }, {
-    "path": "pages/fund-management/index",
-    "style": {
-      "navigationBarTitleText": "资金公示",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/fund-management/detail",
-    "style": {
-      "navigationBarTitleText": "资金明细"
-    }
-  }, {
-    "path": "pages/fund-management/report",
-    "style": {
-      "navigationBarTitleText": "财务报表"
-    }
-  }, {
-    "path": "pages/legal-consultation/index",
-    "style": {
-      "navigationBarTitleText": "法律咨询",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/legal-consultation/add",
-    "style": {
-      "navigationBarTitleText": "提交咨询"
-    }
-  }, {
-    "path": "pages/legal-consultation/detail",
-    "style": {
-      "navigationBarTitleText": "咨询详情"
-    }
-  }, {
-    "path": "pages/work/regulation",
-    "style": {
-      "navigationBarTitleText": "制度查阅",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/work/regulation-detail",
-    "style": {
-      "navigationBarTitleText": "制度详情"
-    }
-  }, {
-    "path": "pages/notary-service/index",
-    "style": {
-      "navigationBarTitleText": "公证存证",
-      "enablePullDownRefresh": true,
-      "backgroundTextStyle": "dark"
-    }
-  }, {
-    "path": "pages/notary-service/apply",
-    "style": {
-      "navigationBarTitleText": "申请公证"
-    }
-  }, {
-    "path": "pages/notary-service/detail",
-    "style": {
-      "navigationBarTitleText": "公证详情"
     }
   }, {
     "path": "pages/supervision/index",
@@ -327,23 +156,240 @@
       "navigationBarTitleText": "查验报告"
     }
   }, {
-    "path": "pages/property/index",
+    "path": "pages/work/index",
     "style": {
-      "navigationBarTitleText": "我的房产",
-      "enablePullDownRefresh": true
+      "navigationBarTitleText": "办事处"
+    }
+  },
+        {
+          "path": "pages/work/opinion/index",
+          "style": {
+            "navigationBarTitleText": "问卷调查"
+          }
+        },
+        {
+          "path": "pages/work/opinion/detail",
+          "style": {
+            "navigationBarTitleText": "问卷详情"
+          }
+        },
+        {
+          "path": "pages/work/regulation",
+          "style": {
+            "navigationBarTitleText": "制度查阅",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        },
+        {
+          "path": "pages/work/regulation-detail",
+          "style": {
+            "navigationBarTitleText": "制度详情"
+          }
+        }],
+  "subPackages": [
+    {
+      "root": "pageB",
+      "name": "propertyWork",
+      "pages": [
+        {
+          "path": "property/index",
+          "style": {
+            "navigationBarTitleText": "我的房产",
+            "enablePullDownRefresh": true
+          }
+        },
+        {
+          "path": "property/add",
+          "style": {
+            "navigationBarTitleText": "绑定房产"
+          }
+        },
+        {
+          "path": "property/history",
+          "style": {
+            "navigationBarTitleText": "提交历史",
+            "enablePullDownRefresh": true
+          }
+        },
+        {
+          "path": "owner-change/submit",
+          "style": {
+            "navigationBarTitleText": "业主变更"
+          }
+        },
+        {
+          "path": "owner-change/history",
+          "style": {
+            "navigationBarTitleText": "申请记录",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        },
+        {
+          "path": "property/meeting/index",
+          "style": {
+            "navigationBarTitleText": "业主大会",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          },
+          "usingComponents": {
+            "uni-calendar": "/uni_modules/uni-calendar/components/uni-calendar/uni-calendar"
+          }
+        },
+        {
+          "path": "property/meeting/detail",
+          "style": {
+            "navigationBarTitleText": "会议详情"
+          }
+        },
+        {
+          "path": "property/meeting/vote",
+          "style": {
+            "navigationBarTitleText": "参与投票"
+          }
+        },
+        {
+          "path": "property/meeting/result",
+          "style": {
+            "navigationBarTitleText": "投票结果"
+          }
+        },
+        {
+          "path": "property/meeting/my-votes",
+          "style": {
+            "navigationBarTitleText": "我的投票记录",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        },
+        {
+          "path": "property/committee-meeting/index",
+          "style": {
+            "navigationBarTitleText": "业委会会议",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        },
+        {
+          "path": "property/committee-meeting/detail",
+          "style": {
+            "navigationBarTitleText": "会议详情"
+          }
+        },
+        {
+          "path": "property/committee-meeting/vote",
+          "style": {
+            "navigationBarTitleText": "参与投票"
+          }
+        },
+        {
+          "path": "property/committee-meeting/result",
+          "style": {
+            "navigationBarTitleText": "投票结果"
+          }
+        },
+        {
+          "path": "property/committee-meeting/my-votes",
+          "style": {
+            "navigationBarTitleText": "我的投票记录",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        },
+        {
+          "path": "property/complaint/index",
+          "style": {
+            "navigationBarTitleText": "意见征询",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        },
+        {
+          "path": "property/complaint/add",
+          "style": {
+            "navigationBarTitleText": "提交投诉"
+          }
+        },
+        {
+          "path": "property/complaint/detail",
+          "style": {
+            "navigationBarTitleText": "投诉详情"
+          }
+        },
+        {
+          "path": "property/contract/index",
+          "style": {
+            "navigationBarTitleText": "我的合同",
+            "enablePullDownRefresh": true
+          }
+        },{
+    "path": "contract-fulfillment/index",
+    "style": {
+      "navigationBarTitleText": "合同查阅",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
     }
   }, {
-    "path": "pages/property/add",
+    "path": "contract-fulfillment/detail",
     "style": {
-      "navigationBarTitleText": "绑定房产"
+      "navigationBarTitleText": "合同详情"
     }
   }, {
-    "path": "pages/property/history",
+    "path": "fund-management/index",
     "style": {
-      "navigationBarTitleText": "提交历史",
-      "enablePullDownRefresh": true
+      "navigationBarTitleText": "资金公示",
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
     }
-  }],
+  }, {
+    "path": "fund-management/detail",
+    "style": {
+      "navigationBarTitleText": "资金明细"
+    }
+  }, {
+    "path": "fund-management/report",
+    "style": {
+      "navigationBarTitleText": "财务报表"
+    }
+  }, {
+          "path": "notary-service/index",
+          "style": {
+            "navigationBarTitleText": "公证存证",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        }, {
+          "path": "notary-service/apply",
+          "style": {
+            "navigationBarTitleText": "申请公证"
+          }
+        }, {
+          "path": "notary-service/detail",
+          "style": {
+            "navigationBarTitleText": "公证详情"
+          }
+        },  {
+          "path": "legal-consultation/index",
+          "style": {
+            "navigationBarTitleText": "法律咨询",
+            "enablePullDownRefresh": true,
+            "backgroundTextStyle": "dark"
+          }
+        }, {
+          "path": "legal-consultation/add",
+          "style": {
+            "navigationBarTitleText": "提交咨询"
+          }
+        }, {
+          "path": "legal-consultation/detail",
+          "style": {
+            "navigationBarTitleText": "咨询详情"
+          }
+        }
+      ]
+    }
+  ],
   "tabBar": {
     "color": "#8C8C8C",
     "selectedColor": "#1890FF",
@@ -354,12 +400,14 @@
         "iconPath": "static/images/tabbar/home.png",
         "selectedIconPath": "static/images/tabbar/home_.png",
         "text": "首页"
-      }, {
-        "pagePath": "pages/work/index",
-        "iconPath": "static/images/tabbar/work.png",
-        "selectedIconPath": "static/images/tabbar/work_.png",
-        "text": "办事处"
-      }, {
+      }, 
+	  // {
+   //      "pagePath": "pages/work/index",
+   //      "iconPath": "static/images/tabbar/work.png",
+   //      "selectedIconPath": "static/images/tabbar/work_.png",
+   //      "text": "办事处"
+   //    }, 
+	  {
         "pagePath": "pages/mine/index",
         "iconPath": "static/images/tabbar/mine.png",
         "selectedIconPath": "static/images/tabbar/mine_.png",

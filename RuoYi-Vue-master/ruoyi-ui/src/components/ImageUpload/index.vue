@@ -196,7 +196,7 @@ export default {
     // 上传成功回调
     handleUploadSuccess(res, file) {
       if (res.code === 200) {
-        this.uploadList.push({ name: res.fileName, url: res.fileName })
+        this.uploadList.push({ name: res.fileName, url: res.url })
         this.uploadedSuccessfully()
       } else {
         this.number--
@@ -256,7 +256,7 @@ export default {
 
 ::v-deep .el-upload-list--picture-card.is-disabled + .el-upload--picture-card {
   display: none !important;
-} 
+}
 
 // 去掉动画效果
 ::v-deep .el-list-enter-active,
