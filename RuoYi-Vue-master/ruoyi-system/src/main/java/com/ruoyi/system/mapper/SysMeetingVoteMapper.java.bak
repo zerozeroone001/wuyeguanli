@@ -1,7 +1,6 @@
 package com.ruoyi.system.mapper;
 
 import com.ruoyi.system.domain.SysMeetingVote;
-import com.ruoyi.system.domain.vo.VoteListExportVO;
 import com.ruoyi.system.domain.vo.VoteRecordVO;
 import com.ruoyi.system.domain.vo.VoteResultVO;
 import org.apache.ibatis.annotations.Param;
@@ -51,13 +50,4 @@ public interface SysMeetingVoteMapper {
      */
     List<VoteResultVO> selectVoteResultsByMeeting(@Param("meetingId") Long meetingId,
                                                    @Param("communityId") Long communityId);
-
-    /**
-     * 查询投票列表用于Excel导出
-     * @param meetingId 会议ID
-     * @param communityId 小区ID
-     * @return 投票列表导出数据
-     */
-    List<VoteListExportVO> selectVoteListForExport(@Param("meetingId") Long meetingId,
-                                                    @Param("communityId") Long communityId);
 }

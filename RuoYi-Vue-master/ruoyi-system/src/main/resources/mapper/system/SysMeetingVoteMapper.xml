@@ -104,5 +104,294 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{voteId}
         </foreach>
     </delete>
+    <!-- 投票记录VO ResultMap -->
+    <resultMap type="com.ruoyi.system.domain.vo.VoteRecordVO" id="VoteRecordVOResult">
+        <result property="userId" column="user_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="realName" column="real_name"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="area" column="area"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="voteRightStatus" column="vote_right_status"/>
+        <result property="voterStatus" column="voter_status"/>
+        <result property="authStatus" column="auth_status"/>
+        <result property="actualVoteRight" column="actual_vote_right"/>
+        <result property="participationTime" column="participation_time"/>
+        <result property="voteOption" column="vote_option"/>
+        <result property="voteType" column="vote_type"/>
+        <result property="proxyStatus" column="proxy_status"/>
+        <result property="isCommitteeMember" column="is_committee_member"/>
+    </resultMap>
+
+    <!-- 查询会议投票记录列表 -->
+    <!-- 查询会议投票记录列表 -->
+    <select id="selectVoteRecordsList" resultMap="VoteRecordVOResult">
+        SELECT 
+            eup.user_id,
+            op.owner_id,
+            u.user_name,
+            op.real_name,
+            ep.room_number,
+            ep.area,
+            COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
+            CASE WHEN u.status = '0' THEN '正常' ELSE '冻结' END as vote_right_status,
+            CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未参会' END as voter_status,
+            op.auth_status,
+            ep.area as actual_vote_right,
+            mv.create_time as participation_time,
+            mv.vote_option,
+            mv.vote_type,
+            '' as proxy_status,
+            op.is_committee_member
+        FROM 
+            sys_estate_user_property eup
+        INNER JOIN 
+            sys_estate_property ep ON eup.property_id = ep.property_id
+        LEFT JOIN 
+            sys_user u ON eup.user_id = u.user_id
+        LEFT JOIN 
+            sys_owner_profile op ON eup.user_id = op.user_id AND eup.community_id = op.community_id
+        LEFT JOIN 
+            sys_meeting_vote mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+        WHERE 
+            eup.community_id = #{communityId}
+            AND eup.status = '1'
+            AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+            AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            <if test="userName != null and userName != ''">
+                AND (
+                    ep.room_number LIKE CONCAT('%', #{userName}, '%')
+                    OR op.real_name LIKE CONCAT('%', #{userName}, '%')
+                    OR op.phonenumber LIKE CONCAT('%', #{userName}, '%')
+                    OR u.phonenumber LIKE CONCAT('%', #{userName}, '%')
+                    OR u.user_name LIKE CONCAT('%', #{userName}, '%')
+                )
+            </if>
+            <if test="voteStatus != null and voteStatus == '1'">
+                AND mv.vote_id IS NOT NULL
+            </if>
+            <if test="voteStatus != null and voteStatus == '0'">
+                AND mv.vote_id IS NULL
+            </if>
+        ORDER BY 
+            ep.room_number
+    </select>
+
+    <!-- 表决结果VO ResultMap -->
+    <resultMap type="com.ruoyi.system.domain.vo.VoteResultVO" id="VoteResultVOResult">
+        <result property="topicId" column="topic_id"/>
+        <result property="topicTitle" column="topic_title"/>
+        <result property="agreePeople" column="agree_people"/>
+        <result property="agreeArea" column="agree_area"/>
+        <result property="opposePeople" column="oppose_people"/>
+        <result property="opposeArea" column="oppose_area"/>
+        <result property="abstainPeople" column="abstain_people"/>
+        <result property="abstainArea" column="abstain_area"/>
+        <result property="notVotedPeople" column="not_voted_people"/>
+        <result property="notVotedArea" column="not_voted_area"/>
+        <result property="totalPeople" column="total_people"/>
+        <result property="totalArea" column="total_area"/>
+        <result property="actualPeople" column="actual_people"/>
+        <result property="actualArea" column="actual_area"/>
+        <result property="peopleParticipationRate" column="people_participation_rate"/>
+        <result property="areaParticipationRate" column="area_participation_rate"/>
+        <result property="agreePeopleRate" column="agree_people_rate"/>
+        <result property="agreeAreaRate" column="agree_area_rate"/>
+        <result property="isPassed" column="is_passed"/>
+    </resultMap>
+
+    <!-- 查询会议表决结果统计 -->
+
+    <!-- 投票列表导出VO ResultMap -->
+    <resultMap type="com.ruoyi.system.domain.vo.VoteListExportVO" id="VoteListExportVOResult">
+        <result property="rowNum" column="row_num"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="realName" column="real_name"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="area" column="area"/>
+        <result property="authStatus" column="auth_status"/>
+        <result property="voterStatus" column="voter_status"/>
+        <result property="participationTime" column="participation_time"/>
+        <result property="voteType" column="vote_type"/>
+        <result property="topicVotes" column="topic_votes"/>
+    </resultMap>
+
+    <!-- 查询投票列表用于Excel导出 -->
+    <select id="selectVoteListForExport" resultMap="VoteListExportVOResult">
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY ep.room_number) as row_num,
+            ep.room_number,
+            op.real_name,
+            COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
+            ep.area,
+            op.auth_status,
+            CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未投票' END as voter_status,
+            mv.create_time as participation_time,
+            mv.vote_type,
+            GROUP_CONCAT(
+                CONCAT(t.topic_title, ':',
+                    CASE mv2.vote_option
+                        WHEN 0 THEN '同意'
+                        WHEN 1 THEN '反对'
+                        WHEN 2 THEN '弃权'
+                        ELSE '未投票'
+                    END
+                )
+                ORDER BY t.order_num SEPARATOR '; '
+            ) as topic_votes
+        FROM
+            sys_estate_user_property eup
+        INNER JOIN
+            sys_estate_property ep ON eup.property_id = ep.property_id
+        LEFT JOIN
+            sys_user u ON eup.user_id = u.user_id
+        LEFT JOIN
+            sys_owner_profile op ON eup.user_id = op.user_id AND eup.community_id = op.community_id
+        LEFT JOIN
+            (SELECT DISTINCT user_id, meeting_id, vote_id, create_time, vote_type
+             FROM sys_meeting_vote WHERE meeting_id = #{meetingId}
+             GROUP BY user_id, meeting_id) mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+        LEFT JOIN
+            sys_property_meeting_topic t ON t.meeting_id = #{meetingId}
+        LEFT JOIN
+            sys_meeting_vote mv2 ON mv2.user_id = eup.user_id AND mv2.topic_id = t.topic_id AND mv2.meeting_id = #{meetingId}
+        WHERE
+            eup.community_id = #{communityId}
+            AND eup.status = '1'
+            AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+            AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+        GROUP BY
+            eup.user_id, ep.room_number, op.real_name, op.phonenumber, u.phonenumber,
+            ep.area, op.auth_status, mv.vote_id, mv.create_time, mv.vote_type
+        ORDER BY
+            ep.room_number
+    </select>
+    <select id="selectVoteResultsByMeeting" resultMap="VoteResultVOResult">
+        SELECT 
+            t.topic_id,
+            t.topic_title,
+            -- 同意统计
+            COALESCE(agree_stats.people_count, 0) as agree_people,
+            COALESCE(agree_stats.area_sum, 0) as agree_area,
+            -- 反对统计
+            COALESCE(oppose_stats.people_count, 0) as oppose_people,
+            COALESCE(oppose_stats.area_sum, 0) as oppose_area,
+            -- 弃权统计
+            COALESCE(abstain_stats.people_count, 0) as abstain_people,
+            COALESCE(abstain_stats.area_sum, 0) as abstain_area,
+            -- 总数统计
+            total_stats.people_count as total_people,
+            total_stats.area_sum as total_area,
+            -- 实际投票统计
+            COALESCE(voted_stats.people_count, 0) as actual_people,
+            COALESCE(voted_stats.area_sum, 0) as actual_area,
+            -- 未投票统计
+            (total_stats.people_count - COALESCE(voted_stats.people_count, 0)) as not_voted_people,
+            (total_stats.area_sum - COALESCE(voted_stats.area_sum, 0)) as not_voted_area,
+            -- 参与率
+            CASE WHEN total_stats.people_count > 0 
+                THEN ROUND(COALESCE(voted_stats.people_count, 0) * 100.0 / total_stats.people_count, 2)
+                ELSE 0 END as people_participation_rate,
+            CASE WHEN total_stats.area_sum > 0 
+                THEN ROUND(COALESCE(voted_stats.area_sum, 0) * 100.0 / total_stats.area_sum, 2)
+                ELSE 0 END as area_participation_rate,
+            -- 同意占比
+            CASE WHEN total_stats.people_count > 0 
+                THEN ROUND(COALESCE(agree_stats.people_count, 0) * 100.0 / total_stats.people_count, 2)
+                ELSE 0 END as agree_people_rate,
+            CASE WHEN total_stats.area_sum > 0 
+                THEN ROUND(COALESCE(agree_stats.area_sum, 0) * 100.0 / total_stats.area_sum, 2)
+                ELSE 0 END as agree_area_rate,
+            -- 是否通过(双过半:同意人数>50% AND 同意面积>50%)
+            CASE WHEN (COALESCE(agree_stats.people_count, 0) * 100.0 / total_stats.people_count > 50)
+                  AND (COALESCE(agree_stats.area_sum, 0) * 100.0 / total_stats.area_sum > 50)
+                THEN 1 ELSE 0 END as is_passed
+        FROM 
+            sys_property_meeting_topic t
+        -- 总数统计(该小区所有已审核用户)
+        CROSS JOIN (
+            SELECT 
+                COUNT(DISTINCT eup.user_id) as people_count,
+                COALESCE(SUM(ep.area), 0) as area_sum
+            FROM sys_estate_user_property eup
+            INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+            WHERE eup.community_id = #{communityId}
+                AND eup.status = '1'
+                AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+                AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+        ) total_stats
+        -- 同意票统计
+        LEFT JOIN (
+            SELECT 
+                mv.topic_id,
+                COUNT(DISTINCT mv.user_id) as people_count,
+                COALESCE(SUM(ep.area), 0) as area_sum
+            FROM sys_meeting_vote mv
+            INNER JOIN sys_estate_user_property eup ON mv.user_id = eup.user_id
+            INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+            WHERE mv.meeting_id = #{meetingId}
+                AND mv.vote_option = 0
+                AND eup.community_id = #{communityId}
+                AND eup.status = '1'
+                AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+                AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            GROUP BY mv.topic_id
+        ) agree_stats ON t.topic_id = agree_stats.topic_id
+        -- 反对票统计
+        LEFT JOIN (
+            SELECT 
+                mv.topic_id,
+                COUNT(DISTINCT mv.user_id) as people_count,
+                COALESCE(SUM(ep.area), 0) as area_sum
+            FROM sys_meeting_vote mv
+            INNER JOIN sys_estate_user_property eup ON mv.user_id = eup.user_id
+            INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+            WHERE mv.meeting_id = #{meetingId}
+                AND mv.vote_option = 1
+                AND eup.community_id = #{communityId}
+                AND eup.status = '1'
+                AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+                AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            GROUP BY mv.topic_id
+        ) oppose_stats ON t.topic_id = oppose_stats.topic_id
+        -- 弃权票统计
+        LEFT JOIN (
+            SELECT 
+                mv.topic_id,
+                COUNT(DISTINCT mv.user_id) as people_count,
+                COALESCE(SUM(ep.area), 0) as area_sum
+            FROM sys_meeting_vote mv
+            INNER JOIN sys_estate_user_property eup ON mv.user_id = eup.user_id
+            INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+            WHERE mv.meeting_id = #{meetingId}
+                AND mv.vote_option = 2
+                AND eup.community_id = #{communityId}
+                AND eup.status = '1'
+                AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+                AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            GROUP BY mv.topic_id
+        ) abstain_stats ON t.topic_id = abstain_stats.topic_id
+        -- 实际投票统计(所有投票选项)
+        LEFT JOIN (
+            SELECT 
+                mv.topic_id,
+                COUNT(DISTINCT mv.user_id) as people_count,
+                COALESCE(SUM(ep.area), 0) as area_sum
+            FROM sys_meeting_vote mv
+            INNER JOIN sys_estate_user_property eup ON mv.user_id = eup.user_id
+            INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+            WHERE mv.meeting_id = #{meetingId}
+                AND eup.community_id = #{communityId}
+                AND eup.status = '1'
+                AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+                AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            GROUP BY mv.topic_id
+        ) voted_stats ON t.topic_id = voted_stats.topic_id
+        WHERE 
+            t.meeting_id = #{meetingId}
+        ORDER BY 
+            t.order_num, t.topic_id
+    </select>
 
 </mapper>

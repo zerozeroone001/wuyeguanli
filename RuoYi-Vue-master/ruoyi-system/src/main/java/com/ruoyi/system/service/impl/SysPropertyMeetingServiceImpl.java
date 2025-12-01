@@ -51,6 +51,20 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         if (meeting != null)
         {
             CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+            
+            // 填充统计数据
+            try {
+                com.ruoyi.system.domain.vo.MeetingVoteReportVO vo = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
+                if (vo != null) {
+                    meeting.setTotalVoters(vo.getTotalOwners() == null ? 0L : vo.getTotalOwners().longValue());
+                    meeting.setTotalVotingArea(vo.getTotalArea());
+                    meeting.setParticipatedArea(vo.getParticipatedArea());
+                    meeting.setVotingAreaPercentage(vo.getAreaParticipationRate() + "%");
+                }
+            } catch (Exception e) {
+                log.error("获取会议统计数据失败: {}", meetingId, e);
+            }
+
             if (StringUtils.isNotEmpty(meeting.getTopics()))
             {
                 for (SysPropertyMeetingTopic topic : meeting.getTopics())
@@ -68,7 +82,21 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     @Override
     public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting)
     {
-        return sysPropertyMeetingMapper.selectSysPropertyMeetingList(sysPropertyMeeting);
+        List<SysPropertyMeeting> list = sysPropertyMeetingMapper.selectSysPropertyMeetingList(sysPropertyMeeting);
+        for (SysPropertyMeeting meeting : list) {
+            try {
+                com.ruoyi.system.domain.vo.MeetingVoteReportVO vo = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
+                if (vo != null) {
+                    meeting.setTotalVoters(vo.getTotalOwners() == null ? 0L : vo.getTotalOwners().longValue());
+                    meeting.setTotalVotingArea(vo.getTotalArea());
+                    meeting.setParticipatedArea(vo.getParticipatedArea());
+                    meeting.setVotingAreaPercentage(vo.getAreaParticipationRate() + "%");
+                }
+            } catch (Exception e) {
+                log.error("获取会议统计数据失败: {}", meeting.getMeetingId(), e);
+            }
+        }
+        return list;
     }
 
     @Override

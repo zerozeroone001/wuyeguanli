@@ -1,5 +1,6 @@
 package com.ruoyi.system.domain;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -28,6 +29,9 @@ public class SysPropertyMeeting extends BaseEntity
     /** 小区ID */
     @Excel(name = "小区ID")
     private Long communityId;
+
+    /** 小区名称 */
+    private String communityName;
 
     /** 会议类型 */
     @Excel(name = "会议类型")
@@ -67,6 +71,19 @@ public class SysPropertyMeeting extends BaseEntity
     /** 实际参与人数 */
     @Excel(name = "实际参与人数")
     private Long actualVoters;
+    
+    /** 投票权总面积 */
+    private BigDecimal totalVotingArea;
+
+    /** 已投票面积 */
+    private BigDecimal participatedArea;
+
+    /** 投票面积占比 */
+    private String votingAreaPercentage;
+
+    /** 缩略图 */
+    @Excel(name = "缩略图")
+    private String coverImage;
 
     /** 议题列表 */
     private List<SysPropertyMeetingTopic> topics;
@@ -99,6 +116,16 @@ public class SysPropertyMeeting extends BaseEntity
     public void setCommunityId(Long communityId)
     {
         this.communityId = communityId;
+    }
+
+    public String getCommunityName()
+    {
+        return communityName;
+    }
+
+    public void setCommunityName(String communityName)
+    {
+        this.communityName = communityName;
     }
 
     public void setMeetingType(String meetingType) 
@@ -186,9 +213,49 @@ public class SysPropertyMeeting extends BaseEntity
         this.actualVoters = actualVoters;
     }
 
-    public Long getActualVoters() 
+    public Long getActualVoters()
     {
         return actualVoters;
+    }
+    
+    public BigDecimal getTotalVotingArea()
+    {
+        return totalVotingArea;
+    }
+    
+    public void setTotalVotingArea(BigDecimal totalVotingArea)
+    {
+        this.totalVotingArea = totalVotingArea;
+    }
+    
+    public BigDecimal getParticipatedArea()
+    {
+        return participatedArea;
+    }
+    
+    public void setParticipatedArea(BigDecimal participatedArea)
+    {
+        this.participatedArea = participatedArea;
+    }
+    
+    public String getVotingAreaPercentage()
+    {
+        return votingAreaPercentage;
+    }
+    
+    public void setVotingAreaPercentage(String votingAreaPercentage)
+    {
+        this.votingAreaPercentage = votingAreaPercentage;
+    }
+
+    public void setCoverImage(String coverImage)
+    {
+        this.coverImage = coverImage;
+    }
+
+    public String getCoverImage()
+    {
+        return coverImage;
     }
 
     public List<SysPropertyMeetingTopic> getTopics()
@@ -207,6 +274,7 @@ public class SysPropertyMeeting extends BaseEntity
             .append("meetingId", getMeetingId())
             .append("meetingTitle", getMeetingTitle())
             .append("communityId", getCommunityId())
+            .append("communityName", getCommunityName())
             .append("meetingType", getMeetingType())
             .append("meetingContent", getMeetingContent())
             .append("meetingTime", getMeetingTime())
@@ -216,6 +284,10 @@ public class SysPropertyMeeting extends BaseEntity
             .append("voteEndTime", getVoteEndTime())
             .append("totalVoters", getTotalVoters())
             .append("actualVoters", getActualVoters())
+            .append("totalVotingArea", getTotalVotingArea())
+            .append("participatedArea", getParticipatedArea())
+            .append("votingAreaPercentage", getVotingAreaPercentage())
+            .append("coverImage", getCoverImage())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

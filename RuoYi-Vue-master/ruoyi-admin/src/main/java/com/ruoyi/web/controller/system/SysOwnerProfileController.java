@@ -183,4 +183,26 @@ public class SysOwnerProfileController extends BaseController
         List<SysUser> list = userService.selectUnboundUsers(user);
         return getDataTable(list);
     }
+
+    /**
+     * 房产合并与拆分
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:edit')")
+    @Log(title = "房产合并与拆分", businessType = BusinessType.UPDATE)
+    @PostMapping("/transfer")
+    public AjaxResult transferProperties(@RequestBody java.util.Map<String, Object> params)
+    {
+        Long sourceUserId = Long.valueOf(params.get("sourceUserId").toString());
+        Long targetUserId = Long.valueOf(params.get("targetUserId").toString());
+        List<Long> targetPropertyIds = new java.util.ArrayList<>();
+        
+        if (params.get("targetPropertyIds") instanceof List) {
+            List<?> list = (List<?>) params.get("targetPropertyIds");
+            for (Object obj : list) {
+                targetPropertyIds.add(Long.valueOf(obj.toString()));
+            }
+        }
+    
+        return toAjax(sysOwnerProfileService.transferOwnerProperties(sourceUserId, targetUserId, targetPropertyIds));
+    }
 }

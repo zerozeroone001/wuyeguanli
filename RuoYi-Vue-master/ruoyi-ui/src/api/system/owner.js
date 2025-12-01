@@ -10,9 +10,9 @@ export function listOwner(query) {
 }
 
 // 查询业主信息扩展详细
-export function getOwner(userId) {
+export function getOwner(ownerId) {
   return request({
-    url: '/system/owner/' + userId,
+    url: '/system/owner/' + ownerId,
     method: 'get'
   })
 }
@@ -36,9 +36,9 @@ export function updateOwner(data) {
 }
 
 // 删除业主信息扩展
-export function delOwner(userId) {
+export function delOwner(ownerId) {
   return request({
-    url: '/system/owner/' + userId,
+    url: '/system/owner/' + ownerId,
     method: 'delete'
   })
 }
@@ -75,5 +75,14 @@ export function getUnboundUsers(query) {
     url: '/system/owner/unboundUsers',
     method: 'get',
     params: query
+  })
+}
+
+// 房产合并与拆分
+export function transferProperties(data) {
+  return request({
+    url: '/system/owner/transfer',
+    method: 'post',
+    data: data
   })
 }

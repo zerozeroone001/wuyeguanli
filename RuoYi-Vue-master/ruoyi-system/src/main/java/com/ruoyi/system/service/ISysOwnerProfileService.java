@@ -100,4 +100,14 @@ public interface ISysOwnerProfileService
      * @param userId 用户ID
      */
     public void clearUserCache(Long userId);
+
+    /**
+     * 房产合并与拆分（转移房产）
+     *
+     * @param sourceUserId 源用户ID
+     * @param targetUserId 目标用户ID
+     * @param targetPropertyIds 目标用户最终应拥有的房产ID列表（涉及到的房产）
+     * @return 结果
+     */
+    public boolean transferOwnerProperties(Long sourceUserId, Long targetUserId, List<Long> targetPropertyIds);
 }

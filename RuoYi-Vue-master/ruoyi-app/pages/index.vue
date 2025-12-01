@@ -44,7 +44,7 @@
         <view class="user-avatar-wrap">
           <image 
             class="user-avatar" 
-            :src="isLoggedIn ? (avatar || '/static/logo.png') : '/static/logo.png'" 
+            :src="'/static/logo.png'"
             mode="aspectFill"
           />
         </view>

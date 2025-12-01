@@ -151,6 +151,16 @@ public class EstateUserPropertyServiceImpl implements IEstateUserPropertyService
         }
         return rows;
     }
+
+    @Override
+    public int deleteEstateUserPropertyByUserIdAndPropertyId(Long userId, Long propertyId) {
+        return 0;
+    }
+
+    @Override
+    public int deleteEstateUserPropertyByUserIdAndCommunityId(Long userId, Long communityId) {
+        return 0;
+    }
 }
 
 

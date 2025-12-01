@@ -101,4 +101,22 @@ public class EstatePropertyController extends BaseController
     {
         return toAjax(estatePropertyService.deleteEstatePropertyByPropertyIds(propertyIds));
     }
+
+    /**
+     * 查询小区下的楼栋列表
+     */
+    @GetMapping("/buildings")
+    public AjaxResult getBuildings(Long communityId)
+    {
+        return success(estatePropertyService.selectBuildingNamesByCommunityId(communityId));
+    }
+
+    /**
+     * 查询楼栋下的房号列表
+     */
+    @GetMapping("/rooms")
+    public AjaxResult getRooms(Long communityId, String buildingName)
+    {
+        return success(estatePropertyService.selectRoomNumbersByBuildingName(communityId, buildingName));
+    }
 }

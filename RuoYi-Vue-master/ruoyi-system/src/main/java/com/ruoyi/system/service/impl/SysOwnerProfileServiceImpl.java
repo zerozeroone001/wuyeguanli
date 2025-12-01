@@ -18,6 +18,14 @@ import com.ruoyi.system.mapper.SysOwnerProfileMapper;
 import com.ruoyi.system.domain.SysOwnerProfile;
 import com.ruoyi.system.service.ISysOwnerProfileService;
 
+import com.ruoyi.system.domain.EstateUserProperty;
+import com.ruoyi.system.mapper.EstateUserPropertyMapper;
+import com.ruoyi.system.service.IEstatePropertyService;
+import com.ruoyi.system.service.IEstateUserPropertyService;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.ArrayList;
+
 /**
  * 业主信息扩展Service业务层处理
  * 
@@ -31,6 +39,15 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
 
     @Autowired
     private SysOwnerProfileMapper sysOwnerProfileMapper;
+
+    @Autowired
+    private EstateUserPropertyMapper estateUserPropertyMapper;
+
+    @Autowired
+    private IEstatePropertyService estatePropertyService;
+
+    @Autowired
+    private IEstateUserPropertyService estateUserPropertyService;
 
     @Autowired
     private ISysUserService userService;
@@ -61,7 +78,9 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     public int insertSysOwnerProfile(SysOwnerProfile sysOwnerProfile)
     {
         sysOwnerProfile.setCreateTime(DateUtils.getNowDate());
-        return sysOwnerProfileMapper.insertSysOwnerProfile(sysOwnerProfile);
+        int rows = sysOwnerProfileMapper.insertSysOwnerProfile(sysOwnerProfile);
+        bindProperty(sysOwnerProfile);
+        return rows;
     }
 
     @Override
@@ -69,7 +88,44 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     public int updateSysOwnerProfile(SysOwnerProfile sysOwnerProfile)
     {
         sysOwnerProfile.setUpdateTime(DateUtils.getNowDate());
-        return sysOwnerProfileMapper.updateSysOwnerProfile(sysOwnerProfile);
+        int rows = sysOwnerProfileMapper.updateSysOwnerProfile(sysOwnerProfile);
+        bindProperty(sysOwnerProfile);
+        return rows;
+    }
+
+    /**
+     * 尝试将业主信息中的房产绑定到用户
+     */
+    private void bindProperty(SysOwnerProfile profile) {
+        if (profile.getUserId() == null || profile.getCommunityId() == null || 
+            StringUtils.isEmpty(profile.getBuildingNo()) || StringUtils.isEmpty(profile.getRoomNo())) {
+            return;
+        }
+
+        try {
+            // 查找房产ID
+            Long propertyId = estatePropertyService.selectPropertyIdByDetails(
+                profile.getCommunityId(), profile.getBuildingNo(), profile.getRoomNo());
+
+            if (propertyId != null) {
+                EstateUserProperty eup = new EstateUserProperty();
+                eup.setUserId(profile.getUserId());
+                eup.setPropertyId(propertyId);
+                eup.setCommunityId(profile.getCommunityId());
+                eup.setStatus("1"); // 默认审核通过
+                eup.setUserType("10"); // 业主
+                
+                // 尝试插入，忽略重复异常（由Service内部处理或捕获）
+                try {
+                    estateUserPropertyService.insertEstateUserProperty(eup);
+                } catch (Exception e) {
+                    // 忽略重复绑定错误
+                    log.info("自动绑定房产跳过: 用户 {} 已绑定房产 {}", profile.getUserId(), propertyId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("自动绑定房产失败", e);
+        }
     }
 
     @Override
@@ -191,5 +247,50 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
         } catch (Exception e) {
             log.error("清除用户缓存失败，用户ID: {}", userId, e);
         }
+    }
+
+    @Override
+    @Transactional
+    public boolean transferOwnerProperties(Long sourceUserId, Long targetUserId, List<Long> targetPropertyIds) {
+        if (sourceUserId == null || targetUserId == null) {
+            throw new ServiceException("源用户和目标用户不能为空");
+        }
+
+        // 1. 获取源用户和目标用户当前拥有的所有房产关联记录
+        EstateUserProperty querySource = new EstateUserProperty();
+        querySource.setUserId(sourceUserId);
+        List<EstateUserProperty> sourceProps = estateUserPropertyMapper.selectEstateUserPropertyList(querySource);
+
+        EstateUserProperty queryTarget = new EstateUserProperty();
+        queryTarget.setUserId(targetUserId);
+        List<EstateUserProperty> targetProps = estateUserPropertyMapper.selectEstateUserPropertyList(queryTarget);
+
+        // 2. 构建目标房产ID集合，方便快速查找
+        Set<Long> targetSet = new HashSet<>();
+        if (targetPropertyIds != null) {
+            targetSet.addAll(targetPropertyIds);
+        }
+
+        // 3. 处理源用户的房产：如果存在于目标集合中，则转移给目标用户
+        for (EstateUserProperty prop : sourceProps) {
+            if (targetSet.contains(prop.getPropertyId())) {
+                prop.setUserId(targetUserId);
+                prop.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
+                prop.setUpdateTime(DateUtils.getNowDate());
+                estateUserPropertyMapper.updateEstateUserProperty(prop);
+            }
+        }
+
+        // 4. 处理目标用户的房产：如果不存在于目标集合中（说明被移回左边了），则转移给源用户
+        for (EstateUserProperty prop : targetProps) {
+            if (!targetSet.contains(prop.getPropertyId())) {
+                prop.setUserId(sourceUserId);
+                prop.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
+                prop.setUpdateTime(DateUtils.getNowDate());
+                estateUserPropertyMapper.updateEstateUserProperty(prop);
+            }
+        }
+
+        return true;
     }
 }

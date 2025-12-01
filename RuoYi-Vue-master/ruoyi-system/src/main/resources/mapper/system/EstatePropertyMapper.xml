@@ -111,4 +111,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{propertyId}
         </foreach>
     </delete>
+
+    <select id="selectBuildingNamesByCommunityId" parameterType="Long" resultType="String">
+        select distinct building_name
+        from sys_estate_property
+        where community_id = #{communityId} and del_flag = '0'
+        order by building_name
+    </select>
+
+    <select id="selectRoomNumbersByBuildingName" resultType="String">
+        select distinct room_number
+        from sys_estate_property
+        where community_id = #{communityId} and building_name = #{buildingName} and del_flag = '0'
+        order by room_number
+    </select>
+
+    <select id="selectPropertyIdByDetails" resultType="Long">
+        select property_id
+        from sys_estate_property
+        where community_id = #{communityId}
+          and building_name = #{buildingName}
+          and room_number = #{roomNumber}
+          and (del_flag = '0' OR del_flag IS NULL)
+        limit 1
+    </select>
 </mapper>

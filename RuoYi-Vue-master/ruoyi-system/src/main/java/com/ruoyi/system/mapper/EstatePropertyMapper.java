@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.EstateProperty;
 
 /**
@@ -58,4 +59,31 @@ public interface EstatePropertyMapper
      * @return 结果
      */
     public int deleteEstatePropertyByPropertyIds(Long[] propertyIds);
+
+    /**
+     * 查询小区下的楼栋列表
+     *
+     * @param communityId 小区ID
+     * @return 楼栋名称集合
+     */
+    public List<String> selectBuildingNamesByCommunityId(Long communityId);
+
+    /**
+     * 查询楼栋下的房号列表
+     *
+     * @param communityId 小区ID
+     * @param buildingName 楼栋名称
+     * @return 房号集合
+     */
+    public List<String> selectRoomNumbersByBuildingName(@Param("communityId") Long communityId, @Param("buildingName") String buildingName);
+
+    /**
+     * 根据小区ID、楼栋名称和房号查询房产ID
+     *
+     * @param communityId 小区ID
+     * @param buildingName 楼栋名称
+     * @param roomNumber 房号
+     * @return 房产ID，如果不存在则返回null
+     */
+    Long selectPropertyIdByDetails(@Param("communityId") Long communityId, @Param("buildingName") String buildingName, @Param("roomNumber") String roomNumber);
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
       <el-form-item label="真实姓名" prop="realName">
         <el-input
           v-model="queryParams.realName"
@@ -13,14 +13,6 @@
         <el-input
           v-model="queryParams.phonenumber"
           placeholder="请输入联系电话"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="联系号码" prop="contactNumber">
-        <el-input
-          v-model="queryParams.contactNumber"
-          placeholder="请输入联系号码"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -84,6 +76,17 @@
           v-hasPermi="['system:owner:import']"
         >导入</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-share"
+          size="mini"
+          :disabled="single"
+          @click="handleTransfer"
+          v-hasPermi="['system:owner:edit']"
+        >合并/拆分</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -91,15 +94,9 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="真实姓名" align="center" prop="realName" />
       <el-table-column label="联系号码" align="center" prop="phonenumber" />
-      <el-table-column label="身份证号" align="center" prop="idCardNo" />
-      <el-table-column label="认证状态" align="center" prop="authStatus">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_auth_status" :value="scope.row.authStatus"/>
-        </template>
-      </el-table-column>
       <el-table-column label="楼栋号" align="center" prop="buildingNo" />
-      <el-table-column label="单元号" align="center" prop="unitNo" />
       <el-table-column label="房号" align="center" prop="roomNo" />
+      <el-table-column label="房产面积(㎡)" align="center" prop="propertyArea" />
       <el-table-column label="所属小区" align="center" prop="communityName" />
       <el-table-column label="业委会成员" align="center" prop="isCommitteeMember">
         <template slot-scope="scope">
@@ -199,13 +196,24 @@
           <el-input v-model="form.idCardNo" placeholder="请输入身份证号" />
         </el-form-item>
         <el-form-item label="楼栋号" prop="buildingNo">
-          <el-input v-model="form.buildingNo" placeholder="请输入楼栋号" />
-        </el-form-item>
-        <el-form-item label="单元号" prop="unitNo">
-          <el-input v-model="form.unitNo" placeholder="请输入单元号" />
+          <el-select v-model="form.buildingNo" placeholder="请选择楼栋号" filterable @change="handleBuildingChange">
+            <el-option
+              v-for="item in buildingOptions"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="房号" prop="roomNo">
-          <el-input v-model="form.roomNo" placeholder="请输入房号" />
+          <el-select v-model="form.roomNo" placeholder="请选择房号" filterable>
+            <el-option
+              v-for="item in roomOptions"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="业委会成员" prop="isCommitteeMember">
           <el-radio-group v-model="form.isCommitteeMember">
@@ -262,19 +270,25 @@
       @confirm="handleUserSelect"
     />
 
+    <!-- 房产合并与拆分弹窗 -->
+    <property-transfer-dialog ref="transferDialog" @refresh="getList" />
+
   </div>
 </template>
 
 <script>
 import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity } from "@/api/system/owner";
+import { listBuildings, listRooms } from "@/api/system/estateProperty";
 import { getToken } from "@/utils/auth";
 import UserSelectDialog from "@/components/UserSelectDialog";
+import PropertyTransferDialog from "./PropertyTransferDialog";
 import { mapGetters } from "vuex";
 
 export default {
   name: "Owner",
   components: {
-    UserSelectDialog
+    UserSelectDialog,
+    PropertyTransferDialog
   },
   dicts: ['sys_yes_no', 'sys_auth_status', 'sys_owner_type', 'sys_normal_disable'],
   data() {
@@ -293,6 +307,10 @@ export default {
       total: 0,
       // 业主信息表格数据
       ownerList: [],
+      // 楼栋选项
+      buildingOptions: [],
+      // 房号选项
+      roomOptions: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -446,7 +464,6 @@ export default {
         idCardBackUrl: null,
         authStatus: "2",
         buildingNo: null,
-        unitNo: null,
         roomNo: null,
         communityId: null,
         communityName: "",
@@ -462,6 +479,8 @@ export default {
         contactNumber: null
       };
       this.selectedUserName = null;
+      this.buildingOptions = [];
+      this.roomOptions = [];
       this.resetForm("form");
     },
     /** 搜索按钮操作 */
@@ -478,7 +497,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.userId)
+      this.ids = selection.map(item => item.ownerId)
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
@@ -490,21 +509,48 @@ export default {
       }
       this.reset();
       this.attachCommunityInfo(this.form, this.currentCommunityId);
+      this.getBuildingList(this.form.communityId);
       this.open = true;
       this.title = "添加业主信息";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const userId = row.userId || this.ids[0]
-      getOwner(userId).then(response => {
+      const ownerId = row.ownerId || this.ids[0]
+      getOwner(ownerId).then(response => {
         this.form = response.data;
         this.attachCommunityInfo(this.form, response.data.communityId);
-        // 需要额外获取手机号, 因为主表没有
-        // this.form.phonenumber = ...
+
+        if(this.form.communityId) {
+            this.getBuildingList(this.form.communityId);
+            if(this.form.buildingNo) {
+                this.getRoomList(this.form.communityId, this.form.buildingNo);
+            }
+        }
+
         this.open = true;
         this.title = "修改业主信息";
       });
+    },
+    /** 获取楼栋列表 */
+    getBuildingList(communityId) {
+      listBuildings({ communityId: communityId }).then(response => {
+        this.buildingOptions = response.data;
+      });
+    },
+    /** 获取房号列表 */
+    getRoomList(communityId, buildingName) {
+      listRooms({ communityId: communityId, buildingName: buildingName }).then(response => {
+        this.roomOptions = response.data;
+      });
+    },
+    /** 楼栋改变事件 */
+    handleBuildingChange(value) {
+      this.form.roomNo = null;
+      this.roomOptions = [];
+      if (value) {
+        this.getRoomList(this.form.communityId, value);
+      }
     },
     /** 提交按钮 */
     submitForm() {
@@ -522,7 +568,7 @@ export default {
             return;
           }
           this.form.communityId = numericId;
-          if (this.form.userId != null) {
+          if (this.form.ownerId != null) {
             updateOwner(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
@@ -540,9 +586,9 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const userIds = row.userId || this.ids;
-      this.$modal.confirm('是否确认删除业主信息编号为"' + userIds + '"的数据项？').then(function() {
-        return delOwner(userIds);
+      const ownerIds = row.ownerId || this.ids;
+      this.$modal.confirm('是否确认删除业主信息编号为"' + ownerIds + '"的数据项？').then(function() {
+        return delOwner(ownerIds);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
@@ -621,6 +667,22 @@ export default {
       // 如果真实姓名为空，使用昵称填充
       if (!this.form.realName && user.nickName) {
         this.form.realName = user.nickName;
+      }
+    },
+    /** 房产合并与拆分操作 */
+    handleTransfer(row) {
+      const ownerId = row.ownerId || this.ids[0];
+      if (!ownerId) {
+        this.$message.warning("请选择一条数据");
+        return;
+      }
+      const selectedRow = this.ownerList.find(item => item.ownerId === ownerId);
+      if (selectedRow) {
+        if (!selectedRow.userId) {
+          this.$message.warning("该业主尚未绑定系统用户，无法进行房产转移操作");
+          return;
+        }
+        this.$refs.transferDialog.init(selectedRow);
       }
     }
   }

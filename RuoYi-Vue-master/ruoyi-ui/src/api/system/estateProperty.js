@@ -42,3 +42,21 @@ export function delEstateProperty(propertyId) {
     method: 'delete'
   })
 }
+
+// 查询小区下的楼栋列表
+export function listBuildings(query) {
+  return request({
+    url: '/system/property/buildings',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询楼栋下的房号列表
+export function listRooms(query) {
+  return request({
+    url: '/system/property/rooms',
+    method: 'get',
+    params: query
+  })
+}

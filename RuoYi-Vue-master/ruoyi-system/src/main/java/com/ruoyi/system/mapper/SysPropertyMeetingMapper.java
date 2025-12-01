@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.ruoyi.system.domain.SysPropertyMeeting;
+import com.ruoyi.system.domain.vo.MeetingVoteReportVO;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -71,5 +72,14 @@ public interface SysPropertyMeetingMapper
      * @return 缁撴灉
      */
     public int deleteSysPropertyMeetingByMeetingIds(Long[] meetingIds);
+
+    /**
+     * 获取会议投票统计报告数据(用于PDF导出)
+     * @param meetingId 会议ID
+     * @param communityId 小区ID
+     * @return 报告数据
+     */
+    MeetingVoteReportVO selectMeetingVoteReportData(@Param("meetingId") Long meetingId,
+                                                     @Param("communityId") Long communityId);
 }
 

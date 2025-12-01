@@ -175,6 +175,34 @@ export const dynamicRoutes = [
         meta: { title: '问卷表单设计', activeMenu: '/system/poll' }
       }
     ]
+  },
+  {
+    path: '/system/voteRecords',
+    component: Layout,
+    hidden: true,
+    permissions: ['system:meeting:query'],
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/system/voteRecords/index'),
+        name: 'VoteRecords',
+        meta: { title: '投票记录', activeMenu: '/system/generalMeeting' }
+      }
+    ]
+  },
+  {
+    path: '/system/voteResults',
+    component: Layout,
+    hidden: true,
+    permissions: ['system:meeting:query'],
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/system/voteResults/index'),
+        name: 'VoteResults',
+        meta: { title: '表决结果', activeMenu: '/system/generalMeeting' }
+      }
+    ]
   }
 ]
 

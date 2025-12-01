@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysMeetingVoteMapper">
+
+    <resultMap type="SysMeetingVote" id="SysMeetingVoteResult">
+        <id property="voteId" column="vote_id"/>
+        <result property="meetingId" column="meeting_id"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="voteOption" column="vote_option"/>
+        <result property="voteType" column="vote_type"/>
+        <result property="flieUrl" column="flie_url"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="findVote" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote where user_id = #{userId} and topic_id = #{topicId}
+    </select>
+
+    <insert id="insertVote" parameterType="SysMeetingVote">
+        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, create_time, update_time)
+        values(#{meetingId}, #{topicId}, #{userId}, #{userName}, #{voteOption}, #{voteType}, #{flieUrl}, now(), now())
+    </insert>
+
+    <update id="updateVote" parameterType="SysMeetingVote">
+        update sys_meeting_vote
+        set vote_option = #{voteOption},
+            vote_type = #{voteType},
+            flie_url = #{flieUrl},
+            update_time = now()
+        where vote_id = #{voteId}
+    </update>
+
+    <select id="selectUserVotesInMeeting" resultMap="SysMeetingVoteResult">
+        select topic_id, vote_option from sys_meeting_vote
+        where user_id = #{userId} and meeting_id = #{meetingId}
+    </select>
+
+    <select id="selectVotesByTopicId" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote where topic_id = #{topicId}
+    </select>
+
+    <select id="selectSysMeetingVoteByVoteId" parameterType="Long" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote where vote_id = #{voteId}
+    </select>
+
+    <select id="selectSysMeetingVoteList" parameterType="SysMeetingVote" resultMap="SysMeetingVoteResult">
+        select * from sys_meeting_vote
+        <where>
+            <if test="meetingId != null "> and meeting_id = #{meetingId}</if>
+            <if test="topicId != null "> and topic_id = #{topicId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="voteOption != null"> and vote_option = #{voteOption}</if>
+            <if test="voteType != null"> and vote_type = #{voteType}</if>
+        </where>
+    </select>
+
+    <insert id="insertSysMeetingVote" parameterType="SysMeetingVote" useGeneratedKeys="true" keyProperty="voteId">
+        insert into sys_meeting_vote
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="topicId != null">topic_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
+            <if test="voteOption != null">vote_option,</if>
+            <if test="voteType != null">#{voteType},</if>
+            <if test="flieUrl != null and flieUrl != ''">flie_url,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="topicId != null">#{topicId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="voteOption != null">#{voteOption},</if>
+            <if test="voteType != null">#{voteType},</if>
+            <if test="flieUrl != null and flieUrl != ''">#{flieUrl},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysMeetingVote" parameterType="SysMeetingVote">
+        update sys_meeting_vote
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="topicId != null">topic_id = #{topicId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
+            <if test="voteOption != null">vote_option = #{voteOption},</if>
+            <if test="voteType != null">vote_type = #{voteType},</if>
+            <if test="flieUrl != null and flieUrl != ''">flie_url = #{flieUrl},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where vote_id = #{voteId}
+    </update>
+
+    <delete id="deleteSysMeetingVoteByVoteIds" parameterType="String">
+        delete from sys_meeting_vote where vote_id in 
+        <foreach item="voteId" collection="array" open="(" separator="," close=")">
+            #{voteId}
+        </foreach>
+    </delete>
+    <!-- 投票记录VO ResultMap -->
+    <resultMap type="com.ruoyi.system.domain.vo.VoteRecordVO" id="VoteRecordVOResult">
+        <result property="userId" column="user_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="realName" column="real_name"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="area" column="area"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="voteRightStatus" column="vote_right_status"/>
+        <result property="voterStatus" column="voter_status"/>
+        <result property="authStatus" column="auth_status"/>
+        <result property="actualVoteRight" column="actual_vote_right"/>
+        <result property="participationTime" column="participation_time"/>
+        <result property="voteOption" column="vote_option"/>
+        <result property="voteType" column="vote_type"/>
+        <result property="proxyStatus" column="proxy_status"/>
+        <result property="isCommitteeMember" column="is_committee_member"/>
+    </resultMap>
+
+    <!-- 查询会议投票记录列表 -->
+    <select id="selectVoteRecordsList" resultMap="VoteRecordVOResult">
+        SELECT 
+            eup.user_id,
+            op.owner_id,
+            COALESCE(op.real_name, eup.real_name) as real_name,
+            eup.room_number,
+            eup.area,
+            COALESCE(op.phonenumber, eup.phonenumber) as phonenumber,
+            CASE WHEN u.status = '0' THEN '正常' ELSE '冻结' END as vote_right_status,
+            CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未参会' END as voter_status,
+            op.auth_status,
+            eup.area as actual_vote_right,
+            mv.create_time as participation_time,
+            mv.vote_option,
+            mv.vote_type,
+            '' as proxy_status,
+            op.is_committee_member
+        FROM
+        sys_estate_user_property eup
+        LEFT JOIN 
+            sys_user u ON eup.user_id = u.user_id
+        LEFT JOIN 
+            sys_owner_profile op ON eup.user_id = op.user_id AND eup.community_id = op.community_id
+        LEFT JOIN 
+            sys_meeting_vote mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+        WHERE 
+            eup.community_id = #{communityId}
+            AND eup.status = '1'
+            AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+            <if test="userName != null and userName != ''">
+                AND (
+                    eup.room_number LIKE CONCAT('%', #{userName}, '%')
+                    OR op.real_name LIKE CONCAT('%', #{userName}, '%')
+                    OR eup.real_name LIKE CONCAT('%', #{userName}, '%')
+                    OR op.phonenumber LIKE CONCAT('%', #{userName}, '%')
+                    OR eup.phonenumber LIKE CONCAT('%', #{userName}, '%')
+                )
+            </if>
+            <if test="voteStatus != null and voteStatus == '1'">
+                AND mv.vote_id IS NOT NULL
+            </if>
+            <if test="voteStatus != null and voteStatus == '0'">
+                AND mv.vote_id IS NULL
+            </if>
+        GROUP BY 
+            eup.user_id, eup.room_number
+        ORDER BY 
+            eup.room_number
+    </select>
+
+</mapper>

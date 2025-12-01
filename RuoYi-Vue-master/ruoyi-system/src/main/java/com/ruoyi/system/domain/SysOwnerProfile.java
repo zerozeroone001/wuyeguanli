@@ -1,5 +1,6 @@
 package com.ruoyi.system.domain;
 
+import java.math.BigDecimal;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -50,6 +51,9 @@ public class SysOwnerProfile extends BaseEntity
 
     /** 房号 */
     private String roomNo;
+
+    /** 房产面积 */
+    private BigDecimal propertyArea;
 
     /** 是否为业委会成员（Y是 N否） */
     private String isCommitteeMember;
@@ -178,6 +182,17 @@ public class SysOwnerProfile extends BaseEntity
     {
         return roomNo;
     }
+    
+    public void setPropertyArea(BigDecimal propertyArea)
+    {
+        this.propertyArea = propertyArea;
+    }
+    
+    public BigDecimal getPropertyArea()
+    {
+        return propertyArea;
+    }
+
     public void setIsCommitteeMember(String isCommitteeMember) 
     {
         this.isCommitteeMember = isCommitteeMember;
@@ -280,6 +295,7 @@ public class SysOwnerProfile extends BaseEntity
             .append("buildingNo", getBuildingNo())
             .append("unitNo", getUnitNo())
             .append("roomNo", getRoomNo())
+            .append("propertyArea", getPropertyArea())
             .append("isCommitteeMember", getIsCommitteeMember())
             .append("phonenumber", getPhonenumber())
             .append("contactNumber", getContactNumber())
