@@ -144,6 +144,11 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
+            <el-form-item label="封面图" prop="coverUrl">
+              <image-upload v-model="form.coverUrl" :limit="1"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
             <el-form-item label="状态">
               <el-radio-group v-model="form.status">
                 <el-radio
@@ -278,7 +283,8 @@ export default {
         noticeContent: undefined,
         status: "0",
         relationType: undefined,
-        relationId: undefined
+        relationId: undefined,
+        coverUrl: undefined
       }
       this.relationOptions = []
       this.resetForm("form")

@@ -70,7 +70,15 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     @Override
     public List<SysOwnerProfile> selectSysOwnerProfileList(SysOwnerProfile sysOwnerProfile)
     {
-        return sysOwnerProfileMapper.selectSysOwnerProfileList(sysOwnerProfile);
+        List<SysOwnerProfile> list = sysOwnerProfileMapper.selectSysOwnerProfileList(sysOwnerProfile);
+        for (SysOwnerProfile p : list) {
+            if (p.getPropertyCount() != null && p.getPropertyCount() > 1) {
+                p.setPropertyTag("多套房");
+            } else {
+                p.setPropertyTag("单套房");
+            }
+        }
+        return list;
     }
 
     @Override

@@ -102,6 +102,7 @@
     <el-table v-loading="loading" :data="voteList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="投票ID" align="center" prop="voteId" />
+      <el-table-column label="投票编号" align="center" prop="voteNo" />
       <el-table-column label="会议ID" align="center" prop="meetingId" />
       <el-table-column label="议题ID" align="center" prop="topicId" />
       <el-table-column label="用户ID" align="center" prop="userId" />
@@ -159,6 +160,9 @@
     <!-- 添加或修改业主大会投票对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="投票编号" prop="voteNo">
+          <el-input v-model="form.voteNo" placeholder="请输入投票编号" />
+        </el-form-item>
         <el-form-item label="会议ID" prop="meetingId">
           <el-input v-model="form.meetingId" placeholder="请输入会议ID" />
         </el-form-item>
@@ -278,6 +282,7 @@ export default {
     reset() {
       this.form = {
         voteId: null,
+        voteNo: null,
         meetingId: null,
         topicId: null,
         userId: null,

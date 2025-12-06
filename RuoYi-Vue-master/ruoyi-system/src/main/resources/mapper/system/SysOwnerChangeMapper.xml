@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysOwnerChangeMapper">
+    
+    <resultMap type="SysOwnerChange" id="SysOwnerChangeResult">
+        <result property="changeId"    column="change_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="propertyId"    column="property_id"    />
+        <result property="oldOwnerName"    column="old_owner_name"    />
+        <result property="oldOwnerPhone"    column="old_owner_phone"    />
+        <result property="newOwnerName"    column="new_owner_name"    />
+        <result property="newOwnerPhone"    column="new_owner_phone"    />
+        <result property="newOwnerIdCard"    column="new_owner_id_card"    />
+        <result property="propertyCertImage"    column="property_cert_image"    />
+        <result property="status"    column="status"    />
+        <result property="auditRemark"    column="audit_remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="communityName"    column="community_name"    />
+        <result property="propertyName"    column="property_name"    />
+    </resultMap>
+
+    <sql id="selectSysOwnerChangeVo">
+        select c.change_id, c.community_id, c.property_id, c.old_owner_name, c.old_owner_phone, c.new_owner_name, c.new_owner_phone, c.new_owner_id_card, c.property_cert_image, c.status, c.audit_remark, c.create_by, c.create_time, c.update_by, c.update_time, c.del_flag,
+               com.community_name,
+               concat(ep.building_name, '号楼', ep.room_number) as property_name
+        from sys_owner_change c
+        left join sys_estate_community com on c.community_id = com.community_id
+        left join sys_estate_property ep on c.property_id = ep.property_id
+    </sql>
+
+    <select id="selectSysOwnerChangeList" parameterType="SysOwnerChange" resultMap="SysOwnerChangeResult">
+        <include refid="selectSysOwnerChangeVo"/>
+        <where>  
+            <if test="oldOwnerName != null  and oldOwnerName != ''"> and c.old_owner_name like concat('%', #{oldOwnerName}, '%')</if>
+            <if test="newOwnerName != null  and newOwnerName != ''"> and c.new_owner_name like concat('%', #{newOwnerName}, '%')</if>
+            <if test="status != null  and status != ''"> and c.status = #{status}</if>
+            <if test="communityId != null "> and c.community_id = #{communityId}</if>
+        </where>
+        order by c.change_id desc
+    </select>
+    
+    <select id="selectSysOwnerChangeByChangeId" parameterType="Long" resultMap="SysOwnerChangeResult">
+        <include refid="selectSysOwnerChangeVo"/>
+        where c.change_id = #{changeId}
+    </select>
+        
+    <insert id="insertSysOwnerChange" parameterType="SysOwnerChange" useGeneratedKeys="true" keyProperty="changeId">
+        insert into sys_owner_change
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="propertyId != null">property_id,</if>
+            <if test="oldOwnerName != null">old_owner_name,</if>
+            <if test="oldOwnerPhone != null">old_owner_phone,</if>
+            <if test="newOwnerName != null and newOwnerName != ''">new_owner_name,</if>
+            <if test="newOwnerPhone != null and newOwnerPhone != ''">new_owner_phone,</if>
+            <if test="newOwnerIdCard != null">new_owner_id_card,</if>
+            <if test="propertyCertImage != null">property_cert_image,</if>
+            <if test="status != null">status,</if>
+            <if test="auditRemark != null">audit_remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="propertyId != null">#{propertyId},</if>
+            <if test="oldOwnerName != null">#{oldOwnerName},</if>
+            <if test="oldOwnerPhone != null">#{oldOwnerPhone},</if>
+            <if test="newOwnerName != null and newOwnerName != ''">#{newOwnerName},</if>
+            <if test="newOwnerPhone != null and newOwnerPhone != ''">#{newOwnerPhone},</if>
+            <if test="newOwnerIdCard != null">#{newOwnerIdCard},</if>
+            <if test="propertyCertImage != null">#{propertyCertImage},</if>
+            <if test="status != null">#{status},</if>
+            <if test="auditRemark != null">#{auditRemark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysOwnerChange" parameterType="SysOwnerChange">
+        update sys_owner_change
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="propertyId != null">property_id = #{propertyId},</if>
+            <if test="oldOwnerName != null">old_owner_name = #{oldOwnerName},</if>
+            <if test="oldOwnerPhone != null">old_owner_phone = #{oldOwnerPhone},</if>
+            <if test="newOwnerName != null and newOwnerName != ''">new_owner_name = #{newOwnerName},</if>
+            <if test="newOwnerPhone != null and newOwnerPhone != ''">new_owner_phone = #{newOwnerPhone},</if>
+            <if test="newOwnerIdCard != null">new_owner_id_card = #{newOwnerIdCard},</if>
+            <if test="propertyCertImage != null">property_cert_image = #{propertyCertImage},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="auditRemark != null">audit_remark = #{auditRemark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where change_id = #{changeId}
+    </update>
+
+    <delete id="deleteSysOwnerChangeByChangeId" parameterType="Long">
+        delete from sys_owner_change where change_id = #{changeId}
+    </delete>
+
+    <delete id="deleteSysOwnerChangeByChangeIds" parameterType="String">
+        delete from sys_owner_change where change_id in 
+        <foreach item="changeId" collection="array" open="(" separator="," close=")">
+            #{changeId}
+        </foreach>
+    </delete>
+</mapper>

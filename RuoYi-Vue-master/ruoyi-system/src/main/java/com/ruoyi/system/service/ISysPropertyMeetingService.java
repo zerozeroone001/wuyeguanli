@@ -126,4 +126,53 @@ public interface ISysPropertyMeetingService
      * @param meetingId 业主大会会议管理主键
      */
     public void sendGeneralMeetingNotification(Long meetingId);
+
+    /**
+     * 导出表决票
+     *
+     * @param response 响应
+     * @param meetingId 会议ID
+     * @param type 导出类型（blank=空白票，filled=填充票）
+     */
+    public void exportBallot(javax.servlet.http.HttpServletResponse response, Long meetingId, String type) throws java.io.IOException;
+
+    /**
+     * 导出投票结果
+     *
+     * @param response 响应
+     * @param meetingId 会议ID
+     */
+    public void exportVotingResults(javax.servlet.http.HttpServletResponse response, Long meetingId) throws java.io.IOException;
+
+    /**
+     * 导出投票明细公开表
+     *
+     * @param response 响应
+     * @param meetingId 会议ID
+     */
+    public void exportVotingDetailsPublic(javax.servlet.http.HttpServletResponse response, Long meetingId) throws java.io.IOException;
+
+    /**
+     * 导出会议文件
+     *
+     * @param response 响应
+     * @param meetingId 会议ID
+     */
+    public void exportMeetingDocuments(javax.servlet.http.HttpServletResponse response, Long meetingId) throws java.io.IOException;
+
+    /**
+     * 获取楼栋投票统计
+     *
+     * @param meetingId 会议ID
+     * @return 统计结果
+     */
+    public List<Map<String, Object>> getBuildingVoteStats(Long meetingId);
+
+    /**
+     * 复制会议
+     *
+     * @param meetingId 会议ID
+     * @return 结果
+     */
+    public int copyMeeting(Long meetingId);
 }

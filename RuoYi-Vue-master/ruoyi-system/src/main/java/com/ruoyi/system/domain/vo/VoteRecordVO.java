@@ -50,6 +50,9 @@ public class VoteRecordVO {
     /** 投票方式 (0小程序投票 1纸质投票 2语音投票) */
     private Integer voteType;
 
+    /** 投票编号 */
+    private String voteNo;
+
     /** 委托状态 */
     private String proxyStatus;
 
@@ -166,6 +169,14 @@ public class VoteRecordVO {
 
     public void setVoteType(Integer voteType) {
         this.voteType = voteType;
+    }
+
+    public String getVoteNo() {
+        return voteNo;
+    }
+
+    public void setVoteNo(String voteNo) {
+        this.voteNo = voteNo;
     }
 
     public String getProxyStatus() {

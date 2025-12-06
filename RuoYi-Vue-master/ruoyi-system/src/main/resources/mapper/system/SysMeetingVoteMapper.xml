@@ -13,6 +13,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="voteOption" column="vote_option"/>
         <result property="voteType" column="vote_type"/>
         <result property="flieUrl" column="flie_url"/>
+        <result property="voteNo" column="vote_no"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
@@ -69,6 +70,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteOption != null">vote_option,</if>
             <if test="voteType != null">vote_type,</if>
             <if test="flieUrl != null and flieUrl != ''">flie_url,</if>
+            <if test="voteNo != null and voteNo != ''">vote_no,</if>
             <if test="createTime != null">create_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -79,6 +81,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteOption != null">#{voteOption},</if>
             <if test="voteType != null">#{voteType},</if>
             <if test="flieUrl != null and flieUrl != ''">#{flieUrl},</if>
+            <if test="voteNo != null and voteNo != ''">#{voteNo},</if>
             <if test="createTime != null">#{createTime},</if>
          </trim>
     </insert>
@@ -93,6 +96,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteOption != null">vote_option = #{voteOption},</if>
             <if test="voteType != null">vote_type = #{voteType},</if>
             <if test="flieUrl != null and flieUrl != ''">flie_url = #{flieUrl},</if>
+            <if test="voteNo != null and voteNo != ''">vote_no = #{voteNo},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
         where vote_id = #{voteId}
@@ -120,6 +124,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="participationTime" column="participation_time"/>
         <result property="voteOption" column="vote_option"/>
         <result property="voteType" column="vote_type"/>
+        <result property="voteNo" column="vote_no"/>
         <result property="proxyStatus" column="proxy_status"/>
         <result property="isCommitteeMember" column="is_committee_member"/>
     </resultMap>
@@ -142,6 +147,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             mv.create_time as participation_time,
             mv.vote_option,
             mv.vote_type,
+            mv.vote_no,
             '' as proxy_status,
             op.is_committee_member
         FROM 

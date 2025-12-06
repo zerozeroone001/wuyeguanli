@@ -186,4 +186,69 @@ public class SysPropertyMeetingController extends BaseController
             return AjaxResult.error("发送会议通知失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 导出表决票（未投票用户）
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:exportBallot')")
+    @Log(title = "会议管理", businessType = BusinessType.EXPORT)
+    @PostMapping("/exportBallot")
+    public void exportBallot(HttpServletResponse response, Long meetingId, String type) throws java.io.IOException
+    {
+        sysPropertyMeetingService.exportBallot(response, meetingId, type);
+    }
+
+    /**
+     * 导出投票结果
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:exportVotingResults')")
+    @Log(title = "会议管理", businessType = BusinessType.EXPORT)
+    @PostMapping("/exportVotingResults")
+    public void exportVotingResults(HttpServletResponse response, Long meetingId) throws java.io.IOException
+    {
+        sysPropertyMeetingService.exportVotingResults(response, meetingId);
+    }
+
+    /**
+     * 导出投票明细公开表
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:exportVotingDetailsPublic')")
+    @Log(title = "会议管理", businessType = BusinessType.EXPORT)
+    @PostMapping("/exportVotingDetailsPublic")
+    public void exportVotingDetailsPublic(HttpServletResponse response, Long meetingId) throws java.io.IOException
+    {
+        sysPropertyMeetingService.exportVotingDetailsPublic(response, meetingId);
+    }
+
+    /**
+     * 导出会议文件
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:exportMeetingDocuments')")
+    @Log(title = "会议管理", businessType = BusinessType.EXPORT)
+    @PostMapping("/exportMeetingDocuments")
+    public void exportMeetingDocuments(HttpServletResponse response, Long meetingId) throws java.io.IOException
+    {
+        sysPropertyMeetingService.exportMeetingDocuments(response, meetingId);
+    }
+
+    /**
+     * 获取楼栋投票统计
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:voteRights')")
+    @GetMapping("/buildingStats/{meetingId}")
+    public AjaxResult getBuildingStats(@PathVariable("meetingId") Long meetingId)
+    {
+        return success(sysPropertyMeetingService.getBuildingVoteStats(meetingId));
+    }
+
+    /**
+     * 复制会议
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:copy')")
+    @Log(title = "会议管理", businessType = BusinessType.INSERT)
+    @PostMapping("/copy/{meetingId}")
+    public AjaxResult copy(@PathVariable Long meetingId)
+    {
+        return toAjax(sysPropertyMeetingService.copyMeeting(meetingId));
+    }
 }

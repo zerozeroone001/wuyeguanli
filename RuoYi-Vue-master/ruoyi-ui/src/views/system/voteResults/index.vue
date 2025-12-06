@@ -202,6 +202,7 @@
 
 <script>
 import { listVoteResults, exportVoteListExcel, exportVoteReportPdf } from '@/api/system/voteResults'
+import { getMeeting } from '@/api/system/meeting'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -222,7 +223,9 @@ export default {
       meetingTitle: null,
       activeTopicId: null,
       voteResults: [],
-      showExportDialog: false
+      showExportDialog: false,
+      // 存储实际用于查询的communityId
+      targetCommunityId: null
     }
   },
   created() {
@@ -231,28 +234,57 @@ export default {
     this.meetingTitle = this.$route.query.meetingTitle
 
     if (this.meetingId) {
-      this.loadVoteResults()
+      this.initData()
     }
   },
   methods: {
     /**
+     * 初始化数据：先获取会议详情得到communityId，再加载结果
+     */
+    async initData() {
+      this.loading = true
+      try {
+        // 1. 获取会议详情
+        const meetingRes = await getMeeting(this.meetingId)
+        if (meetingRes && meetingRes.data) {
+          this.meetingTitle = meetingRes.data.meetingTitle
+          this.targetCommunityId = meetingRes.data.communityId
+
+          // 2. 加载表决结果
+          await this.fetchVoteResults(this.targetCommunityId)
+        } else {
+          this.$message.error('无法获取会议信息')
+          this.loading = false
+        }
+      } catch (error) {
+        console.error('初始化数据失败', error)
+        this.$message.error('加载失败')
+        this.loading = false
+      }
+    },
+
+    /**
      * 加载表决结果数据
      */
-    loadVoteResults() {
-      this.loading = true
-      listVoteResults({
+    fetchVoteResults(communityId) {
+      return listVoteResults({
         meetingId: this.meetingId,
-        communityId: this.currentCommunityId
+        communityId: communityId
       })
         .then(response => {
-          if (response && response.rows) {
-            this.voteResults = response.rows
+          if (response && response.data) {
+            this.voteResults = response.data
             // 设置第一个议题为默认选中
             if (this.voteResults.length > 0) {
-              this.activeTopicId = String(this.voteResults[0].topicId)
+              // 如果当前没有选中的tab或者选中的tab不在新的列表中，重置为第一个
+              const exists = this.voteResults.some(item => String(item.topicId) === String(this.activeTopicId))
+              if (!this.activeTopicId || !exists) {
+                this.activeTopicId = String(this.voteResults[0].topicId)
+              }
             }
           } else {
-            this.$message.warning('未获取到表决结果数据')
+            this.$message.warning('暂无表决结果数据')
+            this.voteResults = []
           }
         })
         .catch(error => {
@@ -275,7 +307,7 @@ export default {
      * 刷新数据
      */
     handleRefresh() {
-      this.loadVoteResults()
+      this.initData()
       this.$message.success('数据已刷新')
     },
 
@@ -283,7 +315,7 @@ export default {
      * 导出Excel投票列表
      */
     handleExportExcel() {
-      if (!this.meetingId || !this.currentCommunityId) {
+      if (!this.meetingId || !this.targetCommunityId) {
         this.$message.warning('缺少必要的会议或小区信息')
         return
       }
@@ -303,7 +335,7 @@ export default {
 
         exportVoteListExcel({
           meetingId: this.meetingId,
-          communityId: this.currentCommunityId
+          communityId: this.targetCommunityId
         }).then(response => {
           this.$message.success('导出成功')
         }).catch(error => {
@@ -321,7 +353,7 @@ export default {
      * 导出PDF投票统计报告
      */
     handleExportPdf() {
-      if (!this.meetingId || !this.currentCommunityId) {
+      if (!this.meetingId || !this.targetCommunityId) {
         this.$message.warning('缺少必要的会议或小区信息')
         return
       }
@@ -341,7 +373,7 @@ export default {
 
         exportVoteReportPdf({
           meetingId: this.meetingId,
-          communityId: this.currentCommunityId
+          communityId: this.targetCommunityId
         }).then(response => {
           this.$message.success('导出成功')
         }).catch(error => {

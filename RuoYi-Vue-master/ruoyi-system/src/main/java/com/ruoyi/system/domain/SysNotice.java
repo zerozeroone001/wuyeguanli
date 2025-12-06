@@ -40,6 +40,9 @@ public class SysNotice extends BaseEntity
     /** 关联的业务ID */
     private Long relationId;
 
+    /** 公告封面图 */
+    private String coverUrl;
+
     public Long getNoticeId()
     {
         return noticeId;
@@ -123,6 +126,16 @@ public class SysNotice extends BaseEntity
         return relationId;
     }
 
+    public void setCoverUrl(String coverUrl)
+    {
+        this.coverUrl = coverUrl;
+    }
+
+    public String getCoverUrl()
+    {
+        return coverUrl;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -134,6 +147,7 @@ public class SysNotice extends BaseEntity
             .append("status", getStatus())
             .append("relationType", getRelationType())
             .append("relationId", getRelationId())
+            .append("coverUrl", getCoverUrl())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

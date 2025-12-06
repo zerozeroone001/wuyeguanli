@@ -20,6 +20,9 @@ public class SysMeetingVote extends BaseEntity {
     /** 文件地址/录音地址 */
     private String flieUrl;
 
+    /** 投票编号 */
+    private String voteNo;
+
     // Getters and Setters
     public Long getVoteId() {
         return voteId;
@@ -67,6 +70,14 @@ public class SysMeetingVote extends BaseEntity {
 
     public void setFlieUrl(String flieUrl) {
         this.flieUrl = flieUrl;
+    }
+
+    public String getVoteNo() {
+        return voteNo;
+    }
+
+    public void setVoteNo(String voteNo) {
+        this.voteNo = voteNo;
     }
 
     public Integer getVoteType() {

@@ -11,6 +11,9 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.system.domain.vo.VoteResultVO;
 import com.ruoyi.system.mapper.SysMeetingVoteMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 表决结果Controller
  *
@@ -20,6 +23,8 @@ import com.ruoyi.system.mapper.SysMeetingVoteMapper;
 @RequestMapping("/system/voteResults")
 public class VoteResultsController extends BaseController
 {
+    private static final Logger log = LoggerFactory.getLogger(VoteResultsController.class);
+
     @Autowired
     private SysMeetingVoteMapper meetingVoteMapper;
 
@@ -32,6 +37,7 @@ public class VoteResultsController extends BaseController
             @RequestParam Long communityId)
     {
         List<VoteResultVO> list = meetingVoteMapper.selectVoteResultsByMeeting(meetingId, communityId);
+        log.info("selectVoteResultsByMeeting returned {} results for meetingId: {} and communityId: {}", list.size(), meetingId, communityId);
         return AjaxResult.success(list);
     }
 }

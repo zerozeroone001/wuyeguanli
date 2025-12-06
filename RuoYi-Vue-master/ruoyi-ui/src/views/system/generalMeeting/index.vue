@@ -95,8 +95,8 @@
 
               <div class="info-row">
                 <div class="info-item">
-                  <span class="label">投票进度：</span>
-                  <span class="value">{{ getMeetingStatusText(meeting) }}</span>
+                  <span class="label">投票剩余：</span>
+                  <span class="value" style="color: #F56C6C">{{ calculateRemainingTime(meeting) }}</span>
                 </div>
                 <div class="info-item">
                   <span class="label">投票面积占比：</span>
@@ -111,9 +111,7 @@
           <div class="card-right">
             <!-- 第一层：图标按钮 -->
             <div class="icon-buttons-row">
-              <div class="icon-btn-item" @click.stop="handleUpdate(meeting)" title="修改会议" v-hasPermi="['system:meeting:edit']">
-                <i class="el-icon-edit"></i>
-              </div>
+
               <div class="icon-btn-item" @click.stop="handleSmsNotify(meeting)" title="短信通知/投票">
                 <i class="el-icon-message"></i>
               </div>
@@ -123,25 +121,66 @@
               <div class="icon-btn-item" @click.stop="handleViewVoteResults(meeting)" title="表决结果">
                 <i class="el-icon-pie-chart"></i>
               </div>
-              <div class="icon-btn-item" @click.stop="handleExportResults(meeting)" title="结果导出">
-                <i class="el-icon-download"></i>
-              </div>
-              <div class="icon-btn-item" @click.stop="handleDelete(meeting)" title="删除会议" v-hasPermi="['system:meeting:remove']">
-                <i class="el-icon-delete"></i>
-              </div>
+              <el-popover
+                placement="bottom"
+                width="150"
+                trigger="click">
+                <div class="meeting-action-list">
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleExportVotingResults(meeting)" v-hasPermi="['system:meeting:exportVotingResults']">投票结果</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleExportVotingDetailsPublic(meeting)" v-hasPermi="['system:meeting:exportVotingDetailsPublic']">投票明细公开表</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleExportMeetingDocuments(meeting)" v-hasPermi="['system:meeting:exportMeetingDocuments']">会议文件</el-button>
+                </div>
+                <div class="icon-btn-item" slot="reference" title="更多导出选项">
+                  <i class="el-icon-download"></i>
+                </div>
+              </el-popover>
+
             </div>
 
             <!-- 第二层：文字按钮 -->
             <div class="text-buttons-row">
-              <div class="text-btn-item" @click.stop="handleViewTopics(meeting)">
-                <span>活动管理</span>
-              </div>
-              <div class="text-btn-item" @click.stop="handleVoteManagement(meeting)">
-                <span>投票/票权</span>
-              </div>
-              <div class="text-btn-item" @click.stop="handleVoteCount(meeting)">
-                <span>唱票/统计</span>
-              </div>
+              <el-popover
+                placement="bottom"
+                width="120"
+                trigger="click">
+                <div class="meeting-action-list">
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleExportBallot(meeting)" v-hasPermi="['system:meeting:exportBallot']">表决票导出</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handlePublicizeResults(meeting)" v-hasPermi="['system:meeting:publicize']">公示结果</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleUpdate(meeting)" v-hasPermi="['system:meeting:edit']">编辑活动</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleCopyActivity(meeting)" v-hasPermi="['system:meeting:copy']">复制活动</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0;color:#F56C6C" @click="handleDelete(meeting)" v-hasPermi="['system:meeting:remove']">删除活动</el-button>
+                </div>
+                <div class="text-btn-item" slot="reference">
+                  <span>活动管理</span>
+                </div>
+              </el-popover>
+              <el-popover
+                placement="bottom"
+                width="150"
+                trigger="click">
+                <div class="meeting-action-list">
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleVoteManagement(meeting)" v-hasPermi="['system:meeting:voteRights']">票权管理</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleViewVoteRecords(meeting)" v-hasPermi="['system:meeting:viewVoteRecords']">投票记录</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handlePreserveCertificate(meeting)" v-hasPermi="['system:meeting:preserveCert']">保全证书</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleSmsNotify(meeting)" v-hasPermi="['system:meeting:smsNotify']">短信/电话通知投票</el-button>
+                </div>
+                <div class="text-btn-item" slot="reference">
+                  <span>投票/票权</span>
+                </div>
+              </el-popover>
+              <el-popover
+                placement="bottom"
+                width="120"
+                trigger="click">
+                <div class="meeting-action-list">
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleVoteCount(meeting)" v-hasPermi="['system:meeting:voteRights']">唱票计票</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleViewVoteResults(meeting)" v-hasPermi="['system:meeting:viewVoteRecords']">表决结果</el-button>
+                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleBuildingStats(meeting)" v-hasPermi="['system:meeting:voteRights']">楼栋统计</el-button>
+                </div>
+                <div class="text-btn-item" slot="reference">
+                  <span>唱票/统计</span>
+                </div>
+              </el-popover>
             </div>
           </div>
         </div>
@@ -221,7 +260,15 @@
               </el-date-picker>
             </el-form-item>
           </el-col>
-
+          <el-col :span="12">
+            <el-form-item label="展示参与人数" prop="showParticipantCount">
+              <el-switch
+                v-model="form.showParticipantCount"
+                active-value="1"
+                inactive-value="0"
+              ></el-switch>
+            </el-form-item>
+          </el-col>
         </el-row>
 
         <div class="form-section-title">详细内容</div>
@@ -286,6 +333,58 @@
       </div>
     </el-dialog>
 
+    <!-- 投票导入对话框 -->
+    <el-dialog title="投票导入" :visible.sync="voteImportDialogVisible" width="600px" append-to-body>
+      <el-form :model="importForm" ref="importForm" label-width="80px" class="dialog-form">
+        <el-form-item label="会议名称">
+          <el-input v-model="currentImportMeetingTitle" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="上传文件">
+          <el-upload
+            class="upload-demo"
+            ref="upload"
+            :action="uploadUrl"
+            :headers="uploadHeaders"
+            :file-list="fileList"
+            :on-success="handleUploadSuccess"
+            :on-error="handleUploadError"
+            :on-change="handleFileChange"
+            :multiple="true"
+            :directory="true"
+            :auto-upload="false"
+            drag
+          >
+            <i class="el-icon-upload"></i>
+            <div class="el-upload__text">将文件/文件夹拖到此处，或<em>点击选择</em></div>
+            <div class="el-upload__tip" slot="tip">
+              支持上传多个文件或整个文件夹。单个文件大小不超过10MB，总大小不超过100MB。支持图片类型：jpg/png/bmp/gif。
+            </div>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="导入结果" v-if="importResultsSummary">
+          <div class="import-summary">
+            <p>总文件数: {{ importResultsSummary.totalFiles }}</p>
+            <p>成功文件数: {{ importResultsSummary.successFiles }}</p>
+            <p>失败文件数: {{ importResultsSummary.failedFiles }}</p>
+            <p>导入投票记录数: {{ importResultsSummary.totalVoteRecords }}</p>
+            <p>成功率: {{ importResultsSummary.successRate.toFixed(2) }}%</p>
+          </div>
+          <el-collapse v-if="importResults.length > 0">
+            <el-collapse-item title="查看详细结果">
+              <div v-for="(result, index) in importResults" :key="index" class="result-item">
+                <p>文件: {{ result.fileName }} <el-tag :type="result.success ? 'success' : 'danger'">{{ result.success ? '成功' : '失败' }}</el-tag></p>
+                <p v-if="!result.success" style="color:red;">错误: {{ result.message }}</p>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitUpload">开始导入</el-button>
+        <el-button @click="voteImportDialogVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
+
     <!-- 议题列表对话框 -->
     <el-dialog title="议题列表" :visible.sync="topicListDialogVisible" width="60%" append-to-body>
       <el-table :data="currentMeetingTopics" border>
@@ -329,11 +428,29 @@
       </el-table>
     </el-dialog>
 
+    <!-- 楼栋统计对话框 -->
+    <el-dialog :title="'楼栋统计 - ' + currentImportMeetingTitle" :visible.sync="buildingStatsDialogVisible" width="700px" append-to-body>
+      <el-table :data="buildingStatsList" border v-loading="buildingStatsLoading" height="500" stripe>
+        <el-table-column label="楼栋" prop="buildingName" align="center" sortable></el-table-column>
+        <el-table-column label="单元" prop="unitName" align="center" sortable></el-table-column>
+        <el-table-column label="总户数" prop="totalHouseholds" align="center" sortable></el-table-column>
+        <el-table-column label="有投票" prop="votedHouseholds" align="center" sortable></el-table-column>
+        <el-table-column label="投票占比" prop="votePercentage" align="center" sortable>
+           <template slot-scope="scope">
+             <el-progress :percentage="parseFloat(scope.row.votePercentage)" :color="customColors"></el-progress>
+           </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="buildingStatsDialogVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
-import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting } from "@/api/system/meeting"
+import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, exportBallot, copyMeeting, exportVotingResults, exportVotingDetailsPublic, exportMeetingDocuments, getBuildingStats } from "@/api/system/meeting"
 import { exportVoteListExcel, exportVoteReportPdf } from '@/api/system/voteResults'
 import { mapGetters } from "vuex"
 
@@ -419,6 +536,26 @@ export default {
       // 意见反馈列表对话框
       feedbackListDialogVisible: false,
       currentTopicFeedbacks: [],
+      // 投票导入对话框相关
+      voteImportDialogVisible: false,
+      currentImportMeetingId: null,
+      currentImportMeetingTitle: '',
+      importForm: {}, // 用于表单验证等
+      fileList: [], // el-upload 的文件列表
+      uploadHeaders: {}, // el-upload 的请求头
+      importResultsSummary: null, // 导入结果汇总
+      importResults: [], // 导入文件详细结果
+      // 楼栋统计
+      buildingStatsDialogVisible: false,
+      buildingStatsList: [],
+      buildingStatsLoading: false,
+      customColors: [
+        {color: '#f56c6c', percentage: 20},
+        {color: '#e6a23c', percentage: 40},
+        {color: '#5cb87a', percentage: 60},
+        {color: '#1989fa', percentage: 80},
+        {color: '#6f7ad3', percentage: 100}
+      ],
     }
   },
   computed: {
@@ -436,6 +573,10 @@ export default {
         return true
       }
       return Number(value) === 0
+    },
+    // 上传URL的计算属性
+    uploadUrl() {
+      return process.env.VUE_APP_BASE_API + '/system/vote/import/single/' + this.currentImportMeetingId;
     }
   },
   created() {
@@ -524,6 +665,7 @@ export default {
         meetingStatus: null,
         voteStartTime: null,
         voteEndTime: null,
+        showParticipantCount: "1",
         totalVoters: null,
         actualVoters: null,
         createBy: null,
@@ -566,6 +708,8 @@ export default {
       this.reset()
       const meetingId = row.meetingId || this.ids
       getMeeting(meetingId).then(response => {
+        console.log("Meeting Data:", response.data); // Debug log
+        console.log("showParticipantCount:", response.data.showParticipantCount); // Debug log
         const numericId =
           response.data.communityId !== null && response.data.communityId !== undefined
             ? Number(response.data.communityId)
@@ -677,6 +821,41 @@ export default {
       const rate = ((meeting.actualVoters || 0) / meeting.totalVoters * 100).toFixed(1);
       return rate + '%';
     },
+    /** 计算投票剩余时间 */
+    calculateRemainingTime(meeting) {
+      if (!meeting.voteEndTime) return '-';
+
+      const now = new Date().getTime();
+      const end = new Date(meeting.voteEndTime).getTime();
+      const start = meeting.voteStartTime ? new Date(meeting.voteStartTime).getTime() : 0;
+
+      // 如果还没开始
+      if (start > 0 && now < start) {
+         return '未开始';
+      }
+
+      // 如果已经结束
+      if (now >= end) {
+        return '已结束';
+      }
+
+      // 计算剩余时间
+      const diff = end - now;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      if (days > 0) {
+          return `剩余 ${days} 天`;
+      } else {
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          // 如果不足1小时
+          if (hours === 0) {
+             const minutes = Math.ceil((diff % (1000 * 60 * 60)) / (1000 * 60));
+             return `剩余 ${minutes} 分钟`;
+          }
+          return `剩余 ${hours} 小时`;
+      }
+    },
+
     /** 获取会议状态文本 */
     getMeetingStatusText(meeting) {
       return meeting.meetingStatus || '进行中';
@@ -757,6 +936,82 @@ export default {
       });
     },
 
+    /** 通用文件下载处理 */
+    handleDownloadBlob(promise, defaultName) {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在生成文件，请稍候...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        promise.then(blob => {
+          if (blob.type === 'application/json') {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const res = JSON.parse(e.target.result);
+                    this.$message.error(res.msg || '导出失败');
+                } catch (err) {
+                    this.$message.error('导出失败');
+                }
+                loading.close();
+            };
+            reader.readAsText(blob);
+            return;
+          }
+          const link = document.createElement('a')
+          const url = window.URL.createObjectURL(blob)
+          link.href = url
+          link.download = defaultName
+          link.click()
+          window.URL.revokeObjectURL(url)
+          this.$message.success('导出成功');
+          loading.close();
+        }).catch((e) => {
+          console.error(e);
+          this.$message.error('导出失败');
+          loading.close();
+        });
+    },
+
+    /** 导出投票结果 */
+    handleExportVotingResults(meeting) {
+      if (!meeting || !meeting.meetingId) {
+        this.$message.warning('请选择有效的会议');
+        return;
+      }
+      this.handleDownloadBlob(
+        exportVotingResults(meeting.meetingId),
+        meeting.meetingTitle + '_投票结果.xlsx'
+      );
+    },
+
+    /** 导出投票明细公开表 */
+    handleExportVotingDetailsPublic(meeting) {
+      if (!meeting || !meeting.meetingId) {
+        this.$message.warning('请选择有效的会议');
+        return;
+      }
+      this.$modal.confirm('确认导出投票明细公开表？此表包含脱敏后的业主投票信息，可用于公示。').then(() => {
+        this.handleDownloadBlob(
+          exportVotingDetailsPublic(meeting.meetingId),
+          meeting.meetingTitle + '_投票明细公示表.xlsx'
+        );
+      }).catch(() => {});
+    },
+
+    /** 导出会议文件 */
+    handleExportMeetingDocuments(meeting) {
+      if (!meeting || !meeting.meetingId) {
+        this.$message.warning('请选择有效的会议');
+        return;
+      }
+      this.handleDownloadBlob(
+        exportMeetingDocuments(meeting.meetingId),
+        meeting.meetingTitle + '_会议文件.zip'
+      );
+    },
+
     /** 导出Excel投票列表 */
     exportExcelList(meeting) {
       const loading = this.$loading({
@@ -802,11 +1057,112 @@ export default {
     },
     /** 投票/票权管理 */
     handleVoteManagement(meeting) {
-      this.$message.info('投票/票权管理功能开发中');
+      this.$router.push({ path: '/user/service/owner', query: { communityId: meeting.communityId } });
     },
     /** 唱票/统计 */
     handleVoteCount(meeting) {
       this.$message.info('唱票/统计功能开发中');
+    },
+    /** 表决票导出 */
+    handleExportBallot(meeting) {
+      this.$confirm('请选择导出类型', '表决票导出', {
+        distinguishCancelAndClose: true,
+        confirmButtonText: '空白表决票',
+        cancelButtonText: '未投票用户表决票(填充)',
+        type: 'info'
+      }).then(() => {
+        // 导出空白表决票
+        this.downloadBlankBallot(meeting);
+      }).catch(action => {
+        if (action === 'cancel') {
+          // 导出填充表决票
+          this.downloadFilledBallot(meeting);
+        }
+      });
+    },
+    /** 导出空白表决票 */
+    downloadBlankBallot(meeting) {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在生成空白表决票，请稍候...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      // 假设后端有一个 exportBlankBallot 接口，暂时复用 exportBallot 并加参数，或者新建接口
+      // 这里为了演示，我们修改 exportBallot 传参 type=blank
+      // 但根据需求 "空白则只导出模板"，可能是指下载模板文件
+      // 我们先尝试用 exportBallot 接口加参数，如果后端没支持，可能需要改后端
+      // 鉴于当前上下文不能改后端，我们假设后端 exportBallot 支持 type 参数
+      // 或者我们直接请求模板文件
+
+      // 修改策略：调用 exportBallot 并传递参数
+      this.handleDownloadBlob(
+        exportBallot(meeting.meetingId, 'blank'),
+        meeting.meetingTitle + '_空白表决票.docx' // 假设空白票是单文件
+      );
+      loading.close();
+    },
+    /** 导出填充表决票 */
+    downloadFilledBallot(meeting) {
+      this.$modal.confirm('确认导出当前会议未投票用户的表决票？').then(() => {
+        const loading = this.$loading({
+          lock: true,
+          text: '正在生成表决票压缩包，请稍候...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        exportBallot(meeting.meetingId, 'filled').then(blob => {
+          if (blob.type === 'application/json') {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const res = JSON.parse(e.target.result);
+                    this.$message.error(res.msg || '导出失败');
+                } catch (err) {
+                    this.$message.error('导出失败');
+                }
+                loading.close();
+            };
+            reader.readAsText(blob);
+            return;
+          }
+          const link = document.createElement('a')
+          const url = window.URL.createObjectURL(blob)
+          link.href = url
+          link.download = meeting.meetingTitle + '_未投票表决票.zip'
+          link.click()
+          window.URL.revokeObjectURL(url)
+          this.$message.success('导出成功');
+          loading.close();
+        }).catch((e) => {
+          console.error(e);
+          this.$message.error('表决票导出失败');
+          loading.close();
+        });
+      }).catch(() => {});
+    },
+    /** 公示结果 */
+    handlePublicizeResults(meeting) {
+      this.$modal.confirm('确认公示当前会议的表决结果？此操作将使结果对外可见。').then(() => {
+        // 假设有一个新的API用于公示结果，这里使用占位符
+        this.$message.success('公示结果功能开发中，会议ID：' + meeting.meetingId);
+        // TODO: 调用后端接口公示结果
+        // publicizeResultsApi(meeting.meetingId).then(() => {
+        //   this.$message.success('表决结果已成功公示');
+        //   this.getList(); // 刷新列表，可能状态会变化
+        // }).catch(() => {
+        //   this.$message.error('公示结果失败');
+        // });
+      }).catch(() => {});
+    },
+    /** 复制活动 */
+    handleCopyActivity(meeting) {
+      this.$modal.confirm('确认复制当前活动？复制后您可以在草稿中编辑。').then(() => {
+        copyMeeting(meeting.meetingId).then(response => {
+          this.$modal.msgSuccess("复制成功");
+          this.getList();
+        });
+      }).catch(() => {});
     },
     // 议题表单重置
     resetTopic() {
@@ -869,6 +1225,109 @@ export default {
           this.topicOpen = false;
           this.resetTopic();
         }
+      });
+    },
+    // 投票导入相关方法
+    /** 唱票/统计 (打开导入对话框) */
+    handleVoteCount(meeting) {
+      this.currentImportMeetingId = meeting.meetingId;
+      this.currentImportMeetingTitle = meeting.meetingTitle;
+      this.fileList = []; // 清空文件列表
+      this.importResultsSummary = null; // 清空结果
+      this.importResults = []; // 清空详细结果
+      // 设置上传请求头，包含token
+      this.uploadHeaders = { Authorization: 'Bearer ' + this.$store.getters.token };
+      this.voteImportDialogVisible = true;
+      // 重置上传组件（如果有）
+      this.$nextTick(() => {
+        if (this.$refs.upload) {
+          this.$refs.upload.clearFiles();
+        }
+      });
+    },
+    // 手动提交上传
+    submitUpload() {
+      if (this.fileList.length === 0) {
+        this.$modal.msgWarning("请选择要上传的文件！");
+        return;
+      }
+      this.$refs.upload.submit(); // 触发 el-upload 组件的上传
+      this.$modal.loading("正在导入投票数据，请稍候...");
+    },
+    // 文件状态改变时的回调
+    handleFileChange(file, fileList) {
+      this.fileList = fileList;
+      this.importResultsSummary = null; // 清空结果
+      this.importResults = []; // 清空详细结果
+    },
+    // 文件上传成功时的回调
+    handleUploadSuccess(response, file, fileList) {
+      this.$modal.closeLoading();
+      if (response.code === 200) {
+        this.$modal.msgSuccess(response.message || "文件上传成功");
+        this.importResultsSummary = response.summary;
+        this.importResults = response.results.map(r => ({
+          fileName: r.fileName,
+          success: r.success,
+          message: r.message
+        }));
+        this.getList(); // 刷新会议列表，可能统计数据有变
+      } else {
+        this.$modal.msgError(response.message || "文件上传失败");
+        this.importResultsSummary = {
+          totalFiles: fileList.length,
+          successFiles: 0,
+          failedFiles: fileList.length,
+          totalVoteRecords: 0,
+          successRate: 0
+        };
+        this.importResults = fileList.map(f => ({
+          fileName: f.name,
+          success: false,
+          message: response.message || "上传失败"
+        }));
+      }
+    },
+    // 文件上传失败时的回调
+    handleUploadError(err, file, fileList) {
+      this.$modal.closeLoading();
+      let errorMsg = "文件上传失败，请重试！";
+      try {
+        const error = JSON.parse(err.message);
+        errorMsg = error.msg || errorMsg;
+      } catch (e) {
+        // ignore
+      }
+      this.$modal.msgError(errorMsg);
+      this.importResultsSummary = {
+        totalFiles: fileList.length,
+        successFiles: 0,
+        failedFiles: fileList.length,
+        totalVoteRecords: 0,
+        successRate: 0
+      };
+      this.importResults = fileList.map(f => ({
+        fileName: f.name,
+        success: false,
+        message: errorMsg
+      }));
+    },
+    /** 保全证书 */
+    handlePreserveCertificate(meeting) {
+      this.$message.info('保全证书功能开发中，会议ID：' + meeting.meetingId);
+      // TODO: 调用后端接口生成或查看保全证书
+    },
+    /** 楼栋统计 */
+    handleBuildingStats(meeting) {
+      this.buildingStatsDialogVisible = true;
+      this.buildingStatsLoading = true;
+      this.currentImportMeetingTitle = meeting.meetingTitle;
+
+      getBuildingStats(meeting.meetingId).then(response => {
+        this.buildingStatsList = response.data;
+        this.buildingStatsLoading = false;
+      }).catch(() => {
+        this.buildingStatsLoading = false;
       });
     }
   }

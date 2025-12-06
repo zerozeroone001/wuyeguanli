@@ -94,7 +94,8 @@ public class VoteItem {
     public enum VoteOption {
         AGREE(0, "同意"),
         OPPOSE(1, "反对"),
-        ABSTAIN(2, "弃权");
+        ABSTAIN(2, "弃权"),
+        FOLLOW_MAJORITY(3, "从多");
         
         private int code;
         private String description;

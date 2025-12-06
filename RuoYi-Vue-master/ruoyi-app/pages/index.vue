@@ -116,18 +116,11 @@
     <view class="quick-entry-section">
       <view class="quick-entry-grid">
         <view class="quick-entry-item" @click="goToOwnerChange">
-          <view class="quick-entry-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <uni-icons type="person-filled" size="32" color="#fff" />
-          </view>
-          <text class="quick-entry-text">业主变更</text>
+			<image src="https://zhuote.oss-cn-hangzhou.aliyuncs.com/2025/12/04/e7e14d10b072ccf23b053955991ac4a_20251204105926A012.png" mode="widthFix" style="width: 100%;border-radius: 24rpx"></image>
         </view>
         <view class="quick-entry-item" @click="goToPropertyAuth">
-          <view class="quick-entry-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <uni-icons type="home-filled" size="32" color="#fff" />
-          </view>
-          <text class="quick-entry-text">产权认证</text>
+			<image src="https://zhuote.oss-cn-hangzhou.aliyuncs.com/2025/12/04/9624060951f091b2cda78ab0bc433f1_20251204105912A011.png" mode="widthFix" style="width: 100%;border-radius: 24rpx"></image>
         </view>
-      </view>
     </view>
 
     <!-- 主要服务 -->
@@ -165,8 +158,8 @@
           </view>
           <view class="notice-thumbnail">
             <image
-              v-if="notice.thumbnail"
-              :src="notice.thumbnail"
+              v-if="notice.coverUrl"
+              :src="notice.coverUrl"
               mode="aspectFill"
               class="thumbnail-image"
             />
@@ -191,6 +184,7 @@
 
     <!-- 底部安全距离 -->
     <view class="safe-area-bottom"></view>
+  </view>
   </view>
 </template>
 
@@ -231,26 +225,26 @@ export default {
       communityNoticeList: [],
       // 主要服务数据
       mainServices: [
-        {
-          name: '业主大会',
-          desc: '会议投票',
-          icon: 'compose',
-          bgColor: '#1890FF',
-          path: '/pageB/property/meeting/index'
-        },
+		  {
+		    name: '产权认证',
+		    desc: '产权认证',
+		    icon: 'staff',
+		    bgColor: '#FF69B4',
+		    path: '/pageB/property/add'
+		  },
+		  {
+		    name: '业主变更',
+		    desc: '业主变更',
+		    icon: 'loop',
+		    bgColor: '#1890FF',
+		    path: '/pageB/owner-change/submit'
+		  },
         {
           name: '业委会会议',
           desc: '会议投票',
           icon: 'compose',
           bgColor: '#52C41A',
           path: '/pageB/property/committee-meeting/index'
-        },
-        {
-          name: '意见征询',
-          desc: '问卷调查',
-          icon: 'compose',
-          bgColor: '#389E0D',
-          path: '/pages/work/opinion/index'
         },
         {
           name: '合同查阅',
@@ -281,7 +275,7 @@ export default {
           path: '/pages/work/regulation'
         },
         {
-          name: '联名签名',
+          name: '公证存证',
           desc: '权威认证',
           icon: 'checkmarkempty',
           bgColor: '#EB2F96',
@@ -301,6 +295,7 @@ export default {
           bgColor: '#389E0D',
           path: '/pages/handover/index'
         }
+		
       ],
       // 制度文件数据
       regulationList: [
@@ -857,7 +852,7 @@ console.log(noticeId)
       }
 
       uni.navigateTo({
-        url: '/pageB/owner-change/submit',
+        url: '/pageB/property/meeting/index',
         fail: (err) => {
           console.error('跳转业主变更页面失败:', err);
           uni.showToast({
@@ -875,7 +870,7 @@ console.log(noticeId)
       }
 
       uni.navigateTo({
-        url: '/pageB/property/index',
+        url: '/pages/work/opinion/index',
         fail: (err) => {
           console.error('跳转产权认证页面失败:', err);
           uni.showToast({
@@ -1036,7 +1031,7 @@ console.log(noticeId)
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40rpx 20rpx;
+    // padding: 40rpx 20rpx;
     background: #FFFFFF;
     border-radius: 24rpx;
     box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
@@ -1367,10 +1362,10 @@ console.log(noticeId)
 }
 
 /* 主内容区 */
-.main-services,
+
 .regulations-section,
 .latest-news {
-  margin: 0 30rpx 40rpx;
+  margin-top: 30rpx;
   padding: 40rpx;
   background: #FFFFFF;
   border-radius: 24rpx;
@@ -1397,7 +1392,7 @@ console.log(noticeId)
 
 /* 主要服务模块 */
 .main-services {
-  margin-bottom: 50rpx;
+  margin-top: 20rpx; /* 应用 consistent horizontal margin */
 
   .service-item.main-service {
     display: flex;

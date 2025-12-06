@@ -81,6 +81,10 @@ public class SysPropertyMeeting extends BaseEntity
     /** 投票面积占比 */
     private String votingAreaPercentage;
 
+    /** 是否展示参与人数 */
+    @Excel(name = "是否展示参与人数")
+    private String showParticipantCount;
+
     /** 缩略图 */
     @Excel(name = "缩略图")
     private String coverImage;
@@ -248,6 +252,16 @@ public class SysPropertyMeeting extends BaseEntity
         this.votingAreaPercentage = votingAreaPercentage;
     }
 
+    public void setShowParticipantCount(String showParticipantCount)
+    {
+        this.showParticipantCount = showParticipantCount;
+    }
+
+    public String getShowParticipantCount()
+    {
+        return showParticipantCount;
+    }
+
     public void setCoverImage(String coverImage)
     {
         this.coverImage = coverImage;
@@ -287,6 +301,7 @@ public class SysPropertyMeeting extends BaseEntity
             .append("totalVotingArea", getTotalVotingArea())
             .append("participatedArea", getParticipatedArea())
             .append("votingAreaPercentage", getVotingAreaPercentage())
+            .append("showParticipantCount", getShowParticipantCount())
             .append("coverImage", getCoverImage())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

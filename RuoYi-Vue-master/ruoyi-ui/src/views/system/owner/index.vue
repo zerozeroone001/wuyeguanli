@@ -17,6 +17,12 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="房产类型" prop="propertyTag">
+        <el-select v-model="queryParams.propertyTag" placeholder="请选择房产类型" clearable>
+          <el-option label="单套房" value="单套房" />
+          <el-option label="多套房" value="多套房" />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -94,10 +100,14 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="真实姓名" align="center" prop="realName" />
       <el-table-column label="联系号码" align="center" prop="phonenumber" />
-      <el-table-column label="楼栋号" align="center" prop="buildingNo" />
-      <el-table-column label="房号" align="center" prop="roomNo" />
-      <el-table-column label="房产面积(㎡)" align="center" prop="propertyArea" />
       <el-table-column label="所属小区" align="center" prop="communityName" />
+      <el-table-column label="房产信息" align="center" prop="mergedProperties" show-overflow-tooltip />
+      <el-table-column label="房产标签" align="center" prop="propertyTag">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.propertyTag === '多套房' ? 'warning' : 'success'">{{ scope.row.propertyTag }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="房产面积(㎡)" align="center" prop="propertyArea" />
       <el-table-column label="业委会成员" align="center" prop="isCommitteeMember">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_yes_no" :value="scope.row.isCommitteeMember"/>
@@ -108,7 +118,7 @@
           <dict-tag :options="dict.type.sys_owner_type" :value="scope.row.isOwner"/>
         </template>
       </el-table-column>
-      <el-table-column label="账号状态" align="center" prop="status">
+      <el-table-column label="票权状态" align="center" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
         </template>
@@ -188,9 +198,6 @@
         </el-form-item>
         <el-form-item label="手机号码" prop="phonenumber">
           <el-input v-model="form.phonenumber" placeholder="请输入手机号码" />
-        </el-form-item>
-        <el-form-item label="联系号码" prop="contactNumber">
-          <el-input v-model="form.contactNumber" placeholder="请输入联系号码" />
         </el-form-item>
         <el-form-item label="身份证号" prop="idCardNo">
           <el-input v-model="form.idCardNo" placeholder="请输入身份证号" />
@@ -327,7 +334,8 @@ export default {
         realName: null,
         phonenumber: null,
         contactNumber: null,
-        communityId: null
+        communityId: null,
+        propertyTag: null
       },
       // 表单参数
       form: {},

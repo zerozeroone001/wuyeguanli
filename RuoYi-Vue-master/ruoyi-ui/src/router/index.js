@@ -200,7 +200,7 @@ export const dynamicRoutes = [
         path: 'index',
         component: () => import('@/views/system/voteResults/index'),
         name: 'VoteResults',
-        meta: { title: '表决结果', activeMenu: '/system/generalMeeting' }
+        meta: { title: '表决结果', activeMenu: '/system/generalMeeting', noCache: true }
       }
     ]
   }

@@ -40,6 +40,7 @@
     >
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="姓名" prop="realName" align="center" width="140" />
+      <el-table-column label="投票编号" prop="voteNo" align="center" width="120" />
       <el-table-column label="房号" prop="roomNumber" align="center"  />
       <el-table-column label="面积(m²)" prop="area" align="center"  />
       <el-table-column label="票权状态" align="center" >

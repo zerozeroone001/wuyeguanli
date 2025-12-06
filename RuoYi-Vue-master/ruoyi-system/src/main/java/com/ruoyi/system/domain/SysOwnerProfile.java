@@ -82,6 +82,15 @@ public class SysOwnerProfile extends BaseEntity
     /** 账号状态（0正常 1停用） */
     private String status;
 
+    /** 合并后的房产信息 */
+    private String mergedProperties;
+
+    /** 房产数量 */
+    private Integer propertyCount;
+
+    /** 房产标签（单套房/多套房） */
+    private String propertyTag;
+
     public void setOwnerId(Long ownerId) 
     {
         this.ownerId = ownerId;
@@ -279,6 +288,36 @@ public class SysOwnerProfile extends BaseEntity
     public String getStatus()
     {
         return status;
+    }
+
+    public void setMergedProperties(String mergedProperties) 
+    {
+        this.mergedProperties = mergedProperties;
+    }
+
+    public String getMergedProperties() 
+    {
+        return mergedProperties;
+    }
+
+    public void setPropertyCount(Integer propertyCount) 
+    {
+        this.propertyCount = propertyCount;
+    }
+
+    public Integer getPropertyCount() 
+    {
+        return propertyCount;
+    }
+
+    public void setPropertyTag(String propertyTag) 
+    {
+        this.propertyTag = propertyTag;
+    }
+
+    public String getPropertyTag() 
+    {
+        return propertyTag;
     }
 
     @Override

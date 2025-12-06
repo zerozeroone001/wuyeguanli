@@ -30,6 +30,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="avatar"    column="avatar"    />
         <result property="nickName"    column="nick_name"    />
         <result property="status"    column="status"    />
+        <result property="mergedProperties"    column="merged_properties"    />
+        <result property="propertyCount"    column="property_count"    />
     </resultMap>
 
     <sql id="selectSysOwnerProfileVo">
@@ -47,7 +49,46 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
     <select id="selectSysOwnerProfileList" parameterType="SysOwnerProfile" resultMap="SysOwnerProfileResult">
-        <include refid="selectSysOwnerProfileVo"/>
+        SELECT
+            MAX(p.owner_id) as owner_id,
+            p.user_id,
+            p.community_id,
+            p.real_name,
+            p.phonenumber,
+            MAX(p.id_card_no) as id_card_no,
+            MAX(p.id_card_front_url) as id_card_front_url,
+            MAX(p.id_card_back_url) as id_card_back_url,
+            MAX(p.auth_status) as auth_status,
+            
+            GROUP_CONCAT(CONCAT(p.building_no, '号楼', p.room_no) ORDER BY p.building_no, p.room_no SEPARATOR ', ') as merged_properties,
+            COUNT(*) as property_count,
+            
+            MAX(p.building_no) as building_no,
+            MAX(p.unit_no) as unit_no,
+            MAX(p.room_no) as room_no,
+            
+            MAX(p.is_committee_member) as is_committee_member,
+            MAX(p.del_flag) as del_flag,
+            MAX(p.create_by) as create_by,
+            MAX(p.create_time) as create_time,
+            MAX(p.update_by) as update_by,
+            MAX(p.update_time) as update_time,
+            MAX(p.remark) as remark,
+            MAX(p.auth_remark) as auth_remark,
+            
+            MAX(u.is_owner) as is_owner,
+            MAX(u.avatar) as avatar,
+            MAX(u.nick_name) as nick_name,
+            MAX(u.status) as status,
+            
+            SUM(COALESCE(ep.area, 0)) as property_area
+
+        FROM sys_owner_profile p
+        LEFT JOIN sys_user u ON p.user_id = u.user_id
+        LEFT JOIN sys_estate_property ep ON ep.community_id = p.community_id 
+                                         AND ep.building_name = p.building_no 
+                                         AND ep.room_number = p.room_no 
+                                         AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
         <where>
             <if test="realName != null  and realName != ''">
                 AND p.real_name like concat('%', #{realName}, '%')
@@ -59,11 +100,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND p.community_id = #{communityId}
             </if>
 
-            <if test="authStatus != null and authStatus != ''">
+            <if test="authStatus != null">
                 AND p.auth_status = #{authStatus}
             </if>
-            order by p.owner_id desc
         </where>
+        GROUP BY p.phonenumber, p.real_name, p.community_id, p.user_id
+        <if test="propertyTag != null and propertyTag != ''">
+            HAVING 1=1
+            <if test="propertyTag == '单套房'">
+                AND COUNT(*) = 1
+            </if>
+            <if test="propertyTag == '多套房'">
+                AND COUNT(*) > 1
+            </if>
+        </if>
+        ORDER BY MAX(p.owner_id) DESC
     </select>
     
     <select id="selectSysOwnerProfileByOwnerId" parameterType="Long" resultMap="SysOwnerProfileResult">

@@ -109,6 +109,7 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column label="联系电话" prop="phonenumber" align="center" min-width="120" />
       <el-table-column label="审核状态" prop="status" align="center" min-width="110">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_auth_status" :value="scope.row.status" />

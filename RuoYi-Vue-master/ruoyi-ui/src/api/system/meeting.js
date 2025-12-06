@@ -60,3 +60,55 @@ export function changeStatus(data) {
   })
 
 }
+
+// 导出未投票用户表决票
+export function exportBallot(meetingId, type) {
+  return request({
+    url: '/system/meeting/exportBallot?meetingId=' + meetingId + (type ? '&type=' + type : ''),
+    method: 'post',
+    responseType: 'blob'
+  })
+}
+
+// 导出投票结果
+export function exportVotingResults(meetingId) {
+  return request({
+    url: '/system/meeting/exportVotingResults?meetingId=' + meetingId,
+    method: 'post',
+    responseType: 'blob'
+  })
+}
+
+// 导出投票明细公开表
+export function exportVotingDetailsPublic(meetingId) {
+  return request({
+    url: '/system/meeting/exportVotingDetailsPublic?meetingId=' + meetingId,
+    method: 'post',
+    responseType: 'blob'
+  })
+}
+
+// 导出会议文件
+export function exportMeetingDocuments(meetingId) {
+  return request({
+    url: '/system/meeting/exportMeetingDocuments?meetingId=' + meetingId,
+    method: 'post',
+    responseType: 'blob'
+  })
+}
+
+// 获取楼栋投票统计
+export function getBuildingStats(meetingId) {
+  return request({
+    url: '/system/meeting/buildingStats/' + meetingId,
+    method: 'get'
+  })
+}
+
+// 复制会议
+export function copyMeeting(meetingId) {
+  return request({
+    url: '/system/meeting/copy/' + meetingId,
+    method: 'post'
+  })
+}

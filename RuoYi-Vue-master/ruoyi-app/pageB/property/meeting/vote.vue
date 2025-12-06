@@ -32,7 +32,7 @@
         <text class="notice-title">投票须知</text>
       </view>
       <view class="notice-content">
-        <text>1. 对每个议题进行投票（同意、反对、弃权）</text>
+        <text>1. 对每个议题进行投票（同意、反对、弃权、从多）</text>
         <text>2. 选择完所有议题后，点击底部"统一提交投票"按钮</text>
         <text>3. 在截止时间前，您可以随时修改并重新提交</text>
         <text>4. 投票结果将在会议结束后公布</text>
@@ -74,7 +74,7 @@
         </view>
 
         <!-- 投票统计 -->
-        <view class="vote-stats" v-if="meetingInfo.meetingStatus === '2'">
+       <!-- <view class="vote-stats" v-if="meetingInfo.meetingStatus === '2'">
           <view class="stats-item">
             <text class="stats-label">同意</text>
             <text class="stats-count">{{ topic.agreeCount }}票</text>
@@ -87,7 +87,11 @@
             <text class="stats-label">弃权</text>
             <text class="stats-count">{{ topic.abstainCount }}票</text>
           </view>
-        </view>
+		  <view class="stats-item">
+		    <text class="stats-label">从多</text>
+		    <text class="stats-count">{{ topic.abstainCount }}票</text>
+		  </view>
+        </view> -->
         
         <!-- 投票选项 -->
         <view class="vote-options-btn" v-if="meetingInfo.meetingStatus == '1'">
@@ -115,6 +119,14 @@
             <uni-icons type="minus" size="16" :color="voteData[topic.topicId] === 2 ? '#FFFFFF' : '#8C8C8C'" />
             <text>弃权</text>
           </button>
+          <button 
+            size="mini"
+            class="vote-btn majority"
+            :class="{ selected: voteData[topic.topicId] === 3 }"
+            @click="handleTopicVote(topic, 3)">
+            <uni-icons type="flag" size="16" :color="voteData[topic.topicId] === 3 ? '#FFFFFF' : '#1890FF'" />
+            <text>从多</text>
+          </button>
         </view>
         <!-- <view class="consultation-btn-container" style="margin-top: 20rpx; text-align: right;">
           <button size="mini" type="primary" plain @click="handleConsultation(topic)">意见征询</button>
@@ -138,7 +150,8 @@
     <view class="submit-container" v-if="meetingInfo.meetingStatus == '1'">
       <view class="submit-info">
         <text class="voted-count">已选择 {{ Object.keys(voteData).length }}/{{ topicList.length }} 项</text>
-      </view>
+      </view>      
+    
       <button class="submit-btn" @click="handleSubmitAll" :disabled="isSubmitDisabled && !isVoteExpired">
         {{ submitButtonText }}
       </button>
@@ -448,7 +461,7 @@ page {
 .vote-container {
   min-height: 100vh;
   background-color: #FAFBFC;
-  padding-bottom: 160rpx; // 为底部按钮预留空间
+  padding-bottom: 220rpx; // 为底部按钮预留更多空间，防止遮挡
 }
 
 .meeting-info {
@@ -715,6 +728,14 @@ page {
         border-color: #8C8C8C;
       }
     }
+    &.majority {
+      color: #1890FF;
+      &.selected {
+        background-color: #1890FF;
+        color: #FFFFFF;
+        border-color: #1890FF;
+      }
+    }
   }
 }
 
@@ -823,6 +844,8 @@ page {
       opacity: 0.9;
     }
   }
+
+
 }
 
 </style>
