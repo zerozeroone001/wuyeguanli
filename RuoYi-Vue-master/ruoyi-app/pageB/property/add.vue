@@ -97,30 +97,16 @@
             </view>
           </picker>
         </view>
-
-        <view class="form-item">
-          <text class="label required">专有部分建筑面积</text>
-          <view class="input-with-unit">
-            <input
-              class="input flex-input"
-              v-model="formData.buildingArea"
-              placeholder="请输入专有部分建筑面积"
-              placeholder-class="input-placeholder"
-              type="digit"
-            />
-            <text class="unit-text">㎡</text>
-          </view>
-        </view>
       </view>
 
       <!-- 房产证件 -->
       <view class="form-group">
-        <view class="group-title">
+        <!-- <view class="group-title">
           <view class="title-icon"></view>
           <text>房产证件</text>
-        </view>
+        </view> -->
 
-        <view class="form-item upload-item">
+       <!-- <view class="form-item upload-item">
           <text class="label required">上传房产证</text>
           <view class="upload-area">
             <view v-if="!formData.propertyCert" class="upload-button" @click="choosePropertyCert">
@@ -137,7 +123,7 @@
           <view class="help-text" @click="showExample">
             <text class="help-link">查看样例</text>
           </view>
-        </view>
+        </view> -->
 
         <view class="form-item">
           <text class="label required">用户类型</text>
@@ -533,54 +519,7 @@ export default {
         return false;
       }
 
-      // 验证建筑面积
-      if (!this.formData.buildingArea) {
-        uni.showToast({
-          title: '请输入专有部分建筑面积',
-          icon: 'none',
-          duration: 2000
-        });
-        return false;
-      }
 
-      const areaReg = /^\d+(\.\d{1,2})?$/;
-      if (!areaReg.test(this.formData.buildingArea)) {
-        uni.showToast({
-          title: '请输入正确的面积(最多两位小数)',
-          icon: 'none',
-          duration: 2000
-        });
-        return false;
-      }
-
-      const area = parseFloat(this.formData.buildingArea);
-      if (area <= 0) {
-        uni.showToast({
-          title: '建筑面积必须大于0',
-          icon: 'none',
-          duration: 2000
-        });
-        return false;
-      }
-
-      if (area > 10000) {
-        uni.showToast({
-          title: '建筑面积不能超过10000平方米',
-          icon: 'none',
-          duration: 2000
-        });
-        return false;
-      }
-
-      // 验证房产证图片
-      if (!this.formData.propertyCert) {
-        uni.showToast({
-          title: '请上传房产证',
-          icon: 'none',
-          duration: 2000
-        });
-        return false;
-      }
 
       // 验证用户类型
       if (!this.formData.userType) {

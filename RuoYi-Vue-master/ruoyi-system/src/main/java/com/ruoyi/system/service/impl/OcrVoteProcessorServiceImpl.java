@@ -73,7 +73,7 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
         List<CellInfo> sortedCells = sortCellsByPosition(cells);
         
         // 使用更灵活的方式提取信息
-        OwnerInfo.OwnerInfoBuilder builder = OwnerInfo.builder();
+        OwnerInfo.Builder builder = OwnerInfo.builder();
         
         String ownerName = findValueForLabel(sortedCells, "业主姓名", "姓名");
         builder.ownerName(ownerName);

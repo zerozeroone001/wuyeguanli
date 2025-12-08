@@ -6,43 +6,41 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <resultMap type="SysOwnerProfile" id="SysOwnerProfileResult">
         <id property="ownerId"    column="owner_id"    />
+        <result property="ownerNo"    column="owner_no"    />
         <result property="userId"    column="user_id"    />
         <result property="communityId"    column="community_id"    />
-        <result property="realName"    column="real_name"    />
+        <result property="userName"    column="user_name"    />
         <result property="phonenumber" column="phonenumber"  />
-        <result property="idCardNo"    column="id_card_no"    />
-        <result property="idCardFrontUrl"    column="id_card_front_url"    />
-        <result property="idCardBackUrl"    column="id_card_back_url"    />
-        <result property="authStatus"    column="auth_status"    />
-        <result property="buildingNo"    column="building_no"    />
-        <result property="unitNo"    column="unit_no"    />
-        <result property="roomNo"    column="room_no"    />
-        <result property="propertyArea"    column="property_area"    />
-        <result property="isCommitteeMember"    column="is_committee_member"    />
         <result property="delFlag"    column="del_flag"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
         <result property="remark"    column="remark"    />
-        <result property="authRemark"    column="auth_remark"    />
+        
+        <!-- Joined fields from sys_user or logic -->
+        <result property="userName"    column="user_name"    />
         <result property="isOwner"    column="is_owner"    />
         <result property="avatar"    column="avatar"    />
         <result property="nickName"    column="nick_name"    />
         <result property="status"    column="status"    />
         <result property="mergedProperties"    column="merged_properties"    />
         <result property="propertyCount"    column="property_count"    />
+        <result property="propertyArea"    column="property_area"    />
     </resultMap>
 
     <sql id="selectSysOwnerProfileVo">
-        select p.owner_id, p.user_id, p.community_id, p.real_name, p.phonenumber, p.id_card_no, p.id_card_front_url, p.id_card_back_url, p.auth_status, p.building_no, p.unit_no, p.room_no, p.is_committee_member, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark, p.auth_remark,
-               u.is_owner, u.avatar, u.nick_name, u.status,
+        select p.owner_id, p.owner_no, p.user_id, p.community_id, u.user_name, u.phonenumber, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
+               u.is_owner, u.avatar, u.nick_name, u.status, u.nick_name as real_name,
+               (SELECT GROUP_CONCAT(CONCAT(sub_ep.building_name, '号楼', sub_ep.room_number) ORDER BY sub_ep.building_name, sub_ep.room_number SEPARATOR ', ')
+                FROM sys_estate_user_property sub_eup 
+                JOIN sys_estate_property sub_ep ON sub_eup.property_id = sub_ep.property_id 
+                WHERE sub_eup.owner_no = p.owner_no AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)
+               ) as merged_properties,
                (SELECT COALESCE(SUM(ep.area), 0)
-                FROM sys_estate_property ep
-                WHERE ep.community_id = p.community_id
-                  AND ep.building_name = p.building_no
-                  AND ep.room_number = p.room_no
-                  AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+                FROM sys_estate_user_property eup
+                JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+                WHERE eup.owner_no = p.owner_no AND eup.del_flag = '0' AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
                ) as property_area
         from sys_owner_profile p
         left join sys_user u on p.user_id = u.user_id
@@ -53,68 +51,66 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             MAX(p.owner_id) as owner_id,
             p.user_id,
             p.community_id,
-            p.real_name,
-            p.phonenumber,
-            MAX(p.id_card_no) as id_card_no,
-            MAX(p.id_card_front_url) as id_card_front_url,
-            MAX(p.id_card_back_url) as id_card_back_url,
-            MAX(p.auth_status) as auth_status,
             
-            GROUP_CONCAT(CONCAT(p.building_no, '号楼', p.room_no) ORDER BY p.building_no, p.room_no SEPARATOR ', ') as merged_properties,
-            COUNT(*) as property_count,
+            MAX(u.nick_name) as real_name,
+            MAX(p.phonenumber) as phonenumber, 
+            MAX(p.user_name) as user_name,
             
-            MAX(p.building_no) as building_no,
-            MAX(p.unit_no) as unit_no,
-            MAX(p.room_no) as room_no,
+            (SELECT GROUP_CONCAT(CONCAT(sub_ep.building_name, '号楼', sub_ep.room_number) ORDER BY sub_ep.building_name, sub_ep.room_number SEPARATOR ', ')
+             FROM sys_estate_user_property sub_eup 
+             JOIN sys_estate_property sub_ep ON sub_eup.property_id = sub_ep.property_id 
+             WHERE sub_eup.owner_no = MAX(p.owner_no) AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)) as merged_properties,
             
-            MAX(p.is_committee_member) as is_committee_member,
+            (SELECT COUNT(*)
+             FROM sys_estate_user_property sub_eup
+             WHERE sub_eup.owner_no = MAX(p.owner_no) AND sub_eup.del_flag = '0') as property_count,
+            
             MAX(p.del_flag) as del_flag,
             MAX(p.create_by) as create_by,
             MAX(p.create_time) as create_time,
             MAX(p.update_by) as update_by,
             MAX(p.update_time) as update_time,
             MAX(p.remark) as remark,
-            MAX(p.auth_remark) as auth_remark,
             
             MAX(u.is_owner) as is_owner,
             MAX(u.avatar) as avatar,
             MAX(u.nick_name) as nick_name,
-            MAX(u.status) as status,
+            COALESCE(MAX(u.status), '2') as status,
             
-            SUM(COALESCE(ep.area, 0)) as property_area
+            (SELECT COALESCE(SUM(sub_ep.area), 0)
+             FROM sys_estate_user_property sub_eup
+             JOIN sys_estate_property sub_ep ON sub_eup.property_id = sub_ep.property_id
+             WHERE sub_eup.owner_no = MAX(p.owner_no) AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)) as property_area
 
         FROM sys_owner_profile p
         LEFT JOIN sys_user u ON p.user_id = u.user_id
-        LEFT JOIN sys_estate_property ep ON ep.community_id = p.community_id 
-                                         AND ep.building_name = p.building_no 
-                                         AND ep.room_number = p.room_no 
-                                         AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
         <where>
-            <if test="realName != null  and realName != ''">
-                AND p.real_name like concat('%', #{realName}, '%')
+            <if test="userName != null  and userName != ''">
+                AND u.nick_name like concat('%', #{userName}, '%')
             </if>
             <if test="phonenumber != null and phonenumber != ''">
-                 AND p.phonenumber like concat('%', #{phonenumber}, '%')
-            </if>
-            <if test="communityId != null">
-                AND p.community_id = #{communityId}
-            </if>
-
-            <if test="authStatus != null">
-                AND p.auth_status = #{authStatus}
+                 AND (p.phonenumber like concat('%', #{phonenumber}, '%') OR u.phonenumber like concat('%', #{phonenumber}, '%'))
             </if>
         </where>
-        GROUP BY p.phonenumber, p.real_name, p.community_id, p.user_id
+        GROUP BY u.nick_name, p.community_id, p.user_id
         <if test="propertyTag != null and propertyTag != ''">
             HAVING 1=1
             <if test="propertyTag == '单套房'">
-                AND COUNT(*) = 1
+                AND property_count = 1
             </if>
             <if test="propertyTag == '多套房'">
-                AND COUNT(*) > 1
+                AND property_count > 1
             </if>
         </if>
         ORDER BY MAX(p.owner_id) DESC
+    </select>
+    
+    <select id="selectSysOwnerProfileRawList" parameterType="SysOwnerProfile" resultMap="SysOwnerProfileResult">
+        <include refid="selectSysOwnerProfileVo"/>
+        <where>
+            <if test="userName != null  and userName != ''"> AND p.user_name = #{userName}</if>
+            <if test="phonenumber != null and phonenumber != ''"> AND (p.phonenumber = #{phonenumber} OR u.phonenumber = #{phonenumber})</if>
+        </where>
     </select>
     
     <select id="selectSysOwnerProfileByOwnerId" parameterType="Long" resultMap="SysOwnerProfileResult">
@@ -122,59 +118,47 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where p.owner_id = #{ownerId}
     </select>
 
-    <select id="selectSysOwnerProfileByIdCardNo" parameterType="String" resultMap="SysOwnerProfileResult">
-        <include refid="selectSysOwnerProfileVo"/>
-        where p.id_card_no = #{idCardNo}
-    </select>
-
     <select id="selectSysOwnerProfileByUserId" parameterType="Long" resultMap="SysOwnerProfileResult">
         <include refid="selectSysOwnerProfileVo"/>
         where p.user_id = #{userId}
     </select>
+    
+    <select id="selectSysOwnerProfileByUserIdAndCommunityId" resultMap="SysOwnerProfileResult">
+        <include refid="selectSysOwnerProfileVo"/>
+        where p.user_id = #{userId} AND p.community_id = #{communityId}
+    </select>
         
+    <select id="checkOwnerNoUnique" parameterType="String" resultType="int">
+		select count(1) from sys_owner_profile where owner_no = #{ownerNo} limit 1
+	</select>
+
     <insert id="insertSysOwnerProfile" parameterType="SysOwnerProfile" useGeneratedKeys="true" keyProperty="ownerId">
         insert into sys_owner_profile
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ownerNo != null">owner_no,</if>
             <if test="userId != null">user_id,</if>
             <if test="communityId != null">community_id,</if>
-            <if test="realName != null and realName != ''">real_name,</if>
-            <if test="idCardNo != null and idCardNo != ''">id_card_no,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
             <if test="phonenumber != null and phonenumber != ''">phonenumber,</if>
-            <if test="idCardFrontUrl != null">id_card_front_url,</if>
-            <if test="idCardBackUrl != null">id_card_back_url,</if>
-            <if test="authStatus != null">auth_status,</if>
-            <if test="buildingNo != null">building_no,</if>
-            <if test="unitNo != null">unit_no,</if>
-            <if test="roomNo != null">room_no,</if>
-            <if test="isCommitteeMember != null">is_committee_member,</if>
             <if test="delFlag != null">del_flag,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
-            <if test="authRemark != null">auth_remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ownerNo != null">#{ownerNo},</if>
             <if test="userId != null">#{userId},</if>
             <if test="communityId != null">#{communityId},</if>
-            <if test="realName != null and realName != ''">#{realName},</if>
-            <if test="idCardNo != null and idCardNo != ''">#{idCardNo},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
             <if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
-            <if test="idCardFrontUrl != null">#{idCardFrontUrl},</if>
-            <if test="idCardBackUrl != null">#{idCardBackUrl},</if>
-            <if test="authStatus != null">#{authStatus},</if>
-            <if test="buildingNo != null">#{buildingNo},</if>
-            <if test="unitNo != null">#{unitNo},</if>
-            <if test="roomNo != null">#{roomNo},</if>
-            <if test="isCommitteeMember != null">#{isCommitteeMember},</if>
             <if test="delFlag != null">#{delFlag},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
-            <if test="authRemark != null">#{authRemark},</if>
          </trim>
     </insert>
 
@@ -183,23 +167,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="userId != null">user_id = #{userId},</if>
             <if test="communityId != null">community_id = #{communityId},</if>
-            <if test="realName != null and realName != ''">real_name = #{realName},</if>
-            <if test="idCardNo != null and idCardNo != ''">id_card_no = #{idCardNo},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
             <if test="phonenumber != null and phonenumber != ''">phonenumber = #{phonenumber},</if>
-            <if test="idCardFrontUrl != null">id_card_front_url = #{idCardFrontUrl},</if>
-            <if test="idCardBackUrl != null">id_card_back_url = #{idCardBackUrl},</if>
-            <if test="authStatus != null">auth_status = #{authStatus},</if>
-            <if test="buildingNo != null">building_no = #{buildingNo},</if>
-            <if test="unitNo != null">unit_no = #{unitNo},</if>
-            <if test="roomNo != null">room_no = #{roomNo},</if>
-            <if test="isCommitteeMember != null">is_committee_member = #{isCommitteeMember},</if>
             <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
             <if test="remark != null">remark = #{remark},</if>
-            <if test="authRemark != null">auth_remark = #{authRemark},</if>
         </trim>
         where owner_id = #{ownerId}
     </update>
@@ -221,4 +196,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{userId}
         </foreach>
     </delete>
+
+    <select id="selectSysOwnerProfileByPhoneNameCommunity" resultMap="SysOwnerProfileResult">
+        <include refid="selectSysOwnerProfileVo"/>
+        where (p.phonenumber = #{phonenumber} OR u.phonenumber = #{phonenumber})
+          AND u.nick_name = #{userName}
+          AND p.del_flag = '0'
+          LIMIT 1
+    </select>
 </mapper>

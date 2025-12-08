@@ -309,6 +309,9 @@
         <el-form-item label="附件">
           <file-upload v-model="topicForm.files"/>
         </el-form-item>
+        <el-form-item label="从多选项">
+           <el-switch v-model="topicForm.congduo" active-text="开启" inactive-text="关闭" active-value="1" inactive-value="0"></el-switch>
+        </el-form-item>
 <!--        <el-row>-->
 <!--          <el-col :span="8">-->
 <!--            <el-form-item label="同意票数" prop="agreeCount">-->
@@ -1173,7 +1176,8 @@ export default {
         files: null,
         agreeCount: 0,
         opposeCount: 0,
-        abstainCount: 0
+        abstainCount: 0,
+        congduo: "0"
       };
       this.resetForm("topicForm");
     },

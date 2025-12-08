@@ -22,7 +22,7 @@ export function listAllProperty(query) {
 // 提交房产审核
 export function addMyProperty(data) {
   return request({
-    url: '/app/user-property/add',
+    url: '/ownerProfile/submitAuth',
     method: 'post',
     data: data
   })

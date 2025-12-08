@@ -709,6 +709,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 copyTopic.setTopicContent(originTopic.getTopicContent());
                 // 复制文件路径
                 copyTopic.setFiles(originTopic.getFiles());
+                copyTopic.setCongduo(originTopic.getCongduo());
                 
                 copyTopic.setCreateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
                 copyTopic.setCreateTime(DateUtils.getNowDate());

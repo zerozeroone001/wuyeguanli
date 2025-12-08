@@ -40,17 +40,7 @@
           v-hasPermi="['system:owner:add']"
         >新增</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:owner:edit']"
-        >修改</el-button>
-      </el-col>
+
       <el-col :span="1.5">
         <el-button
           type="danger"
@@ -98,7 +88,7 @@
 
     <el-table v-loading="loading" :data="ownerList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="真实姓名" align="center" prop="realName" />
+      <el-table-column label="真实姓名" align="center" prop="userName" />
       <el-table-column label="联系号码" align="center" prop="phonenumber" />
       <el-table-column label="所属小区" align="center" prop="communityName" />
       <el-table-column label="房产信息" align="center" prop="mergedProperties" show-overflow-tooltip />
@@ -108,11 +98,6 @@
         </template>
       </el-table-column>
       <el-table-column label="房产面积(㎡)" align="center" prop="propertyArea" />
-      <el-table-column label="业委会成员" align="center" prop="isCommitteeMember">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_yes_no" :value="scope.row.isCommitteeMember"/>
-        </template>
-      </el-table-column>
       <el-table-column label="业委会/业主" align="center" prop="isOwner">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_owner_type" :value="scope.row.isOwner"/>
@@ -120,7 +105,7 @@
       </el-table-column>
       <el-table-column label="票权状态" align="center" prop="status">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
+          <div>{{scope.row.userId?'正常':'未绑定'}}</div>
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
@@ -176,68 +161,112 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改业主信息对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="form.realName" placeholder="请输入真实姓名" />
-        </el-form-item>
+    <!-- 添加业主信息对话框 -->
+    <el-dialog :title="titleAdd" :visible.sync="openAdd" width="800px" append-to-body>
+      <el-form ref="formAdd" :model="formAdd" :rules="rules" label-width="100px">
         <el-form-item label="所属小区" prop="communityId">
-          <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
-          <input type="hidden" v-model="form.communityId" />
+          <el-input v-model="formAdd.communityName" placeholder="请先在右上角选择小区" disabled />
+          <input type="hidden" v-model="formAdd.communityId" />
         </el-form-item>
-        <el-form-item label="绑定用户" prop="userId">
-          <el-input
-            v-model="selectedUserName"
-            placeholder="请选择要绑定的用户"
-            readonly
-            @click="showUserSelectDialog"
-          >
-            <el-button slot="append" icon="el-icon-search" @click="showUserSelectDialog">选择用户</el-button>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="手机号码" prop="phonenumber">
-          <el-input v-model="form.phonenumber" placeholder="请输入手机号码" />
-        </el-form-item>
-        <el-form-item label="身份证号" prop="idCardNo">
-          <el-input v-model="form.idCardNo" placeholder="请输入身份证号" />
-        </el-form-item>
-        <el-form-item label="楼栋号" prop="buildingNo">
-          <el-select v-model="form.buildingNo" placeholder="请选择楼栋号" filterable @change="handleBuildingChange">
-            <el-option
-              v-for="item in buildingOptions"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="房号" prop="roomNo">
-          <el-select v-model="form.roomNo" placeholder="请选择房号" filterable>
-            <el-option
-              v-for="item in roomOptions"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="业委会成员" prop="isCommitteeMember">
-          <el-radio-group v-model="form.isCommitteeMember">
-            <el-radio
-              v-for="dict in dict.type.sys_yes_no"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
+             <el-form-item label="真实姓名" prop="realName">
+               <el-input v-model="formAdd.realName" placeholder="请输入真实姓名" />
+             </el-form-item>
+             <el-form-item label="手机号码" prop="phonenumber">
+               <el-input v-model="formAdd.phonenumber" placeholder="请输入手机号码" />
+             </el-form-item>
+
+
+
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="formAdd.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
+
+
+            <el-form-item label="楼栋号" prop="buildingNo">
+              <el-select v-model="formAdd.buildingNo" placeholder="请选择楼栋号" filterable @change="handleBuildingChangeAdd">
+                <el-option v-for="item in buildingOptions" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="房号" prop="roomNo">
+              <el-select v-model="formAdd.roomNo" placeholder="请选择房号" filterable>
+                <el-option v-for="item in roomOptions" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="submitAddForm">保存基本信息</el-button>
+        <el-button @click="cancelAdd">关 闭</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 修改业主信息对话框 -->
+    <el-dialog :title="titleEdit" :visible.sync="openEdit" width="800px" append-to-body>
+      <el-form ref="formEdit" :model="formEdit" :rules="rules" label-width="100px">
+        <el-row>
+          <el-col :span="12">
+             <el-form-item label="真实姓名" prop="realName">
+               <el-input v-model="formEdit.realName" placeholder="请输入真实姓名" />
+             </el-form-item>
+          </el-col>
+          <el-col :span="12">
+             <el-form-item label="手机号码" prop="phonenumber">
+               <el-input v-model="formEdit.phonenumber" placeholder="请输入手机号码" />
+             </el-form-item>
+          </el-col>
+        </el-row>
+
+
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="formEdit.remark" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
+
+        <el-divider content-position="left">名下房产信息</el-divider>
+
+        <div style="margin-bottom: 10px;">
+            <el-button type="primary" size="mini" icon="el-icon-plus" @click="showAddPropertyForm" v-if="!isAddingProperty">新增房产</el-button>
+        </div>
+
+        <!-- Add Property Form -->
+        <div v-if="isAddingProperty" class="add-property-box" style="background: #f8f8f9; padding: 15px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ebeef5;">
+            <el-form :model="newProperty" ref="propertyForm" label-width="80px" :inline="true" size="small">
+                <el-form-item label="所属小区">
+                   <el-input v-model="formEdit.communityName" disabled style="width: 150px;"></el-input>
+                </el-form-item>
+                <el-form-item label="楼栋号">
+                  <el-select v-model="newProperty.buildingNo" placeholder="楼栋" filterable @change="handleNewBuildingChange" style="width: 120px;">
+                    <el-option v-for="item in buildingOptions" :key="item" :label="item" :value="item" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="房号">
+                  <el-select v-model="newProperty.roomNo" placeholder="房号" filterable style="width: 120px;">
+                    <el-option v-for="item in roomOptions" :key="item" :label="item" :value="item" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitNewProperty">保存</el-button>
+                    <el-button @click="cancelNewProperty">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+
+        <!-- Property List Table -->
+        <el-table :data="ownerPropertyList" style="width: 100%; margin-bottom: 10px;" size="mini" border>
+            <el-table-column prop="communityName" label="小区" width="150"></el-table-column>
+            <el-table-column prop="buildingName" label="楼栋" width="100"></el-table-column>
+            <el-table-column prop="roomNumber" label="房号" width="100"></el-table-column>
+            <el-table-column prop="area" label="面积(㎡)" width="100"></el-table-column>
+            <el-table-column label="操作" align="center">
+                <template slot-scope="scope">
+                    <el-button type="text" icon="el-icon-delete" class="text-danger" @click="handleDeleteProperty(scope.row)">移除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitEditForm">保存基本信息</el-button>
+        <el-button @click="cancelEdit">关 闭</el-button>
       </div>
     </el-dialog>
 
@@ -272,10 +301,6 @@
     </el-dialog>
 
     <!-- 用户选择弹窗 -->
-    <user-select-dialog
-      :visible.sync="userSelectVisible"
-      @confirm="handleUserSelect"
-    />
 
     <!-- 房产合并与拆分弹窗 -->
     <property-transfer-dialog ref="transferDialog" @refresh="getList" />
@@ -284,17 +309,16 @@
 </template>
 
 <script>
-import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity } from "@/api/system/owner";
+import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity, addOwnerProperty } from "@/api/system/owner";
+import { listEstateUserProperty, delEstateUserProperty } from "@/api/system/estateUserProperty";
 import { listBuildings, listRooms } from "@/api/system/estateProperty";
 import { getToken } from "@/utils/auth";
-import UserSelectDialog from "@/components/UserSelectDialog";
 import PropertyTransferDialog from "./PropertyTransferDialog";
 import { mapGetters } from "vuex";
 
 export default {
   name: "Owner",
   components: {
-    UserSelectDialog,
     PropertyTransferDialog
   },
   dicts: ['sys_yes_no', 'sys_auth_status', 'sys_owner_type', 'sys_normal_disable'],
@@ -318,14 +342,26 @@ export default {
       buildingOptions: [],
       // 房号选项
       roomOptions: [],
-      // 弹出层标题
-      title: "",
-      // 是否显示弹出层
-      open: false,
-      // 用户选择弹窗显示状态
-      userSelectVisible: false,
-      // 选中的用户名（用于显示）
-      selectedUserName: null,
+      // 业主房产列表
+      ownerPropertyList: [],
+      // 是否正在新增房产
+      isAddingProperty: false,
+      // 新增房产数据
+      newProperty: {
+        buildingNo: null,
+        roomNo: null
+      },
+
+      // 新增弹窗
+      openAdd: false,
+      titleAdd: "添加业主信息",
+      formAdd: {},
+
+      // 修改弹窗
+      openEdit: false,
+      titleEdit: "修改业主信息",
+      formEdit: {},
+
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -337,8 +373,6 @@ export default {
         communityId: null,
         propertyTag: null
       },
-      // 表单参数
-      form: {},
       // 表单校验
       rules: {
         realName: [
@@ -363,6 +397,12 @@ export default {
         // 上传的地址
         url: process.env.VUE_APP_BASE_API + "/system/owner/importData"
       },
+      // 自定义字典：业主绑定状态
+      sys_owner_bind_status: [
+        { value: '0', label: '正常' },
+        { value: '1', label: '停用' },
+        { value: '2', label: '未绑定' }
+      ]
     };
   },
   computed: {
@@ -457,14 +497,19 @@ export default {
         this.loading = false;
       });
     },
-    // 取消按钮
-    cancel() {
-      this.open = false;
-      this.reset();
+    // 取消按钮 (新增)
+    cancelAdd() {
+      this.openAdd = false;
+      this.resetAdd();
     },
-    // 表单重置
-    reset() {
-      this.form = {
+    // 取消按钮 (修改)
+    cancelEdit() {
+      this.openEdit = false;
+      this.resetEdit();
+    },
+    // 表单重置 (新增)
+    resetAdd() {
+      this.formAdd = {
         userId: null,
         realName: null,
         idCardNo: null,
@@ -475,7 +520,6 @@ export default {
         roomNo: null,
         communityId: null,
         communityName: "",
-        isCommitteeMember: "N",
         delFlag: null,
         createBy: null,
         createTime: null,
@@ -486,10 +530,36 @@ export default {
         phonenumber: null,
         contactNumber: null
       };
-      this.selectedUserName = null;
       this.buildingOptions = [];
       this.roomOptions = [];
-      this.resetForm("form");
+      this.resetForm("formAdd");
+    },
+    // 表单重置 (修改)
+    resetEdit() {
+      this.formEdit = {
+        userId: null,
+        realName: null,
+        idCardNo: null,
+        idCardFrontUrl: null,
+        idCardBackUrl: null,
+        authStatus: "2",
+        buildingNo: null,
+        roomNo: null,
+        communityId: null,
+        communityName: "",
+        delFlag: null,
+        createBy: null,
+        createTime: null,
+        updateBy: null,
+        updateTime: null,
+        remark: null,
+        authRemark: null,
+        phonenumber: null,
+        contactNumber: null
+      };
+      this.buildingOptions = [];
+      this.roomOptions = [];
+      this.resetForm("formEdit");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -515,30 +585,92 @@ export default {
         this.$message.warning("请先在右上角选择具体小区，再新增业主。");
         return;
       }
-      this.reset();
-      this.attachCommunityInfo(this.form, this.currentCommunityId);
-      this.getBuildingList(this.form.communityId);
-      this.open = true;
-      this.title = "添加业主信息";
+      this.resetAdd();
+      this.attachCommunityInfo(this.formAdd, this.currentCommunityId);
+      this.getBuildingList(this.formAdd.communityId);
+      this.openAdd = true;
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset();
+      this.resetEdit();
       const ownerId = row.ownerId || this.ids[0]
       getOwner(ownerId).then(response => {
-        this.form = response.data;
-        this.attachCommunityInfo(this.form, response.data.communityId);
+        this.formEdit = response.data;
+        this.attachCommunityInfo(this.formEdit, response.data.communityId);
 
-        if(this.form.communityId) {
-            this.getBuildingList(this.form.communityId);
-            if(this.form.buildingNo) {
-                this.getRoomList(this.form.communityId, this.form.buildingNo);
-            }
+        if(this.formEdit.communityId) {
+            this.getBuildingList(this.formEdit.communityId);
+            this.loadOwnerProperties();
         }
 
-        this.open = true;
-        this.title = "修改业主信息";
+        this.openEdit = true;
       });
+    },
+    /** 加载业主房产列表 */
+    loadOwnerProperties() {
+        if (!this.formEdit.ownerId) { // Change check to ownerId or just proceed
+            this.ownerPropertyList = [];
+            return;
+        }
+        listEstateUserProperty({
+            userId: this.formEdit.userId,
+            communityId: this.formEdit.communityId,
+            ownerNo: this.formEdit.ownerNo // Pass ownerNo
+        }).then(res => {
+            this.ownerPropertyList = res.rows;
+        });
+    },
+    /** 显示新增房产表单 */
+    showAddPropertyForm() {
+        this.isAddingProperty = true;
+        this.newProperty = { buildingNo: null, roomNo: null };
+        this.roomOptions = []; // Clear options for the new select
+        // Ensure building options are loaded (should be loaded in handleUpdate)
+    },
+    /** 新增房产楼栋变更 */
+    handleNewBuildingChange(value) {
+        this.newProperty.roomNo = null;
+        if (value && this.formEdit.communityId) {
+            this.getRoomList(this.formEdit.communityId, value);
+        }
+    },
+    /** 提交新增房产 */
+    submitNewProperty() {
+        if (!this.newProperty.buildingNo || !this.newProperty.roomNo) {
+            this.$message.error("请选择楼栋和房号");
+            return;
+        }
+
+        // 构建新增数据
+        const data = {
+            ownerId: this.formEdit.ownerId,
+            communityId: this.formEdit.communityId,
+            buildingNo: this.newProperty.buildingNo,
+            roomNo: this.newProperty.roomNo
+        };
+
+        addOwnerProperty(data).then(res => {
+            this.$message.success("房产添加成功");
+            this.isAddingProperty = false;
+            this.loadOwnerProperties(); // 刷新列表
+            this.getList(); // 刷新主列表
+        });
+    },
+    /** 取消新增房产 */
+    cancelNewProperty() {
+        this.isAddingProperty = false;
+    },
+    /** 删除房产 */
+    handleDeleteProperty(row) {
+        this.$confirm('确认要移除该房产吗？', '提示', {
+            type: 'warning'
+        }).then(() => {
+            delEstateUserProperty(row.associationId).then(res => {
+                this.$message.success("移除成功");
+                this.loadOwnerProperties();
+                this.getList();
+            });
+        }).catch(() => {});
     },
     /** 获取楼栋列表 */
     getBuildingList(communityId) {
@@ -548,47 +680,63 @@ export default {
     },
     /** 获取房号列表 */
     getRoomList(communityId, buildingName) {
-      listRooms({ communityId: communityId, buildingName: buildingName }).then(response => {
+      listRooms({
+        communityId: communityId,
+        buildingName: buildingName,
+        // ownerId: this.form.ownerId // Remove this dependency as it might confuse backend or not needed for listing rooms
+      }).then(response => {
         this.roomOptions = response.data;
       });
     },
-    /** 楼栋改变事件 */
-    handleBuildingChange(value) {
-      this.form.roomNo = null;
+    /** 楼栋改变事件 (Add) */
+    handleBuildingChangeAdd(value) {
+      this.formAdd.roomNo = null;
       this.roomOptions = [];
       if (value) {
-        this.getRoomList(this.form.communityId, value);
+        this.getRoomList(this.formAdd.communityId, value);
       }
     },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
+    /** 提交按钮 (新增) */
+    submitAddForm() {
+      this.$refs["formAdd"].validate(valid => {
         if (valid) {
-          if (this.form.communityId === null || this.form.communityId === undefined) {
+          if (this.formAdd.communityId === null || this.formAdd.communityId === undefined) {
             if (!this.isAllCommunitySelected) {
-              this.form.communityId = Number(this.currentCommunityId);
-              this.form.communityName = this.resolveCommunityName(this.form.communityId);
+              this.formAdd.communityId = Number(this.currentCommunityId);
+              this.formAdd.communityName = this.resolveCommunityName(this.formAdd.communityId);
             }
           }
-          const numericId = Number(this.form.communityId);
+          const numericId = Number(this.formAdd.communityId);
           if (Number.isNaN(numericId) || numericId === 0) {
             this.$message.error("请先为业主选择所属小区。");
             return;
           }
-          this.form.communityId = numericId;
-          if (this.form.ownerId != null) {
-            updateOwner(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addOwner(this.form).then(response => {
+          this.formAdd.communityId = numericId;
+
+          addOwner(this.formAdd).then(response => {
               this.$modal.msgSuccess("新增成功");
-              this.open = false;
+              this.openAdd = false;
               this.getList();
-            });
+          });
+        }
+      });
+    },
+    /** 提交按钮 (修改) */
+    submitEditForm() {
+      this.$refs["formEdit"].validate(valid => {
+        if (valid) {
+          const numericId = Number(this.formEdit.communityId);
+          if (Number.isNaN(numericId) || numericId === 0) {
+            this.$message.error("数据异常：缺少小区信息。");
+            return;
           }
+          this.formEdit.communityId = numericId;
+
+          updateOwner(this.formEdit).then(response => {
+              this.$modal.msgSuccess("修改成功");
+              this.openEdit = false;
+              this.getList();
+          });
         }
       });
     },
@@ -662,20 +810,6 @@ export default {
       }).catch(function() {
         // 操作失败时不需要修改状态，因为getList会重新获取数据
       });
-    },
-    /** 显示用户选择弹窗 */
-    showUserSelectDialog() {
-      this.userSelectVisible = true;
-    },
-    /** 处理用户选择 */
-    handleUserSelect(user) {
-      this.form.userId = user.userId;
-      this.selectedUserName = user.userName;
-      this.form.phonenumber = user.phonenumber;
-      // 如果真实姓名为空，使用昵称填充
-      if (!this.form.realName && user.nickName) {
-        this.form.realName = user.nickName;
-      }
     },
     /** 房产合并与拆分操作 */
     handleTransfer(row) {

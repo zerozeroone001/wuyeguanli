@@ -6,6 +6,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <resultMap type="EstateUserProperty" id="EstateUserPropertyResult">
         <result property="associationId" column="association_id" />
+        <result property="ownerNo" column="owner_no" />
         <result property="userId" column="user_id" />
         <result property="propertyId" column="property_id" />
         <result property="communityId" column="community_id" />
@@ -32,6 +33,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectEstateUserPropertyVo">
         select eup.association_id,
+               eup.owner_no,
                eup.user_id,
                eup.property_id,
                coalesce(eup.community_id, p.community_id) as community_id,
@@ -64,6 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectEstateUserPropertyVo"/>
         <where>
             <if test="userId != null">and eup.user_id = #{userId}</if>
+            <if test="ownerNo != null and ownerNo != ''">and eup.owner_no = #{ownerNo}</if>
             <if test="propertyId != null">and eup.property_id = #{propertyId}</if>
             <if test="communityId != null">
                 and (
@@ -101,9 +104,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where eup.association_id = #{associationId}
     </select>
 
+    <select id="checkOwnerNoUnique" parameterType="String" resultType="int">
+		select count(1) from sys_estate_user_property where owner_no = #{ownerNo} limit 1
+	</select>
+
     <insert id="insertEstateUserProperty" parameterType="EstateUserProperty" useGeneratedKeys="true" keyProperty="associationId">
         insert into sys_estate_user_property
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ownerNo != null">owner_no,</if>
             <if test="userId != null">user_id,</if>
             <if test="propertyId != null">property_id,</if>
             <if test="communityId != null">community_id,</if>
@@ -117,6 +125,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ownerNo != null">#{ownerNo},</if>
             <if test="userId != null">#{userId},</if>
             <if test="propertyId != null">#{propertyId},</if>
             <if test="communityId != null">#{communityId},</if>

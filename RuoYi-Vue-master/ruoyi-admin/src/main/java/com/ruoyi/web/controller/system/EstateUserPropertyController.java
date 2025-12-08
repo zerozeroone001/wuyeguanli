@@ -24,7 +24,7 @@ import com.ruoyi.system.domain.EstateUserProperty;
 import com.ruoyi.system.service.IEstateUserPropertyService;
 
 /**
- * ÓÃ»§Óë·¿ÎÝ¹ØÁª¹ÜÀí
+ * ï¿½Ã»ï¿½ï¿½ë·¿ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 @RestController
 @RequestMapping("/system/estateUserProperty")
@@ -34,7 +34,7 @@ public class EstateUserPropertyController extends BaseController
     private IEstateUserPropertyService estateUserPropertyService;
 
     /**
-     * ²éÑ¯ÁÐ±í
+     * ï¿½ï¿½Ñ¯ï¿½Ð±ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:property:list')")
     @GetMapping("/list")
@@ -46,20 +46,32 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * µ¼³ö
+     * apply
+     */
+    @PreAuthorize("@ss.hasPermi('system:property:list')")
+    @GetMapping("/applyList")
+    public TableDataInfo applyList(EstateUserProperty estateUserProperty)
+    {
+        startPage();
+        List<EstateUserProperty> list = estateUserPropertyService.selectEstateUserPropertyList(estateUserProperty);
+        return getDataTable(list);
+    }
+
+    /**
+     * ï¿½ï¿½ï¿½ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:property:export')")
-    @Log(title = "ÓÃ»§·¿ÎÝ¹ØÁª", businessType = BusinessType.EXPORT)
+    @Log(title = "ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, EstateUserProperty estateUserProperty)
     {
         List<EstateUserProperty> list = estateUserPropertyService.selectEstateUserPropertyList(estateUserProperty);
         ExcelUtil<EstateUserProperty> util = new ExcelUtil<>(EstateUserProperty.class);
-        util.exportExcel(response, list, "ÓÃ»§·¿ÎÝ¹ØÁªÊý¾Ý");
+        util.exportExcel(response, list, "ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
     }
 
     /**
-     * »ñÈ¡ÏêÇé
+     * ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:property:query')")
     @GetMapping(value = "/{associationId}")
@@ -69,10 +81,10 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * ÐÂÔö
+     * ï¿½ï¿½ï¿½ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:property:add')")
-    @Log(title = "ÓÃ»§·¿ÎÝ¹ØÁª", businessType = BusinessType.INSERT)
+    @Log(title = "ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody EstateUserProperty estateUserProperty)
     {
@@ -80,10 +92,10 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * ÐÞ¸Ä
+     * ï¿½Þ¸ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:property:edit')")
-    @Log(title = "ÓÃ»§·¿ÎÝ¹ØÁª", businessType = BusinessType.UPDATE)
+    @Log(title = "ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody EstateUserProperty estateUserProperty)
     {
@@ -91,10 +103,10 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * ÉóºË
+     * ï¿½ï¿½ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:owner:audit')")
-    @Log(title = "ÓÃ»§·¿ÎÝ¹ØÁªÉóºË", businessType = BusinessType.UPDATE)
+    @Log(title = "ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", businessType = BusinessType.UPDATE)
     @PutMapping("/audit")
     public AjaxResult audit(@RequestBody EstateUserProperty estateUserProperty)
     {
@@ -102,10 +114,10 @@ public class EstateUserPropertyController extends BaseController
     }
 
     /**
-     * É¾³ý
+     * É¾ï¿½ï¿½
      */
     @PreAuthorize("@ss.hasPermi('system:property:remove')")
-    @Log(title = "ÓÃ»§·¿ÎÝ¹ØÁª", businessType = BusinessType.DELETE)
+    @Log(title = "ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý¹ï¿½ï¿½ï¿½", businessType = BusinessType.DELETE)
     @DeleteMapping("/{associationIds}")
     public AjaxResult remove(@PathVariable Long[] associationIds)
     {

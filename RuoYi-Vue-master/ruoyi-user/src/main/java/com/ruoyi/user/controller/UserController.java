@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.ruoyi.framework.web.service.TokenService;
+import com.ruoyi.common.core.domain.model.LoginUser;
+
 /**
  * 用户信息
  * 
@@ -57,6 +60,8 @@ public class UserController extends BaseController
     @Autowired
     private ISysOwnerProfileService ownerProfileService;
 
+    @Autowired
+    private TokenService tokenService;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -218,6 +223,7 @@ public class UserController extends BaseController
     public AjaxResult bindPhone(@RequestBody Map<String, String> params)
     {
         String phoneNumber = params.get("phoneNumber");
+        String userName = params.get("userName");
         String code = params.get("code");
 
         // 验证手机号格式
@@ -236,15 +242,15 @@ public class UserController extends BaseController
         String codeKey = "sms:code:" + phoneNumber;
         String savedCode = redisTemplate.opsForValue().get(codeKey);
 
-        if (StringUtils.isEmpty(savedCode))
-        {
-            return error("验证码已过期,请重新获取");
-        }
-
-        if (!savedCode.equals(code))
-        {
-            return error("验证码错误");
-        }
+//        if (StringUtils.isEmpty(savedCode))
+//        {
+//            return error("验证码已过期,请重新获取");
+//        }
+//
+//        if (!savedCode.equals(code))
+//        {
+//            return error("验证码错误");
+//        }
 
         // 检查手机号是否已被其他用户绑定
         SysUser checkUser = new SysUser();
@@ -265,11 +271,20 @@ public class UserController extends BaseController
         SysUser user = new SysUser();
         user.setUserId(currentUserId);
         user.setPhonenumber(phoneNumber);
+        user.setUserName(userName);
         user.setUpdateBy(getUsername());
 
-        SysOwnerProfile ownerProfile = ownerProfileService.selectSysOwnerProfileByUserId(user.getUserId());
-        ownerProfile.setPhonenumber(phoneNumber);
-        ownerProfileService.updateSysOwnerProfile(ownerProfile);
+        SysOwnerProfile ownerProfile = ownerProfileService.selectSysOwnerProfileByPhoneNameCommunity(phoneNumber,userName);
+        if (ownerProfile != null) {
+            ownerProfile.setPhonenumber(phoneNumber);
+            ownerProfileService.updateSysOwnerProfile(ownerProfile);
+        }
+
+        // 尝试自动认领业主身份
+            int boundCount = ownerProfileService.bindUserToOwner(currentUserId, phoneNumber, userName);
+            if (boundCount > 0) {
+                user.setIsOwner(1);
+            }
 
         int rows = userService.updateUser(user);
         Map<String, Object> result = new HashMap<>();
@@ -280,6 +295,13 @@ public class UserController extends BaseController
 
             // 返回更新后的用户信息
             SysUser updatedUser = userService.selectUserById(currentUserId);
+
+            // 刷新用户信息缓存
+            LoginUser loginUser = SecurityUtils.getLoginUser();
+            if (loginUser != null) {
+                loginUser.setUser(updatedUser);
+                tokenService.setLoginUser(loginUser);
+            }
 
             result.put("userId", updatedUser.getUserId());
             result.put("phonenumber", updatedUser.getPhonenumber());

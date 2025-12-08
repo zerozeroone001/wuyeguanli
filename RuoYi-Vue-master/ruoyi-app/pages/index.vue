@@ -52,11 +52,15 @@
           <!-- 已登录状态 -->
           <template v-if="isLoggedIn">
             <view class="greeting-wrap">
-              <text class="greeting">{{ greeting }}，{{ nickName || '用户' }}</text>
-              <view class="weather-info">
+              <text class="greeting">{{ greeting }}，{{ '游客'||ownerProfile.userName }}</text>
+              <view class="weather-info" v-if="!authStatus">
                 <uni-icons type="cloudy" size="14" color="#8C8C8C" />
                 <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
               </view>
+            </view>
+            <view class="property-info" v-if="authStatus && propertyAddress">
+               <uni-icons type="home" size="14" color="#666" style="margin-right: 4px;" />
+               <text class="property-text">{{ propertyAddress }}</text>
             </view>
             <view class="auth-status" v-if="!authStatus" @click="goAuth">
               <text class="status-text">{{ ownerStatusText }}</text>
@@ -346,8 +350,9 @@ export default {
   },
   computed: {
     ...mapGetters([
-        'nickName',
-        'avatar',
+		'user',
+        'userName',
+		    'phonenumber',
         'ownerProfile', // 直接获取ownerProfile对象
         'token' // 添加token获取
     ]),
@@ -366,12 +371,15 @@ export default {
     // 新增：从业主信息中拼接地址
     propertyAddress() {
       if (this.authStatus && this.ownerProfile) {
-        const { buildingNo, unitNo, roomNo } = this.ownerProfile;
-        if (buildingNo || unitNo || roomNo) {
-          return `${buildingNo || ''} ${unitNo || ''} ${roomNo || ''}`.trim();
-        }
+        return this.ownerProfile.mergedProperties || '';
       }
       return '';
+    },
+    displayName() {
+      if (this.authStatus && this.ownerProfile) {
+         return this.ownerProfile.userName || this.userName;
+      }
+      return this.userName || '游客';
     },
     greeting() {
       const hour = new Date().getHours()
@@ -660,7 +668,6 @@ export default {
     },
 
     handleServiceClick(service) {
-      console.log('点击了服务:', service.name, service.path)
 
       // 检查是否绑定手机号
       if (!this.checkPhoneBound()) {
@@ -724,17 +731,20 @@ export default {
     // 检查是否绑定手机号（仅检查，不弹窗）
     isPhoneBound() {
       // 从store中获取用户手机号
-      const phonenumber = this.$store.state.user.phonenumber
-      return this.ownerProfile.phonenumber && this.ownerProfile.phonenumber.trim() !== ''
+      const phonenumber = this.user.phonenumber
+	  console.log(this.user,111111)
+      return phonenumber && phonenumber.trim() !== ''
     },
 
     // 检查是否绑定手机号（检查并弹窗）
     checkPhoneBound() {
       if (!this.isPhoneBound()) {
+		  console.log(6666)
         // 未绑定手机号，弹出绑定弹窗
         this.$refs.phoneBindModal.open()
         return false
       }
+	  console.log(6666555)
       return true
     },
 
@@ -1159,6 +1169,19 @@ console.log(noticeId)
             font-size: 24rpx;
             color: #8C8C8C;
           }
+        }
+      }
+      
+      .property-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16rpx;
+        padding: 8rpx 0;
+        
+        .property-text {
+          font-size: 26rpx;
+          color: #666;
+          font-weight: 500;
         }
       }
       

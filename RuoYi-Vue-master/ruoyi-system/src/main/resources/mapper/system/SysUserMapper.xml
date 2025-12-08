@@ -214,7 +214,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="communityId != null">community_id,</if>
 			<if test="createBy != null and createBy != ''">create_by,</if>
 			<if test="remark != null and remark != ''">remark,</if>
-			<if test="isOwner != null and is_owner != ''">remark,</if>
+			<if test="isOwner != null">is_owner,</if>
 		<if test="openid != null and openid != ''">openid,</if>
  			create_time
  		)values(
@@ -233,7 +233,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			<if test="communityId != null">#{communityId},</if>
  			<if test="createBy != null and createBy != ''">#{createBy},</if>
  			<if test="remark != null and remark != ''">#{remark},</if>
- 			<if test="isOwner != null and is_wner != ''">#{remark},</if>
+ 			<if test="isOwner != null">#{isOwner},</if>
 		<if test="openid != null and openid != ''">#{openid},</if>
  			sysdate()
  		)
@@ -244,6 +244,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  		<set>
  			<if test="deptId != null and deptId != 0">dept_id = #{deptId},</if>
  			<if test="nickName != null and nickName != ''">nick_name = #{nickName},</if>
+ 			<if test="userName != null and userName != ''">user_name = #{userName},</if>
  			<if test="email != null ">email = #{email},</if>
  			<if test="phonenumber != null ">phonenumber = #{phonenumber},</if>
  			<if test="sex != null and sex != ''">sex = #{sex},</if>

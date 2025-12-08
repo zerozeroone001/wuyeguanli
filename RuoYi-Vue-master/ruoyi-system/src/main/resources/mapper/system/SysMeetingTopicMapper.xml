@@ -12,11 +12,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="agreeCount"    column="agree_count"    />
         <result property="opposeCount"    column="oppose_count"    />
         <result property="abstainCount"    column="abstain_count"    />
+        <result property="congduoCount"    column="congduo_count"    />
         <result property="filesRaw"    column="files"    />
     </resultMap>
 
     <sql id="selectSysMeetingTopicVo">
-        select topic_id, meeting_id, topic_title, topic_content, agree_count, oppose_count, abstain_count, files from sys_property_meeting_topic t
+        select topic_id, meeting_id, topic_title, topic_content, agree_count, oppose_count, abstain_count, congduo_count, files from sys_property_meeting_topic t
     </sql>
 
     <select id="selectMeetingTopicList" parameterType="Long" resultMap="SysMeetingTopicResult">
@@ -35,6 +36,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test='choice == "0"'>agree_count = agree_count + 1,</if>
             <if test='choice == "1"'>oppose_count = oppose_count + 1,</if>
             <if test='choice == "2"'>abstain_count = abstain_count + 1,</if>
+            <if test='choice == "3"'>congduo_count = congduo_count + 1,</if>
         </set>
         where topic_id = #{topicId}
     </update>
@@ -45,6 +47,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test='choice == "0"'>agree_count = agree_count - 1,</if>
             <if test='choice == "1"'>oppose_count = oppose_count - 1,</if>
             <if test='choice == "2"'>abstain_count = abstain_count - 1,</if>
+            <if test='choice == "3"'>congduo_count = congduo_count - 1,</if>
         </set>
         where topic_id = #{topicId}
     </update>

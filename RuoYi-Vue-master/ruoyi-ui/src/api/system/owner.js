@@ -86,3 +86,12 @@ export function transferProperties(data) {
     data: data
   })
 }
+
+// 为已有业主添加房产
+export function addOwnerProperty(data) {
+  return request({
+    url: '/system/owner/addProperty',
+    method: 'post',
+    data: data
+  })
+}

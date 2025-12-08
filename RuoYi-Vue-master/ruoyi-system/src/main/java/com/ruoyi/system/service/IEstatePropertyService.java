@@ -77,6 +77,16 @@ public interface IEstatePropertyService
     public List<String> selectRoomNumbersByBuildingName(Long communityId, String buildingName);
 
     /**
+     * 查询楼栋下的房号列表
+     *
+     * @param communityId 小区ID
+     * @param buildingName 楼栋名称
+     * @param ownerId 排除的业主ID
+     * @return 房号集合
+     */
+    public List<String> selectRoomNumbersByBuildingName(Long communityId, String buildingName, Long ownerId);
+
+    /**
      * 根据小区ID、楼栋名称和房号查询房产ID
      *
      * @param communityId 小区ID

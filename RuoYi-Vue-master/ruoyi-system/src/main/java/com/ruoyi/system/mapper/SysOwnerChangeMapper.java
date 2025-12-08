@@ -58,4 +58,12 @@ public interface SysOwnerChangeMapper
      * @return 结果
      */
     public int deleteSysOwnerChangeByChangeIds(Long[] changeIds);
+
+    /**
+     * 根据用户ID删除业主变更申请
+     * 
+     * @param userId 用户ID
+     * @return 结果
+     */
+    public int deleteSysOwnerChangeByUserId(Long userId);
 }

@@ -12,7 +12,8 @@ const constant = {
   unit: 'user_unit',
   room: 'user_room',
   ownerType: 'user_owner_type',
-  isOwner: 'user_is_owner'
+  isOwner: 'user_is_owner',
+  ownerProfile: 'user_owner_profile'
  }
 
  export default constant

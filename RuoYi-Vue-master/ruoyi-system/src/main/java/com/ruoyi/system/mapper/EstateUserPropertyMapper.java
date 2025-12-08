@@ -58,4 +58,12 @@ public interface EstateUserPropertyMapper
      * @return 结果
      */
     public int deleteEstateUserPropertyByAssociationIds(Long[] associationIds);
+
+    /**
+     * 检查业主编号是否唯一
+     * 
+     * @param ownerNo 业主编号
+     * @return 结果
+     */
+    public int checkOwnerNoUnique(String ownerNo);
 }

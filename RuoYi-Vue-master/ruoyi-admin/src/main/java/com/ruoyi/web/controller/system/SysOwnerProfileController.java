@@ -205,4 +205,20 @@ public class SysOwnerProfileController extends BaseController
     
         return toAjax(sysOwnerProfileService.transferOwnerProperties(sourceUserId, targetUserId, targetPropertyIds));
     }
+
+    /**
+     * 为已有业主添加房产
+     */
+    @PreAuthorize("@ss.hasPermi('system:owner:edit')")
+    @Log(title = "添加业主房产", businessType = BusinessType.INSERT)
+    @PostMapping("/addProperty")
+    public AjaxResult addProperty(@RequestBody SysOwnerProfile sysOwnerProfile)
+    {
+        return toAjax(sysOwnerProfileService.addPropertyToOwner(
+            sysOwnerProfile.getOwnerId(), 
+            sysOwnerProfile.getCommunityId(), 
+            sysOwnerProfile.getBuildingNo(), 
+            sysOwnerProfile.getRoomNo()
+        ));
+    }
 }

@@ -19,6 +19,10 @@ public class SysOwnerProfile extends BaseEntity
     /** 业主ID (主键) */
     private Long ownerId;
 
+    /** 业主编号 */
+    @Excel(name = "业主编号")
+    private String ownerNo;
+
     /** 用户ID (外键, 可选) */
     private Long userId;
 
@@ -26,49 +30,11 @@ public class SysOwnerProfile extends BaseEntity
     @Excel(name = "小区ID")
     private Long communityId;
 
-    /** 真实姓名 */
-    @Excel(name = "真实姓名")
-    private String realName;
-
-    /** 身份证号 */
-    @Excel(name = "身份证号")
-    private String idCardNo;
-
-    /** 身份证正面照片URL */
-    private String idCardFrontUrl;
-
-    /** 身份证反面照片URL */
-    private String idCardBackUrl;
-
-    /** 实名认证状态（0未认证 1待审核 2已认证 3认证失败） */
-    private int authStatus;
-
-    /** 楼栋号 */
-    private String buildingNo;
-
-    /** 单元号 */
-    private String unitNo;
-
-    /** 房号 */
-    private String roomNo;
-
     /** 房产面积 */
     private BigDecimal propertyArea;
 
-    /** 是否为业委会成员（Y是 N否） */
-    private String isCommitteeMember;
-
     /** 删除标志（0存在 2删除） */
     private String delFlag;
-
-    /** 审核备注（例如，失败原因） */
-    private String authRemark;
-
-    /** 手机号码 */
-    private String phonenumber;
-
-    /** 联系号码 */
-    private String contactNumber;
 
     /** 是否业主（0否 1业主 2业委会） */
     private int isOwner;
@@ -76,8 +42,28 @@ public class SysOwnerProfile extends BaseEntity
     /** 用户头像 */
     private String avatar;
 
+    /** 用户姓名 (Snapshot) */
+    @Excel(name = "用户姓名")
+    private String userName;
+
+    /** 真实姓名 (DTO/Transient) */
+    private String realName;
+
     /** 用户昵称 */
     private String nickName;
+
+    /** 手机号码 */
+    @Excel(name = "手机号码")
+    private String phonenumber;
+
+    /** 楼栋号 (临时字段) */
+    private String buildingNo;
+
+    /** 单元号 (临时字段) */
+    private String unitNo;
+
+    /** 房号 (临时字段) */
+    private String roomNo;
 
     /** 账号状态（0正常 1停用） */
     private String status;
@@ -101,6 +87,16 @@ public class SysOwnerProfile extends BaseEntity
         return ownerId;
     }
 
+    public void setOwnerNo(String ownerNo) 
+    {
+        this.ownerNo = ownerNo;
+    }
+
+    public String getOwnerNo() 
+    {
+        return ownerNo;
+    }
+
     public void setUserId(Long userId) 
     {
         this.userId = userId;
@@ -119,51 +115,87 @@ public class SysOwnerProfile extends BaseEntity
     {
         return communityId;
     }
-    public void setRealName(String realName) 
+    
+    public void setPropertyArea(BigDecimal propertyArea)
+    {
+        this.propertyArea = propertyArea;
+    }
+    
+    public BigDecimal getPropertyArea()
+    {
+        return propertyArea;
+    }
+
+    public void setDelFlag(String delFlag) 
+    {
+        this.delFlag = delFlag;
+    }
+
+    public String getDelFlag() 
+    {
+        return delFlag;
+    }
+
+    public void setIsOwner(int isOwner)
+    {
+        this.isOwner = isOwner;
+    }
+
+    public int getIsOwner()
+    {
+        return isOwner;
+    }
+
+    public void setAvatar(String avatar)
+    {
+        this.avatar = avatar;
+    }
+
+    public String getAvatar()
+    {
+        return avatar;
+    }
+
+    public void setUserName(String userName)
+    {
+        this.userName = userName;
+    }
+
+    public String getUserName()
+    {
+        return userName;
+    }
+
+    public void setRealName(String realName)
     {
         this.realName = realName;
     }
 
-    public String getRealName() 
+    public String getRealName()
     {
         return realName;
     }
-    public void setIdCardNo(String idCardNo) 
+
+    public void setNickName(String nickName)
     {
-        this.idCardNo = idCardNo;
+        this.nickName = nickName;
     }
 
-    public String getIdCardNo() 
+    public String getNickName()
     {
-        return idCardNo;
-    }
-    public void setIdCardFrontUrl(String idCardFrontUrl) 
-    {
-        this.idCardFrontUrl = idCardFrontUrl;
+        return nickName;
     }
 
-    public String getIdCardFrontUrl() 
+    public void setPhonenumber(String phonenumber)
     {
-        return idCardFrontUrl;
-    }
-    public void setIdCardBackUrl(String idCardBackUrl) 
-    {
-        this.idCardBackUrl = idCardBackUrl;
+        this.phonenumber = phonenumber;
     }
 
-    public String getIdCardBackUrl() 
+    public String getPhonenumber()
     {
-        return idCardBackUrl;
-    }
-    public void setAuthStatus(int authStatus)
-    {
-        this.authStatus = authStatus;
+        return phonenumber;
     }
 
-    public int getAuthStatus()
-    {
-        return authStatus;
-    }
     public void setBuildingNo(String buildingNo) 
     {
         this.buildingNo = buildingNo;
@@ -190,94 +222,6 @@ public class SysOwnerProfile extends BaseEntity
     public String getRoomNo() 
     {
         return roomNo;
-    }
-    
-    public void setPropertyArea(BigDecimal propertyArea)
-    {
-        this.propertyArea = propertyArea;
-    }
-    
-    public BigDecimal getPropertyArea()
-    {
-        return propertyArea;
-    }
-
-    public void setIsCommitteeMember(String isCommitteeMember) 
-    {
-        this.isCommitteeMember = isCommitteeMember;
-    }
-
-    public String getIsCommitteeMember() 
-    {
-        return isCommitteeMember;
-    }
-    public void setDelFlag(String delFlag) 
-    {
-        this.delFlag = delFlag;
-    }
-
-    public String getDelFlag() 
-    {
-        return delFlag;
-    }
-    public void setAuthRemark(String authRemark) 
-    {
-        this.authRemark = authRemark;
-    }
-
-    public String getAuthRemark() 
-    {
-        return authRemark;
-    }
-
-    public void setPhonenumber(String phonenumber)
-    {
-        this.phonenumber = phonenumber;
-    }
-
-    public String getPhonenumber()
-    {
-        return phonenumber;
-    }
-
-    public void setContactNumber(String contactNumber) 
-    {
-        this.contactNumber = contactNumber;
-    }
-
-    public String getContactNumber() 
-    {
-        return contactNumber;
-    }
-
-    public void setIsOwner(int isOwner)
-    {
-        this.isOwner = isOwner;
-    }
-
-    public int getIsOwner()
-    {
-        return isOwner;
-    }
-
-    public void setAvatar(String avatar)
-    {
-        this.avatar = avatar;
-    }
-
-    public String getAvatar()
-    {
-        return avatar;
-    }
-
-    public void setNickName(String nickName)
-    {
-        this.nickName = nickName;
-    }
-
-    public String getNickName()
-    {
-        return nickName;
     }
 
     public void setStatus(String status)
@@ -326,21 +270,13 @@ public class SysOwnerProfile extends BaseEntity
             .append("ownerId", getOwnerId())
             .append("userId", getUserId())
             .append("communityId", getCommunityId())
-            .append("realName", getRealName())
-            .append("idCardNo", getIdCardNo())
-            .append("idCardFrontUrl", getIdCardFrontUrl())
-            .append("idCardBackUrl", getIdCardBackUrl())
-            .append("authStatus", getAuthStatus())
-            .append("buildingNo", getBuildingNo())
-            .append("unitNo", getUnitNo())
-            .append("roomNo", getRoomNo())
             .append("propertyArea", getPropertyArea())
-            .append("isCommitteeMember", getIsCommitteeMember())
-            .append("phonenumber", getPhonenumber())
-            .append("contactNumber", getContactNumber())
             .append("isOwner", getIsOwner())
             .append("avatar", getAvatar())
             .append("nickName", getNickName())
+            .append("userName", getUserName())
+            .append("realName", getRealName())
+            .append("phonenumber", getPhonenumber())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())
             .append("createBy", getCreateBy())
@@ -348,7 +284,6 @@ public class SysOwnerProfile extends BaseEntity
             .append("updateBy", getUpdateBy())
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
-            .append("authRemark", getAuthRemark())
             .toString();
     }
 }

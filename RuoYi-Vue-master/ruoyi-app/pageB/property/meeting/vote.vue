@@ -120,6 +120,7 @@
             <text>弃权</text>
           </button>
           <button 
+            v-if="topic.congduo === '1' || topic.congduo === 1"
             size="mini"
             class="vote-btn majority"
             :class="{ selected: voteData[topic.topicId] === 3 }"

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * C端访客登记接口
  */
 @RestController
-@RequestMapping("/userapi/visitor")
+@RequestMapping("/visitor")
 public class UserVisitorController extends BaseController {
 
     @Autowired

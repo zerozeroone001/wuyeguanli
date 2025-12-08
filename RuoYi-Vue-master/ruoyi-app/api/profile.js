@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 提交业主认证申请
 export function submitAuth(data) {
   return request({
-    url: '/ownerProfile/submitAuth',
+    url: '/ownerProfile',
     method: 'post',
     data: data
   })

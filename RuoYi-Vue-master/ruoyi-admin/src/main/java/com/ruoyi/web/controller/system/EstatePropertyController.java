@@ -115,8 +115,8 @@ public class EstatePropertyController extends BaseController
      * 查询楼栋下的房号列表
      */
     @GetMapping("/rooms")
-    public AjaxResult getRooms(Long communityId, String buildingName)
+    public AjaxResult getRooms(Long communityId, String buildingName, Long ownerId)
     {
-        return success(estatePropertyService.selectRoomNumbersByBuildingName(communityId, buildingName));
+        return success(estatePropertyService.selectRoomNumbersByBuildingName(communityId, buildingName, ownerId));
     }
 }

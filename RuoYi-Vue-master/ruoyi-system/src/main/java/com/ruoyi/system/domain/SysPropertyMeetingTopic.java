@@ -47,6 +47,14 @@ public class SysPropertyMeetingTopic extends BaseEntity
     @Excel(name = "弃权票数")
     private Long abstainCount;
 
+    /** 是否开启从多选项 */
+    @Excel(name = "是否开启从多选项")
+    private String congduo;
+
+    /** 从多票数 */
+    @Excel(name = "从多票数")
+    private Long congduoCount;
+
     /** 显示顺序 */
     @Excel(name = "显示顺序")
     private Long orderNum;
@@ -135,6 +143,26 @@ public class SysPropertyMeetingTopic extends BaseEntity
     public Long getAbstainCount()
     {
         return abstainCount;
+    }
+
+    public void setCongduo(String congduo)
+    {
+        this.congduo = congduo;
+    }
+
+    public String getCongduo()
+    {
+        return congduo;
+    }
+
+    public void setCongduoCount(Long congduoCount)
+    {
+        this.congduoCount = congduoCount;
+    }
+
+    public Long getCongduoCount()
+    {
+        return congduoCount;
     }
 
     public void setOrderNum(Long orderNum)

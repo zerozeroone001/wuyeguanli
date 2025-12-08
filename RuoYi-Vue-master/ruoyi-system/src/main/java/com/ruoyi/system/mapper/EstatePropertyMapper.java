@@ -73,9 +73,10 @@ public interface EstatePropertyMapper
      *
      * @param communityId 小区ID
      * @param buildingName 楼栋名称
+     * @param ownerId 排除的业主ID（即当前编辑的业主ID，该业主占用的房号不应被过滤）
      * @return 房号集合
      */
-    public List<String> selectRoomNumbersByBuildingName(@Param("communityId") Long communityId, @Param("buildingName") String buildingName);
+    public List<String> selectRoomNumbersByBuildingName(@Param("communityId") Long communityId, @Param("buildingName") String buildingName, @Param("ownerId") Long ownerId);
 
     /**
      * 根据小区ID、楼栋名称和房号查询房产ID

@@ -117,7 +117,21 @@ public class EstatePropertyServiceImpl implements IEstatePropertyService
     @Override
     public List<String> selectRoomNumbersByBuildingName(Long communityId, String buildingName)
     {
-        return estatePropertyMapper.selectRoomNumbersByBuildingName(communityId, buildingName);
+        return selectRoomNumbersByBuildingName(communityId, buildingName, null);
+    }
+
+    /**
+     * 查询楼栋下的房号列表
+     *
+     * @param communityId 小区ID
+     * @param buildingName 楼栋名称
+     * @param ownerId 排除的业主ID
+     * @return 房号集合
+     */
+    @Override
+    public List<String> selectRoomNumbersByBuildingName(Long communityId, String buildingName, Long ownerId)
+    {
+        return estatePropertyMapper.selectRoomNumbersByBuildingName(communityId, buildingName, ownerId);
     }
 
     /**

@@ -29,6 +29,15 @@ public interface ISysOwnerProfileService
     public SysOwnerProfile selectSysOwnerProfileByUserId(Long userId);
 
     /**
+     * 根据用户ID和小区ID查询业主信息
+     *
+     * @param userId 用户ID
+     * @param communityId 小区ID
+     * @return 业主信息扩展
+     */
+    public SysOwnerProfile selectSysOwnerProfileByUserIdAndCommunityId(Long userId, Long communityId);
+
+    /**
      * 查询业主信息扩展列表
      * 
      * @param sysOwnerProfile 业主信息扩展
@@ -95,9 +104,17 @@ public interface ISysOwnerProfileService
     public int auditOwnerProfile(SysOwnerProfile sysOwnerProfile);
 
     /**
-     * 清除用户缓存
+     * 自动绑定用户到业主档案
      * 
      * @param userId 用户ID
+     * @param phonenumber 手机号
+     * @param userName 真实姓名
+     * @return 绑定的业主记录数量
+     */
+    public int bindUserToOwner(Long userId, String phonenumber, String userName);
+
+    /**
+     * 清除用户缓存
      */
     public void clearUserCache(Long userId);
 
@@ -110,4 +127,23 @@ public interface ISysOwnerProfileService
      * @return 结果
      */
     public boolean transferOwnerProperties(Long sourceUserId, Long targetUserId, List<Long> targetPropertyIds);
+
+    /**
+     * 为已有业主添加新房产
+     *
+     * @param ownerId 业主ID
+     * @param communityId 小区ID
+     * @param buildingNo 楼栋号
+     * @param roomNo 房号
+     * @return 结果
+     */
+    public int addPropertyToOwner(Long ownerId, Long communityId, String buildingNo, String roomNo);
+
+    /**
+     * 根据用户联系电话、用户姓名、小区ID查询单条业主信息
+     * @param phonenumber 用户联系电话
+     * @param realName 用户姓名 (实际对应u.nick_name)
+     * @return 业主信息扩展
+     */
+    public SysOwnerProfile selectSysOwnerProfileByPhoneNameCommunity(String phonenumber, String realName);
 }

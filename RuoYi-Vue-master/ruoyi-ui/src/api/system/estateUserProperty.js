@@ -25,3 +25,11 @@ export function auditEstateUserProperty(data) {
     data
   })
 }
+
+// 删除房屋关联
+export function delEstateUserProperty(associationId) {
+  return request({
+    url: `/system/estateUserProperty/${associationId}`,
+    method: 'delete'
+  })
+}

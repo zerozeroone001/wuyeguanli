@@ -43,10 +43,10 @@
       <el-form-item label="审核状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择审核状态" clearable>
           <el-option
-            v-for="dict in dict.type.sys_auth_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
+            v-for="(dict,index) in statusbar"
+            :key="index"
+            :label="dict"
+            :value="index"
           />
         </el-select>
       </el-form-item>
@@ -104,15 +104,14 @@
       <el-table-column label="申请人" align="center" min-width="160">
         <template slot-scope="scope">
           <div class="user-info">
-            <div class="user-name">{{ scope.row.realName || scope.row.nickName || '-' }}</div>
-            <div class="user-extra">{{ scope.row.phonenumber || scope.row.userName || '-' }}</div>
+            <div class="user-name">{{ scope.row.nickName || '-' }}</div>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="联系电话" prop="phonenumber" align="center" min-width="120" />
       <el-table-column label="审核状态" prop="status" align="center" min-width="110">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_auth_status" :value="scope.row.status" />
+          <div class="user-status">{{statusbar[scope.row.status]}}</div>
         </template>
       </el-table-column>
       <el-table-column label="提交时间" prop="createTime" align="center" min-width="160">
@@ -188,9 +187,7 @@
         <el-descriptions-item label="门牌号">{{ currentRow.roomNumber || '-' }}</el-descriptions-item>
         <el-descriptions-item label="申请人">{{ currentRow.realName || currentRow.nickName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ currentRow.phonenumber || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="审核状态">
-          <dict-tag :options="dict.type.sys_auth_status" :value="currentRow.status" />
-        </el-descriptions-item>
+        <el-descriptions-item label="审核状态">{{currentRow.status}}</el-descriptions-item>
         <el-descriptions-item label="备注">{{ currentRow.remark || '-' }}</el-descriptions-item>
         <el-descriptions-item label="提交时间">
           {{ parseTime(currentRow.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}
@@ -247,7 +244,12 @@ export default {
         roomNumber: '',
         status: '',
         keyword: ''
-      }
+      },
+      statusbar: {
+        '0':'待审核',
+        '1':'驳回',
+        '2':'通过'
+      },
     }
   },
   created() {

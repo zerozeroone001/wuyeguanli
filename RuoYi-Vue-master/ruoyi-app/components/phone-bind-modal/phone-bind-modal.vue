@@ -15,6 +15,17 @@
         </view>
 
         <view class="form-item">
+          <text class="label">姓名</text>
+          <input
+            class="input"
+            v-model="userName"
+            placeholder="请输入姓名"
+            placeholder-class="input-placeholder"
+            type="text"
+          />
+        </view>
+
+        <view class="form-item">
           <text class="label">手机号码</text>
           <input
             class="input"
@@ -64,6 +75,7 @@ export default {
   data() {
     return {
       phoneNumber: '',
+      userName: '',
       verifyCode: '',
       sendCodeDisabled: false,
       countdown: 60,
@@ -87,6 +99,7 @@ export default {
     resetForm() {
       this.phoneNumber = ''
       this.verifyCode = ''
+      this.userName = '' // Added this line
       this.sendCodeDisabled = false
       this.countdown = 60
       this.sendCodeText = '发送验证码'
@@ -174,6 +187,14 @@ export default {
         return
       }
 
+      if (!this.userName) {
+        uni.showToast({
+          title: '请输入姓名',
+          icon: 'none'
+        })
+        return
+      }
+
       if (!this.verifyCode) {
         uni.showToast({
           title: '请输入验证码',
@@ -195,7 +216,8 @@ export default {
 
         await bindPhone({
           phoneNumber: this.phoneNumber,
-          code: this.verifyCode
+          code: this.verifyCode,
+          userName: this.userName // Added this line
         })
 
         uni.hideLoading()

@@ -19,6 +19,10 @@ public class EstateUserProperty extends BaseEntity
     /** 关联ID */
     private Long associationId;
 
+    /** 业主编号 */
+    @Excel(name = "业主编号")
+    private String ownerNo;
+
     /** 用户ID */
     @Excel(name = "用户ID")
     private Long userId;
@@ -86,6 +90,16 @@ public class EstateUserProperty extends BaseEntity
     public Long getAssociationId() 
     {
         return associationId;
+    }
+
+    public void setOwnerNo(String ownerNo) 
+    {
+        this.ownerNo = ownerNo;
+    }
+
+    public String getOwnerNo() 
+    {
+        return ownerNo;
     }
 
     public void setUserId(Long userId) 

@@ -13,6 +13,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="agreeCount"    column="agree_count"    />
         <result property="opposeCount"    column="oppose_count"    />
         <result property="abstainCount"    column="abstain_count"    />
+        <result property="congduo"    column="congduo"    />
+        <result property="congduoCount"    column="congduo_count"    />
         <result property="orderNum"    column="order_num"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
@@ -22,7 +24,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyMeetingTopicVo">
-        select topic_id, meeting_id, topic_title, topic_content, files, agree_count, oppose_count, abstain_count, order_num, create_by, create_time, update_by, update_time, remark from sys_property_meeting_topic
+        select topic_id, meeting_id, topic_title, topic_content, files, agree_count, oppose_count, abstain_count, congduo, congduo_count, order_num, create_by, create_time, update_by, update_time, remark from sys_property_meeting_topic
     </sql>
 
     <select id="selectSysPropertyMeetingTopicList" parameterType="SysPropertyMeetingTopic" resultMap="SysPropertyMeetingTopicResult">
@@ -35,6 +37,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="agreeCount != null "> and agree_count = #{agreeCount}</if>
             <if test="opposeCount != null "> and oppose_count = #{opposeCount}</if>
             <if test="abstainCount != null "> and abstain_count = #{abstainCount}</if>
+            <if test="congduo != null  and congduo != ''"> and congduo = #{congduo}</if>
+            <if test="congduoCount != null "> and congduo_count = #{congduoCount}</if>
             <if test="orderNum != null "> and order_num = #{orderNum}</if>
         </where>
     </select>
@@ -54,6 +58,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="agreeCount != null">agree_count,</if>
             <if test="opposeCount != null">oppose_count,</if>
             <if test="abstainCount != null">abstain_count,</if>
+            <if test="congduo != null">congduo,</if>
+            <if test="congduoCount != null">congduo_count,</if>
             <if test="orderNum != null">order_num,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
@@ -69,6 +75,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="agreeCount != null">#{agreeCount},</if>
             <if test="opposeCount != null">#{opposeCount},</if>
             <if test="abstainCount != null">#{abstainCount},</if>
+            <if test="congduo != null">#{congduo},</if>
+            <if test="congduoCount != null">#{congduoCount},</if>
             <if test="orderNum != null">#{orderNum},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
@@ -88,6 +96,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="agreeCount != null">agree_count = #{agreeCount},</if>
             <if test="opposeCount != null">oppose_count = #{opposeCount},</if>
             <if test="abstainCount != null">abstain_count = #{abstainCount},</if>
+            <if test="congduo != null">congduo = #{congduo},</if>
+            <if test="congduoCount != null">congduo_count = #{congduoCount},</if>
             <if test="orderNum != null">order_num = #{orderNum},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>

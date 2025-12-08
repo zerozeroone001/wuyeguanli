@@ -30,6 +30,9 @@ const getters = {
   }),
   ownerType: state => state.user.ownerType,
   ownerProfile: state => state.user.ownerProfile,
-  isOwner: state => state.user.isOwner
+  isOwner: state => state.user.isOwner,
+  user: state => state.user,
+  userName: state => state.user.name,
+  phonenumber: state => state.user.phonenumber
 }
 export default getters
