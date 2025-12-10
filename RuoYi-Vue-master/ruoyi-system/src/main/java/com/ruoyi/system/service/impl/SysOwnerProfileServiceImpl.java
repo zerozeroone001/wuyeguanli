@@ -109,7 +109,6 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
         String ownerNo = Utils.createOwnerNo();
         if (existing == null) {
             sysOwnerProfile.setOwnerNo(ownerNo);
-            sysOwnerProfile.setUserName(sysOwnerProfile.getRealName());
             // 3. 插入档案
             sysOwnerProfile.setCreateTime(DateUtils.getNowDate());
             rows = sysOwnerProfileMapper.insertSysOwnerProfile(sysOwnerProfile);

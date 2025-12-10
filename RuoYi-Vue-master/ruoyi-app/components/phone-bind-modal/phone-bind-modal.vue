@@ -218,25 +218,51 @@ export default {
           phoneNumber: this.phoneNumber,
           code: this.verifyCode,
           userName: this.userName // Added this line
-        })
-
-        uni.hideLoading()
-        uni.showToast({
-          title: '绑定成功',
-          icon: 'success'
-        })
-
-        // 更新用户信息
-        await this.$store.dispatch('GetInfo')
-
-        // 延迟关闭弹窗并触发成功回调
-        setTimeout(() => {
-          this.closeModal()
-          this.$emit('success')
-        }, 1500)
+        }).then(res=>{
+			if(res.data.isOwner==0){
+				
+				uni.showToast({
+				  title: '房产未录入，请申请产权认证',
+				  icon: 'none'
+				})
+				
+				
+				// 延迟关闭弹窗并触发成功回调
+				setTimeout(() => {
+				  this.closeModal()
+				  this.$emit('房产未录入，请申请产权认证')
+				}, 1500)
+				
+				
+				setTimeout(() => {
+				  uni.navigateTo({
+				    url: '/pageB/property/add',
+				    fail: (err) => {
+				      console.error('跳转产权认证页面失败:', err);
+				      uni.showToast({
+				        title: '页面跳转失败',
+				        icon: 'none'
+				      });
+				    }
+				  });
+				}, 1500)
+				
+			}else{
+				uni.hideLoading()
+		
+				// 延迟关闭弹窗并触发成功回调
+				setTimeout(() => {
+				  this.closeModal()
+				  this.$emit('success')
+				}, 1500)
+				
+			}
+		})
+		// 更新用户信息
+		await this.$store.dispatch('GetInfo')
+        
       } catch (error) {
         uni.hideLoading()
-        console.error('绑定手机号失败', error)
         uni.showToast({
           title: error.msg || '绑定失败，请稍后重试',
           icon: 'none'

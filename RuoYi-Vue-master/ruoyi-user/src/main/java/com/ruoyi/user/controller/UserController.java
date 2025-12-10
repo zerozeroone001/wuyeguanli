@@ -35,13 +35,12 @@ import com.ruoyi.common.core.domain.model.LoginUser;
 
 /**
  * 用户信息
- * 
+ *
  * @author ruoyi
  */
 @RestController
 @RequestMapping("/user/info")
-public class UserController extends BaseController
-{
+public class UserController extends BaseController {
     @Autowired
     private ISysUserService userService;
 
@@ -68,8 +67,7 @@ public class UserController extends BaseController
 
 
     @PostMapping("/importTemplate")
-    public void importTemplate(HttpServletResponse response)
-    {
+    public void importTemplate(HttpServletResponse response) {
         ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
         util.importTemplateExcel(response, "用户数据");
     }
@@ -78,12 +76,10 @@ public class UserController extends BaseController
      * 根据用户编号获取详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:user:query')")
-    @GetMapping(value = { "/", "/{userId}" })
-    public AjaxResult getInfo(@PathVariable(value = "userId", required = false) Long userId)
-    {
+    @GetMapping(value = {"/", "/{userId}"})
+    public AjaxResult getInfo(@PathVariable(value = "userId", required = false) Long userId) {
         AjaxResult ajax = AjaxResult.success();
-        if (StringUtils.isNotNull(userId))
-        {
+        if (StringUtils.isNotNull(userId)) {
             userService.checkUserDataScope(userId);
             SysUser sysUser = userService.selectUserById(userId);
             ajax.put(AjaxResult.DATA_TAG, sysUser);
@@ -97,29 +93,22 @@ public class UserController extends BaseController
     }
 
 
-
     /**
      * 修改用户
      */
     @PreAuthorize("@ss.hasPermi('system:user:edit')")
     @Log(title = "用户管理", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@Validated @RequestBody SysUser user)
-    {
+    public AjaxResult edit(@Validated @RequestBody SysUser user) {
         userService.checkUserAllowed(user);
         userService.checkUserDataScope(user.getUserId());
         deptService.checkDeptDataScope(user.getDeptId());
         roleService.checkRoleDataScope(user.getRoleIds());
-        if (!userService.checkUserNameUnique(user))
-        {
+        if (!userService.checkUserNameUnique(user)) {
             return error("修改用户'" + user.getUserName() + "'失败，登录账号已存在");
-        }
-        else if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(user))
-        {
+        } else if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(user)) {
             return error("修改用户'" + user.getUserName() + "'失败，手机号码已存在");
-        }
-        else if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(user))
-        {
+        } else if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(user)) {
             return error("修改用户'" + user.getUserName() + "'失败，邮箱账号已存在");
         }
         user.setUpdateBy(getUsername());
@@ -133,15 +122,13 @@ public class UserController extends BaseController
     @PreAuthorize("@ss.hasPermi('system:user:resetPwd')")
     @Log(title = "用户管理", businessType = BusinessType.UPDATE)
     @PutMapping("/resetPwd")
-    public AjaxResult resetPwd(@RequestBody SysUser user)
-    {
+    public AjaxResult resetPwd(@RequestBody SysUser user) {
         userService.checkUserAllowed(user);
         userService.checkUserDataScope(user.getUserId());
         user.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
         user.setUpdateBy(getUsername());
         return toAjax(userService.resetPwd(user));
     }
-
 
 
     /**
@@ -173,21 +160,18 @@ public class UserController extends BaseController
      * 发送验证码
      */
     @PostMapping("/sendCode")
-    public AjaxResult sendCode(@RequestBody Map<String, String> params)
-    {
+    public AjaxResult sendCode(@RequestBody Map<String, String> params) {
         String phone = params.get("phoneNumber");
 
         // 验证手机号格式
-        if (!SmsUtils.isValidPhone(phone))
-        {
+        if (!SmsUtils.isValidPhone(phone)) {
             return error("手机号格式不正确");
         }
 
         // 检查发送频率(60秒内不能重复发送)
         String sendKey = "sms:send:" + phone;
         String sendTime = redisTemplate.opsForValue().get(sendKey);
-        if (StringUtils.isNotEmpty(sendTime))
-        {
+        if (StringUtils.isNotEmpty(sendTime)) {
             return error("验证码发送过于频繁,请稍后再试");
         }
 
@@ -204,12 +188,9 @@ public class UserController extends BaseController
         // 发送短信(这里是模拟发送,实际项目需要对接短信平台)
         boolean isSuccess = smsService.sendSms(phone, code);
 
-        if (isSuccess)
-        {
+        if (isSuccess) {
             return success("验证码发送成功");
-        }
-        else
-        {
+        } else {
             return error("验证码发送失败,请稍后重试");
         }
     }
@@ -220,21 +201,18 @@ public class UserController extends BaseController
      */
     @Log(title = "绑定手机号", businessType = BusinessType.UPDATE)
     @PostMapping("/bindPhone")
-    public AjaxResult bindPhone(@RequestBody Map<String, String> params)
-    {
+    public AjaxResult bindPhone(@RequestBody Map<String, String> params) {
         String phoneNumber = params.get("phoneNumber");
         String userName = params.get("userName");
         String code = params.get("code");
 
         // 验证手机号格式
-        if (!SmsUtils.isValidPhone(phoneNumber))
-        {
+        if (!SmsUtils.isValidPhone(phoneNumber)) {
             return error("手机号格式不正确");
         }
 
         // 验证验证码格式
-        if (StringUtils.isEmpty(code) || code.length() != 6)
-        {
+        if (StringUtils.isEmpty(code) || code.length() != 6) {
             return error("验证码格式不正确");
         }
 
@@ -258,11 +236,9 @@ public class UserController extends BaseController
         List<SysUser> users = userService.selectUserList(checkUser);
 
         Long currentUserId = getUserId();
-        for (SysUser user : users)
-        {
+        for (SysUser user : users) {
             // 如果手机号已被其他用户绑定,则不允许绑定
-            if (!user.getUserId().equals(currentUserId))
-            {
+            if (!user.getUserId().equals(currentUserId)) {
                 return error("该手机号已被其他用户绑定");
             }
         }
@@ -274,22 +250,27 @@ public class UserController extends BaseController
         user.setUserName(userName);
         user.setUpdateBy(getUsername());
 
-        SysOwnerProfile ownerProfile = ownerProfileService.selectSysOwnerProfileByPhoneNameCommunity(phoneNumber,userName);
+        SysOwnerProfile ownerProfile = ownerProfileService.selectSysOwnerProfileByPhoneNameCommunity(phoneNumber, userName);
         if (ownerProfile != null) {
             ownerProfile.setPhonenumber(phoneNumber);
             ownerProfileService.updateSysOwnerProfile(ownerProfile);
+        } else {
+
+        }
+        Map<String, Object> result = new HashMap<>();
+        // 尝试自动认领业主身份
+        int boundCount = ownerProfileService.bindUserToOwner(currentUserId, phoneNumber, userName);
+        if (boundCount > 0) {
+            user.setIsOwner(1);
+        }else{
+            result.put("isOwner", 0);
+            result.put("msg", "房产未录入，请提交产权绑定申请");
+            return success(result);
         }
 
-        // 尝试自动认领业主身份
-            int boundCount = ownerProfileService.bindUserToOwner(currentUserId, phoneNumber, userName);
-            if (boundCount > 0) {
-                user.setIsOwner(1);
-            }
-
         int rows = userService.updateUser(user);
-        Map<String, Object> result = new HashMap<>();
-        if (rows > 0)
-        {
+
+        if (rows > 0) {
             // 绑定成功,删除验证码
             redisTemplate.delete(codeKey);
 
@@ -302,13 +283,11 @@ public class UserController extends BaseController
                 loginUser.setUser(updatedUser);
                 tokenService.setLoginUser(loginUser);
             }
-
+            result.put("isOwner", 1);
             result.put("userId", updatedUser.getUserId());
             result.put("phonenumber", updatedUser.getPhonenumber());
 
-        }
-        else
-        {
+        } else {
             return error("绑定失败,请稍后重试");
         }
         return success(result);

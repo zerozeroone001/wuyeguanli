@@ -52,16 +52,16 @@
           <!-- 已登录状态 -->
           <template v-if="isLoggedIn">
             <view class="greeting-wrap">
-              <text class="greeting">{{ greeting }}，{{ '游客'||ownerProfile.userName }}</text>
+              <text class="greeting">{{ greeting }}，{{ user.name ||'游客' }}</text>
               <view class="weather-info" v-if="!authStatus">
                 <uni-icons type="cloudy" size="14" color="#8C8C8C" />
                 <text class="weather-text">{{ weather.text }} {{ weather.temp }}°C</text>
               </view>
             </view>
-            <view class="property-info" v-if="authStatus && propertyAddress">
+           <!-- <view class="property-info" v-if="authStatus && propertyAddress">
                <uni-icons type="home" size="14" color="#666" style="margin-right: 4px;" />
                <text class="property-text">{{ propertyAddress }}</text>
-            </view>
+            </view> -->
             <view class="auth-status" v-if="!authStatus" @click="goAuth">
               <text class="status-text">{{ ownerStatusText }}</text>
               <text class="auth-link">去绑定 ></text>
@@ -362,11 +362,11 @@ export default {
     },
     // 从isOwner字段派生出认证状态
     authStatus() {
-      return isAuthenticated(this.ownerProfile.isOwner)
+      return isAuthenticated(this.user.isOwner)
     },
     // 业主状态文本
     ownerStatusText() {
-      return getAuthStatusText(this.ownerProfile.isOwner)
+      return getAuthStatusText(this.user.isOwner)
     },
     // 新增：从业主信息中拼接地址
     propertyAddress() {
@@ -375,12 +375,7 @@ export default {
       }
       return '';
     },
-    displayName() {
-      if (this.authStatus && this.ownerProfile) {
-         return this.ownerProfile.userName || this.userName;
-      }
-      return this.userName || '游客';
-    },
+  
     greeting() {
       const hour = new Date().getHours()
       if (hour < 12) return '早上好'
@@ -732,26 +727,24 @@ export default {
     isPhoneBound() {
       // 从store中获取用户手机号
       const phonenumber = this.user.phonenumber
-	  console.log(this.user,111111)
       return phonenumber && phonenumber.trim() !== ''
     },
 
     // 检查是否绑定手机号（检查并弹窗）
     checkPhoneBound() {
       if (!this.isPhoneBound()) {
-		  console.log(6666)
         // 未绑定手机号，弹出绑定弹窗
         this.$refs.phoneBindModal.open()
         return false
       }
-	  console.log(6666555)
       return true
     },
 
     // 手机号绑定成功回调
     onPhoneBindSuccess() {
       // 绑定成功后刷新用户信息
-      this.$store.dispatch('GetInfo').then(() => {
+      this.$store.dispatch('GetInfo').then((res) => {
+		  console.log(res,'=======')
         uni.showToast({
           title: '手机号绑定成功',
           icon: 'success'
