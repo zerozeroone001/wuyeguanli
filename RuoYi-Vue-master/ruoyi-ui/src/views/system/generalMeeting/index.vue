@@ -1359,7 +1359,7 @@ export default {
     handleUploadSuccess(response, file, fileList) {
       this.$modal.closeLoading();
       if (response.code === 200) {
-        this.$modal.msgSuccess(response.message || "文件上传成功");
+        this.$modal.msgSuccess(response.message || "唱票录入成功");
         this.importResultsSummary = response.summary;
         this.importResults = response.results.map(r => ({
           fileName: r.fileName,
@@ -1368,7 +1368,7 @@ export default {
         }));
         this.getList(); // 刷新会议列表，可能统计数据有变
       } else {
-        this.$modal.msgError(response.message || "文件上传失败");
+        this.$modal.msgError(response.message || "唱票录入失败");
         this.importResultsSummary = {
           totalFiles: fileList.length,
           successFiles: 0,

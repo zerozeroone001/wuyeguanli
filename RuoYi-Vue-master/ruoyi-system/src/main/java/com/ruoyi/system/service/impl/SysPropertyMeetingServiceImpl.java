@@ -50,6 +50,9 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     @Autowired
     private com.ruoyi.system.mapper.SysMeetingVoteMapper sysMeetingVoteMapper;
 
+    @Autowired
+    private com.ruoyi.system.mapper.SysOwnerProfileMapper sysOwnerProfileMapper;
+
     @Override
     public SysPropertyMeeting selectSysPropertyMeetingByMeetingId(Long meetingId)
     {
@@ -113,7 +116,56 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         sysPropertyMeeting.setCreateTime(DateUtils.getNowDate());
         int rows = sysPropertyMeetingMapper.insertSysPropertyMeeting(sysPropertyMeeting);
         insertTopics(sysPropertyMeeting);
+        
+        // 生成初始投票记录
+        generateInitialVotes(sysPropertyMeeting);
+        
         return rows;
+    }
+
+    private void generateInitialVotes(SysPropertyMeeting meeting) {
+        Long communityId = meeting.getCommunityId();
+        if (communityId == null) return;
+
+        // 1. 获取小区所有业主
+        com.ruoyi.system.domain.SysOwnerProfile query = new com.ruoyi.system.domain.SysOwnerProfile();
+        query.setCommunityId(communityId);
+        List<com.ruoyi.system.domain.SysOwnerProfile> owners = sysOwnerProfileMapper.selectSysOwnerProfileList(query);
+
+        if (owners == null || owners.isEmpty()) return;
+
+        List<SysPropertyMeetingTopic> topics = meeting.getTopics();
+        if (topics == null || topics.isEmpty()) return;
+
+        List<SysMeetingVote> voteList = new java.util.ArrayList<>();
+        java.util.Set<Long> processedUserIds = new java.util.HashSet<>();
+
+        for (com.ruoyi.system.domain.SysOwnerProfile owner : owners) {
+             if (owner.getUserId() == null) continue;
+             if (processedUserIds.contains(owner.getUserId())) continue;
+             processedUserIds.add(owner.getUserId());
+
+             for (SysPropertyMeetingTopic topic : topics) {
+                SysMeetingVote vote = new SysMeetingVote();
+                vote.setMeetingId(meeting.getMeetingId());
+                vote.setTopicId(topic.getTopicId());
+                vote.setUserId(owner.getUserId());
+                vote.setUserName(owner.getUserName());
+                vote.setCreateTime(DateUtils.getNowDate());
+                // voteOption, voteType, flieUrl 默认 null
+                voteList.add(vote);
+            }
+        }
+
+        // 批量插入
+        if (!voteList.isEmpty()) {
+            // 分批处理，避免一次插入过多
+            int batchSize = 1000;
+            for (int i = 0; i < voteList.size(); i += batchSize) {
+                int end = Math.min(i + batchSize, voteList.size());
+                sysMeetingVoteMapper.batchInsertSysMeetingVote(voteList.subList(i, end));
+            }
+        }
     }
 
     @Override

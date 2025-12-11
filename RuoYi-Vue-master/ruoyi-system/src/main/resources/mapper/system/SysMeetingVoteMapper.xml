@@ -86,6 +86,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
     </insert>
 
+    <insert id="batchInsertSysMeetingVote">
+        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, vote_no, create_time)
+        values
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.meetingId}, #{item.topicId}, #{item.userId}, #{item.userName}, #{item.voteOption}, #{item.voteType}, #{item.flieUrl}, #{item.voteNo}, now())
+        </foreach>
+    </insert>
+
     <update id="updateSysMeetingVote" parameterType="SysMeetingVote">
         update sys_meeting_vote
         <trim prefix="SET" suffixOverrides=",">
@@ -124,58 +132,63 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="voteType" column="vote_type"/>
         <result property="voteNo" column="vote_no"/>
         <result property="proxyStatus" column="proxy_status"/>
+        <result property="hasVoted" column="hasVoted"/>
     </resultMap>
 
     <!-- 查询会议投票记录列表 -->
     <!-- 查询会议投票记录列表 -->
     <select id="selectVoteRecordsList" resultMap="VoteRecordVOResult">
         SELECT 
-            eup.user_id,
+            op.user_id,
             op.owner_id,
-            u.user_name,
-            ep.room_number,
-            ep.area,
+            op.user_name,
+            GROUP_CONCAT(DISTINCT ep.room_number ORDER BY ep.room_number SEPARATOR ',') as room_number,
+            SUM(ep.area) as area,
             COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
             CASE WHEN u.status = '0' THEN '正常' ELSE '冻结' END as vote_right_status,
-            CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未参会' END as voter_status,
+            CASE WHEN COUNT(mv.vote_id) > 0 THEN '已投票' ELSE '未投票' END as voter_status,
+            CASE WHEN COUNT(mv.vote_id) > 0 THEN 1 ELSE 0 END as hasVoted,
 
-            ep.area as actual_vote_right,
-            mv.create_time as participation_time,
-            mv.vote_option,
-            mv.vote_type,
-            mv.vote_no,
+            SUM(ep.area) as actual_vote_right,
+            MAX(mv.create_time) as participation_time,
+            MAX(mv.vote_option) as vote_option,
+            MAX(mv.vote_type) as vote_type,
+            MAX(mv.vote_no) as vote_no,
             '' as proxy_status
         FROM 
-            sys_estate_user_property eup
-        INNER JOIN 
-            sys_estate_property ep ON eup.property_id = ep.property_id
+            sys_owner_profile op
         LEFT JOIN 
-            sys_user u ON eup.user_id = u.user_id
+            sys_user u ON op.user_id = u.user_id
         LEFT JOIN 
-            sys_owner_profile op ON eup.user_id = op.user_id AND eup.community_id = op.community_id
+            sys_estate_user_property eup ON op.user_id = eup.user_id AND op.community_id = eup.community_id AND eup.del_flag = '0'
         LEFT JOIN 
-            sys_meeting_vote mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+            sys_estate_property ep ON eup.property_id = ep.property_id AND ep.del_flag = '0'
+        LEFT JOIN 
+            sys_meeting_vote mv ON op.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
         WHERE 
-            eup.community_id = #{communityId}
-            AND eup.status = '1'
-            AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
-            AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            op.community_id = #{communityId}
+            AND (op.del_flag = '0' OR op.del_flag IS NULL)
             <if test="userName != null and userName != ''">
                 AND (
                     ep.room_number LIKE CONCAT('%', #{userName}, '%')
                     OR op.phonenumber LIKE CONCAT('%', #{userName}, '%')
                     OR u.phonenumber LIKE CONCAT('%', #{userName}, '%')
                     OR u.user_name LIKE CONCAT('%', #{userName}, '%')
+                    OR op.user_name LIKE CONCAT('%', #{userName}, '%')
                 )
             </if>
+        GROUP BY 
+            op.user_id, op.owner_id, op.user_name, op.phonenumber, u.phonenumber, u.status
+        <trim prefix="HAVING" prefixOverrides="AND |OR ">
             <if test="voteStatus != null and voteStatus == '1'">
-                AND mv.vote_id IS NOT NULL
+                AND COUNT(mv.vote_id) > 0
             </if>
             <if test="voteStatus != null and voteStatus == '0'">
-                AND mv.vote_id IS NULL
+                AND COUNT(mv.vote_id) = 0
             </if>
+        </trim>
         ORDER BY 
-            ep.room_number
+            room_number
     </select>
 
     <!-- 表决结果VO ResultMap -->
@@ -390,6 +403,32 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             t.meeting_id = #{meetingId}
         ORDER BY 
             t.order_num, t.topic_id
+    </select>
+
+    <resultMap type="com.ruoyi.system.domain.vo.UserVoteDetailVO" id="UserVoteDetailVOResult">
+        <result property="topicTitle" column="topic_title"/>
+        <result property="userName" column="user_name"/>
+        <result property="voteOption" column="vote_option"/>
+        <result property="voteTime" column="create_time"/>
+        <result property="voteType" column="vote_type"/>
+    </resultMap>
+
+    <select id="selectUserVoteDetails" resultMap="UserVoteDetailVOResult">
+        SELECT 
+            t.topic_title,
+            mv.user_name,
+            mv.vote_option,
+            mv.create_time,
+            mv.vote_type
+        FROM 
+            sys_meeting_vote mv
+        LEFT JOIN 
+            sys_property_meeting_topic t ON mv.topic_id = t.topic_id
+        WHERE 
+            mv.meeting_id = #{meetingId} 
+            AND mv.user_id = #{userId}
+        ORDER BY 
+            t.order_num
     </select>
 
 </mapper>

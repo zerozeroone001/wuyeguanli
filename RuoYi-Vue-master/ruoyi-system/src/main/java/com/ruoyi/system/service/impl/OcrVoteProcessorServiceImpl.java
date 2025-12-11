@@ -25,16 +25,16 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
     private static final Logger log = LoggerFactory.getLogger(OcrVoteProcessorServiceImpl.class);
     
     // 同意选项识别模式
-    private static final Set<String> AGREE_PATTERNS = new HashSet<>(Arrays.asList("✔", "√", "check", "勾", "对", "是", "同意", "v", "A"));
+    private static final Set<String> AGREE_PATTERNS = new HashSet<>(Arrays.asList( "A"));
     
     // 反对选项识别模式
-    private static final Set<String> OPPOSE_PATTERNS = new HashSet<>(Arrays.asList("✗", "×", "x", "打叉", "叉", "错", "否", "反对", "B"));
+    private static final Set<String> OPPOSE_PATTERNS = new HashSet<>(Arrays.asList("B"));
     
     // 弃权选项识别模式
-    private static final Set<String> ABSTAIN_PATTERNS = new HashSet<>(Arrays.asList("o", "0", "口", "圆", "空", "弃权", "○", "空白", "C"));
+    private static final Set<String> ABSTAIN_PATTERNS = new HashSet<>(Arrays.asList("c", "C"));
     
     // 从多选项识别模式
-    private static final Set<String> FOLLOW_MAJORITY_PATTERNS = new HashSet<>(Arrays.asList("D", "从多", "随大流", "随众"));
+    private static final Set<String> FOLLOW_MAJORITY_PATTERNS = new HashSet<>(Arrays.asList("D"));
     
     @Override
     public OcrVoteData processOcrResponse(String ocrResponse) {
@@ -104,10 +104,10 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
                 System.out.println(cleanText(sortedCells.get(i).getText())+"："+cleanText(sortedCells.get(i+1).getText()));
                 String topicTitle = cleanText(sortedCells.get(i).getText());
                 String voteSymbol = cleanText(sortedCells.get(i + 1).getText());
-                
+                System.out.println(voteSymbol);
                 // 智能识别投票选项
                 VoteItem.VoteOption option = recognizeVoteOption(voteSymbol);
-                
+                System.out.println(option);
                 voteItems.add(VoteItem.builder()
                         .topicTitle(topicTitle)
                         .originalSymbol(voteSymbol)
@@ -128,7 +128,8 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
             return VoteItem.VoteOption.ABSTAIN; // 空白默认弃权
         }
         
-        String cleanSymbol = symbol.trim().toLowerCase();
+        // 统一转大写处理，去除首尾空格
+        String cleanSymbol = symbol.trim().toUpperCase();
         
         // 同意选项识别
         if (isPatternMatch(cleanSymbol, AGREE_PATTERNS)) {
@@ -158,8 +159,17 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
      * 模式匹配检查
      */
     private boolean isPatternMatch(String symbol, Set<String> patterns) {
-        return patterns.stream().anyMatch(pattern -> 
-            symbol.contains(pattern) || levenshteinDistance(symbol, pattern) <= 1);
+        return patterns.stream().anyMatch(pattern -> {
+            String upperPattern = pattern.toUpperCase();
+            
+            // 针对单字符模式（如A、B、C），禁止使用编辑距离模糊匹配
+            // 因为 'A' 和 'B' 的编辑距离只有1，会导致误判
+            if (upperPattern.length() == 1) {
+                return symbol.equals(upperPattern) || symbol.contains(upperPattern);
+            }
+            
+            return symbol.contains(upperPattern) || levenshteinDistance(symbol, upperPattern) <= 1;
+        });
     }
     
     /**

@@ -24,9 +24,7 @@
       <el-form-item label="查询时间:">
         <span class="query-time-label">{{ currentTime }}</span>
       </el-form-item>
-      <el-form-item label="重新获取:">
-        <el-switch v-model="autoRefresh" active-color="#13ce66" />
-      </el-form-item>
+
     </el-form>
 
     <!-- 数据表格 -->
@@ -57,13 +55,6 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="认证状态" align="center">
-        <template slot-scope="scope">
-          <el-tag :type="getAuthStatusType(scope.row.authStatus)" size="mini">
-            {{ getAuthStatusText(scope.row.authStatus) }}
-          </el-tag>
-        </template>
-      </el-table-column>
       <el-table-column label="实际票权" prop="actualVoteRight" align="center"  />
       <el-table-column label="投票时间" prop="participationTime" align="center" width="180">
         <template slot-scope="scope">
@@ -72,7 +63,12 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="200" fixed="right">
         <template slot-scope="scope">
-          <el-button type="text" size="mini" @click="handleViewDetails(scope.row)">查看详情</el-button>
+          <el-button
+            type="text"
+            size="mini"
+            @click="handleViewDetails(scope.row)"
+            :disabled="scope.row.hasVoted === 0"
+          >查看详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -85,11 +81,39 @@
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
+
+    <!-- 投票详情对话框 -->
+    <el-dialog :title="detailTitle" :visible.sync="detailOpen" width="800px" append-to-body>
+      <el-table v-loading="detailLoading" :data="detailList" border stripe>
+        <el-table-column label="议题" prop="topicTitle" align="center" />
+        <el-table-column label="姓名" prop="userName" align="center" width="120" />
+        <el-table-column label="投票选项" align="center" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="getVoteOptionType(scope.row.voteOption)">
+              {{ getVoteOptionText(scope.row.voteOption) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="投票时间" align="center" width="160">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.voteTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="投票方式" align="center" width="120">
+          <template slot-scope="scope">
+            {{ getVoteTypeText(scope.row.voteType) }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="detailOpen = false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listVoteRecords } from '@/api/system/voteRecords'
+import { listVoteRecords, listVoteDetails } from '@/api/system/voteRecords'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -113,10 +137,16 @@ export default {
       },
       // 当前时间
       currentTime: '',
-      // 自动刷新
-      autoRefresh: false,
       // 定时器
-      timer: null
+      timer: null,
+      // 详情弹窗开关
+      detailOpen: false,
+      // 详情弹窗标题
+      detailTitle: '',
+      // 详情列表数据
+      detailList: [],
+      // 详情加载中
+      detailLoading: false
     }
   },
   computed: {
@@ -129,13 +159,6 @@ export default {
     this.updateCurrentTime()
     this.getList()
 
-    // 设置定时器更新时间
-    this.timer = setInterval(() => {
-      this.updateCurrentTime()
-      if (this.autoRefresh) {
-        this.getList()
-      }
-    }, 60000) // 每分钟更新一次
   },
   beforeDestroy() {
     if (this.timer) {
@@ -164,7 +187,22 @@ export default {
     },
     /** 查看详情 */
     handleViewDetails(row) {
-      this.$message.info('查看详情功能开发中')
+      this.detailTitle = `投票详情 - ${row.userName}`
+      this.detailOpen = true
+      this.detailLoading = true
+      this.detailList = []
+
+      const query = {
+        meetingId: this.queryParams.meetingId,
+        userId: row.userId
+      }
+
+      listVoteDetails(query).then(response => {
+        this.detailList = response.rows
+        this.detailLoading = false
+      }).catch(() => {
+        this.detailLoading = false
+      })
     },
     /** 获取认证状态文本 */
     getAuthStatusText(status) {
@@ -185,6 +223,33 @@ export default {
         3: 'danger'
       }
       return typeMap[status] || 'info'
+    },
+    /** 获取投票选项文本 */
+    getVoteOptionText(option) {
+      const map = {
+        0: '同意',
+        1: '反对',
+        2: '弃权'
+      }
+      return map[option] || '未知'
+    },
+    /** 获取投票选项标签类型 */
+    getVoteOptionType(option) {
+      const map = {
+        0: 'success',
+        1: 'danger',
+        2: 'info'
+      }
+      return map[option] || ''
+    },
+    /** 获取投票方式文本 */
+    getVoteTypeText(type) {
+      const map = {
+        0: '小程序投票',
+        1: '纸质投票',
+        2: '语音投票'
+      }
+      return map[type] || '未知'
     },
     /** 更新当前时间 */
     updateCurrentTime() {

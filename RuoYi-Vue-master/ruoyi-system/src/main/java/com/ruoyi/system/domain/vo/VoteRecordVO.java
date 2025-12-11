@@ -59,6 +59,9 @@ public class VoteRecordVO {
     /** 是否业委会成员 */
     private String isCommitteeMember;
 
+    /** 是否已投票 (0未投票 1已投票) */
+    private Integer hasVoted;
+
     public Long getUserId() {
         return userId;
     }
@@ -193,5 +196,13 @@ public class VoteRecordVO {
 
     public void setIsCommitteeMember(String isCommitteeMember) {
         this.isCommitteeMember = isCommitteeMember;
+    }
+
+    public Integer getHasVoted() {
+        return hasVoted;
+    }
+
+    public void setHasVoted(Integer hasVoted) {
+        this.hasVoted = hasVoted;
     }
 }

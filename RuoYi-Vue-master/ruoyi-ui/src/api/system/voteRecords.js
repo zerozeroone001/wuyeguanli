@@ -8,3 +8,12 @@ export function listVoteRecords(query) {
     params: query
   })
 }
+
+// 查询用户投票详情
+export function listVoteDetails(query) {
+  return request({
+    url: '/system/voteRecords/detail',
+    method: 'get',
+    params: query
+  })
+}

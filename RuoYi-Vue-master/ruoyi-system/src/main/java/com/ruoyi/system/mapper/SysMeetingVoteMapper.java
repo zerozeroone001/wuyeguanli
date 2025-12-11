@@ -8,6 +8,8 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+import com.ruoyi.system.domain.vo.UserVoteDetailVO;
+
 public interface SysMeetingVoteMapper {
 
     SysMeetingVote findVote(@Param("userId") Long userId, @Param("topicId") Long topicId);
@@ -60,4 +62,20 @@ public interface SysMeetingVoteMapper {
      */
     List<VoteListExportVO> selectVoteListForExport(@Param("meetingId") Long meetingId,
                                                     @Param("communityId") Long communityId);
+
+    /**
+     * 查询用户在某次会议中的详细投票记录
+     * @param meetingId 会议ID
+     * @param userId 用户ID
+     * @return 用户投票详情列表
+     */
+    List<UserVoteDetailVO> selectUserVoteDetails(@Param("meetingId") Long meetingId, @Param("userId") Long userId);
+
+    /**
+     * 批量新增会议投票
+     * 
+     * @param sysMeetingVoteList 会议投票列表
+     * @return 结果
+     */
+    public int batchInsertSysMeetingVote(List<SysMeetingVote> sysMeetingVoteList);
 }

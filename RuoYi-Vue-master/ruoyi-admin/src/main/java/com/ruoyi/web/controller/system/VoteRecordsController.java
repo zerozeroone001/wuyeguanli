@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.system.domain.vo.UserVoteDetailVO;
 import com.ruoyi.system.domain.vo.VoteRecordVO;
 import com.ruoyi.system.mapper.SysMeetingVoteMapper;
 
@@ -35,6 +36,18 @@ public class VoteRecordsController extends BaseController
     {
         startPage();
         List<VoteRecordVO> list = meetingVoteMapper.selectVoteRecordsList(meetingId, communityId, userName, voteStatus);
+        return getDataTable(list);
+    }
+
+    /**
+     * 查询用户投票详情
+     */
+    @GetMapping("/detail")
+    public TableDataInfo detail(
+            @RequestParam Long meetingId,
+            @RequestParam Long userId)
+    {
+        List<UserVoteDetailVO> list = meetingVoteMapper.selectUserVoteDetails(meetingId, userId);
         return getDataTable(list);
     }
 }
