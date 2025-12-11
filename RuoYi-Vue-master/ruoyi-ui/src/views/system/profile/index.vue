@@ -185,7 +185,7 @@
         <el-descriptions-item label="楼栋">{{ currentRow.buildingName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="单元">{{ currentRow.unitName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="门牌号">{{ currentRow.roomNumber || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="申请人">{{ currentRow.realName || currentRow.nickName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ currentRow.userName }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ currentRow.phonenumber || '-' }}</el-descriptions-item>
         <el-descriptions-item label="审核状态">{{currentRow.status}}</el-descriptions-item>
         <el-descriptions-item label="备注">{{ currentRow.remark || '-' }}</el-descriptions-item>

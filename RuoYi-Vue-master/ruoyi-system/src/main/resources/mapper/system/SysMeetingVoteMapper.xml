@@ -113,20 +113,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="userId" column="user_id"/>
         <result property="ownerId" column="owner_id"/>
         <result property="userName" column="user_name"/>
-        <result property="realName" column="real_name"/>
         <result property="roomNumber" column="room_number"/>
         <result property="area" column="area"/>
         <result property="phonenumber" column="phonenumber"/>
         <result property="voteRightStatus" column="vote_right_status"/>
         <result property="voterStatus" column="voter_status"/>
-        <result property="authStatus" column="auth_status"/>
         <result property="actualVoteRight" column="actual_vote_right"/>
         <result property="participationTime" column="participation_time"/>
         <result property="voteOption" column="vote_option"/>
         <result property="voteType" column="vote_type"/>
         <result property="voteNo" column="vote_no"/>
         <result property="proxyStatus" column="proxy_status"/>
-        <result property="isCommitteeMember" column="is_committee_member"/>
     </resultMap>
 
     <!-- 查询会议投票记录列表 -->
@@ -136,20 +133,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             eup.user_id,
             op.owner_id,
             u.user_name,
-            op.real_name,
             ep.room_number,
             ep.area,
             COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
             CASE WHEN u.status = '0' THEN '正常' ELSE '冻结' END as vote_right_status,
             CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未参会' END as voter_status,
-            op.auth_status,
+
             ep.area as actual_vote_right,
             mv.create_time as participation_time,
             mv.vote_option,
             mv.vote_type,
             mv.vote_no,
-            '' as proxy_status,
-            op.is_committee_member
+            '' as proxy_status
         FROM 
             sys_estate_user_property eup
         INNER JOIN 
@@ -168,7 +163,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userName != null and userName != ''">
                 AND (
                     ep.room_number LIKE CONCAT('%', #{userName}, '%')
-                    OR op.real_name LIKE CONCAT('%', #{userName}, '%')
                     OR op.phonenumber LIKE CONCAT('%', #{userName}, '%')
                     OR u.phonenumber LIKE CONCAT('%', #{userName}, '%')
                     OR u.user_name LIKE CONCAT('%', #{userName}, '%')
@@ -213,10 +207,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="com.ruoyi.system.domain.vo.VoteListExportVO" id="VoteListExportVOResult">
         <result property="rowNum" column="row_num"/>
         <result property="roomNumber" column="room_number"/>
-        <result property="realName" column="real_name"/>
+        <result property="userName" column="userName"/>
         <result property="phonenumber" column="phonenumber"/>
         <result property="area" column="area"/>
-        <result property="authStatus" column="auth_status"/>
         <result property="voterStatus" column="voter_status"/>
         <result property="participationTime" column="participation_time"/>
         <result property="voteType" column="vote_type"/>
@@ -228,10 +221,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT
             ROW_NUMBER() OVER (ORDER BY ep.room_number) as row_num,
             ep.room_number,
-            op.real_name,
+            op.user_name,
             COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
             ep.area,
-            op.auth_status,
             CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未投票' END as voter_status,
             mv.create_time as participation_time,
             mv.vote_type,
@@ -268,8 +260,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
             AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
         GROUP BY
-            eup.user_id, ep.room_number, op.real_name, op.phonenumber, u.phonenumber,
-            ep.area, op.auth_status, mv.vote_id, mv.create_time, mv.vote_type
+            eup.user_id, ep.room_number, op.user_name, op.phonenumber, u.phonenumber,
+            ep.area, mv.vote_id, mv.create_time, mv.vote_type
         ORDER BY
             ep.room_number
     </select>

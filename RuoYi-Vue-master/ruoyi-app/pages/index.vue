@@ -744,9 +744,8 @@ export default {
     onPhoneBindSuccess() {
       // 绑定成功后刷新用户信息
       this.$store.dispatch('GetInfo').then((res) => {
-		  console.log(res,'=======')
         uni.showToast({
-          title: '手机号绑定成功',
+          title: '产权绑定成功',
           icon: 'success'
         })
       }).catch(error => {
@@ -793,7 +792,6 @@ export default {
     
     // 查看详情方法
     viewNotice(noticeId) {
-console.log(noticeId)
       uni.navigateTo({
         url: `/pages/common/notice/detail?id=${noticeId}`,
         success: (res) => {

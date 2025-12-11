@@ -35,6 +35,14 @@ public class SysPropertyMeetingTopic extends BaseEntity
     @Excel(name = "附件URL列表")
     private String files;
 
+    /** 头像/Logo */
+    @Excel(name = "头像/Logo")
+    private String avatar;
+
+    /** 候选人ID */
+    @Excel(name = "候选人ID")
+    private Long candidateId;
+
     /** 同意票数 */
     @Excel(name = "同意票数")
     private Long agreeCount;
@@ -113,6 +121,26 @@ public class SysPropertyMeetingTopic extends BaseEntity
     public String getFiles()
     {
         return files;
+    }
+
+    public void setAvatar(String avatar)
+    {
+        this.avatar = avatar;
+    }
+
+    public String getAvatar()
+    {
+        return avatar;
+    }
+
+    public void setCandidateId(Long candidateId)
+    {
+        this.candidateId = candidateId;
+    }
+
+    public Long getCandidateId()
+    {
+        return candidateId;
     }
 
     public void setAgreeCount(Long agreeCount)
@@ -199,6 +227,8 @@ public class SysPropertyMeetingTopic extends BaseEntity
             .append("topicTitle", getTopicTitle())
             .append("topicContent", getTopicContent())
             .append("files", getFiles())
+            .append("avatar", getAvatar())
+            .append("candidateId", getCandidateId())
             .append("agreeCount", getAgreeCount())
             .append("opposeCount", getOpposeCount())
             .append("abstainCount", getAbstainCount())

@@ -10,6 +10,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="topicTitle"    column="topic_title"    />
         <result property="topicContent"    column="topic_content"    />
         <result property="files"    column="files"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="candidateId"    column="candidate_id"    />
         <result property="agreeCount"    column="agree_count"    />
         <result property="opposeCount"    column="oppose_count"    />
         <result property="abstainCount"    column="abstain_count"    />
@@ -24,7 +26,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyMeetingTopicVo">
-        select topic_id, meeting_id, topic_title, topic_content, files, agree_count, oppose_count, abstain_count, congduo, congduo_count, order_num, create_by, create_time, update_by, update_time, remark from sys_property_meeting_topic
+        select topic_id, meeting_id, topic_title, topic_content, files, avatar, candidate_id, agree_count, oppose_count, abstain_count, congduo, congduo_count, order_num, create_by, create_time, update_by, update_time, remark from sys_property_meeting_topic
     </sql>
 
     <select id="selectSysPropertyMeetingTopicList" parameterType="SysPropertyMeetingTopic" resultMap="SysPropertyMeetingTopicResult">
@@ -55,6 +57,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="topicTitle != null and topicTitle != ''">topic_title,</if>
             <if test="topicContent != null">topic_content,</if>
             <if test="files != null">files,</if>
+            <if test="avatar != null">avatar,</if>
+            <if test="candidateId != null">candidate_id,</if>
             <if test="agreeCount != null">agree_count,</if>
             <if test="opposeCount != null">oppose_count,</if>
             <if test="abstainCount != null">abstain_count,</if>
@@ -72,6 +76,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="topicTitle != null and topicTitle != ''">#{topicTitle},</if>
             <if test="topicContent != null">#{topicContent},</if>
             <if test="files != null">#{files},</if>
+            <if test="avatar != null">#{avatar},</if>
+            <if test="candidateId != null">#{candidateId},</if>
             <if test="agreeCount != null">#{agreeCount},</if>
             <if test="opposeCount != null">#{opposeCount},</if>
             <if test="abstainCount != null">#{abstainCount},</if>
@@ -93,6 +99,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="topicTitle != null and topicTitle != ''">topic_title = #{topicTitle},</if>
             <if test="topicContent != null">topic_content = #{topicContent},</if>
             <if test="files != null">files = #{files},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="candidateId != null">candidate_id = #{candidateId},</if>
             <if test="agreeCount != null">agree_count = #{agreeCount},</if>
             <if test="opposeCount != null">oppose_count = #{opposeCount},</if>
             <if test="abstainCount != null">abstain_count = #{abstainCount},</if>

@@ -445,8 +445,20 @@ export default {
       if (!meeting.meetingId) {
         return;
       }
+      let url = `/pageB/property/meeting/vote?id=${meeting.meetingId}`;
+      
+      // 根据 meetingTag 跳转到不同页面
+      // 1: 业主大会 (默认) -> vote
+      // 2: 招标会议 -> tender
+      // 3: 选举会议 -> election
+      if (meeting.meetingTag === 2) {
+        url = `/pageB/property/meeting/tender?id=${meeting.meetingId}`;
+      } else if (meeting.meetingTag === 3) {
+        url = `/pageB/property/meeting/election?id=${meeting.meetingId}`;
+      }
+      
       uni.navigateTo({
-        url: `/pageB/property/meeting/vote?id=${meeting.meetingId}`
+        url: url
       });
     }
   }

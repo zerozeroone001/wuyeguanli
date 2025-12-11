@@ -56,7 +56,12 @@
           <!-- 中间内容 -->
           <div class="card-middle">
             <div class="meeting-header">
-              <div class="meeting-title">{{ meeting.meetingTitle }}</div>
+              <div class="meeting-title">
+                {{ meeting.meetingTitle }}
+                <el-tag size="small" v-if="meeting.meetingTag == 1" type="success" style="margin-left: 10px;">业主大会</el-tag>
+                <el-tag size="small" v-else-if="meeting.meetingTag == 2" type="warning" style="margin-left: 10px;">招标会议</el-tag>
+                <el-tag size="small" v-else-if="meeting.meetingTag == 3" type="danger" style="margin-left: 10px;">选举会议</el-tag>
+              </div>
             </div>
 
             <div class="meeting-info">
@@ -207,6 +212,15 @@
               <el-input v-model="form.meetingTitle" placeholder="请输入会议标题" />
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+             <el-form-item label="会议标签" prop="meetingTag">
+               <el-radio-group v-model="form.meetingTag">
+                 <el-radio :label="1">业主大会</el-radio>
+                 <el-radio :label="2">招标会议</el-radio>
+                 <el-radio :label="3">选举会议</el-radio>
+               </el-radio-group>
+             </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="所属小区" prop="communityId">
               <el-input v-model="form.communityName" placeholder="请先在右上角选择小区" disabled />
@@ -277,11 +291,11 @@
         </el-form-item>
 
         <div class="form-section-title">
-          <span>议题管理</span>
-          <el-button type="primary" icon="el-icon-plus" size="mini" @click="handleAddTopic" style="float: right">添加议题</el-button>
+          <span>{{ topicSectionTitle }}</span>
+          <el-button type="primary" icon="el-icon-plus" size="mini" @click="handleAddTopic" style="float: right">{{ addTopicButtonText }}</el-button>
         </div>
         <el-table :data="form.topics" border style="margin-bottom: 20px">
-          <el-table-column label="议题标题" align="center" prop="topicTitle" />
+          <el-table-column :label="topicColumnLabel" align="center" prop="topicTitle" />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="150">
             <template slot-scope="scope">
               <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdateTopic(scope.row)">修改</el-button>
@@ -299,11 +313,19 @@
 
     <!-- 添加或修改议题对话框 -->
     <el-dialog :title="topicTitle" :visible.sync="topicOpen" width="1200px" append-to-body>
-      <el-form ref="topicForm" :model="topicForm" :rules="topicRules" label-width="100px">
-        <el-form-item label="议题标题" prop="topicTitle">
-          <el-input v-model="topicForm.topicTitle" placeholder="请输入议题标题" />
+      <el-form ref="topicForm" :model="topicForm" :rules="topicRules" label-width="120px">
+        <el-form-item :label="topicTitleLabel" prop="topicTitle">
+           <div style="display: flex; align-items: center;">
+             <el-input v-model="topicForm.topicTitle" :placeholder="topicTitlePlaceholder" :readonly="form.meetingTag === 3"/>
+             <el-button v-if="form.meetingTag === 3" type="primary" size="mini" @click="handleSelectUser" style="margin-left: 10px;">选择候选人</el-button>
+           </div>
         </el-form-item>
-        <el-form-item label="议题内容">
+
+        <el-form-item :label="avatarLabel" v-if="form.meetingTag === 2 || form.meetingTag === 3">
+          <image-upload v-model="topicForm.avatar" :limit="1"/>
+        </el-form-item>
+
+        <el-form-item :label="topicContentLabel">
           <editor v-model="topicForm.topicContent" :min-height="192"/>
         </el-form-item>
         <el-form-item label="附件">
@@ -449,6 +471,8 @@
       </div>
     </el-dialog>
 
+    <user-select-dialog :visible.sync="userSelectVisible" @confirm="handleUserSelectConfirm" />
+
   </div>
 </template>
 
@@ -456,9 +480,11 @@
 import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, exportBallot, copyMeeting, exportVotingResults, exportVotingDetailsPublic, exportMeetingDocuments, getBuildingStats } from "@/api/system/meeting"
 import { exportVoteListExcel, exportVoteReportPdf } from '@/api/system/voteResults'
 import { mapGetters } from "vuex"
+import UserSelectDialog from "@/components/UserSelectDialog";
 
 export default {
   name: "Meeting",
+  components: { UserSelectDialog },
   data() {
     return {
       // 当前激活的标签页
@@ -559,6 +585,8 @@ export default {
         {color: '#1989fa', percentage: 80},
         {color: '#6f7ad3', percentage: 100}
       ],
+      // 用户选择弹窗
+      userSelectVisible: false,
     }
   },
   computed: {
@@ -580,6 +608,48 @@ export default {
     // 上传URL的计算属性
     uploadUrl() {
       return process.env.VUE_APP_BASE_API + '/system/vote/import/single/' + this.currentImportMeetingId;
+    },
+    // 动态计算议题标题的标签
+    topicTitleLabel() {
+      if (this.form.meetingTag === 2) return "投标公司名称";
+      if (this.form.meetingTag === 3) return "候选人姓名";
+      return "议题标题";
+    },
+    // 动态计算议题标题的占位符
+    topicTitlePlaceholder() {
+      if (this.form.meetingTag === 2) return "请输入投标公司名称";
+      if (this.form.meetingTag === 3) return "请选择候选人";
+      return "请输入议题标题";
+    },
+    // 动态计算内容的标签
+    topicContentLabel() {
+      if (this.form.meetingTag === 2) return "公司简介";
+      if (this.form.meetingTag === 3) return "候选人简介";
+      return "议题内容";
+    },
+    // 动态计算头像/Logo的标签
+    avatarLabel() {
+      if (this.form.meetingTag === 2) return "公司Logo";
+      if (this.form.meetingTag === 3) return "候选人照片";
+      return "图片";
+    },
+    // 动态计算议题板块标题
+    topicSectionTitle() {
+      if (this.form.meetingTag === 2) return "招标企业";
+      if (this.form.meetingTag === 3) return "候选人管理";
+      return "议题管理";
+    },
+    // 动态计算添加议题按钮文本
+    addTopicButtonText() {
+      if (this.form.meetingTag === 2) return "添加企业";
+      if (this.form.meetingTag === 3) return "添加候选人";
+      return "添加议题";
+    },
+    // 动态计算列表列标题
+    topicColumnLabel() {
+      if (this.form.meetingTag === 2) return "企业名称";
+      if (this.form.meetingTag === 3) return "候选人姓名";
+      return "议题标题";
     }
   },
   created() {
@@ -659,6 +729,7 @@ export default {
         meetingId: null,
         meetingTitle: null,
         meetingType: 1,
+        meetingTag: 1, // 默认业主大会
         communityId: null,
         communityName: '',
         coverImage: null,
@@ -1167,6 +1238,24 @@ export default {
         });
       }).catch(() => {});
     },
+    /** 打开用户选择弹窗 */
+    handleSelectUser() {
+      this.userSelectVisible = true;
+    },
+    /** 用户选择确认 */
+    handleUserSelectConfirm(user) {
+      // 自动填充信息
+      this.topicForm.topicTitle = user.nickName || user.userName;
+      this.topicForm.candidateId = user.userId;
+      // 如果用户有头像，尽量使用（这里假设是相对路径或完整URL）
+      if (user.avatar) {
+          this.topicForm.avatar = user.avatar;
+      }
+      // 可以在内容中自动填充简介模板
+      if (!this.topicForm.topicContent) {
+          this.topicForm.topicContent = `<p><strong>姓名：</strong>${user.nickName || user.userName}</p><p><strong>电话：</strong>${user.phonenumber || ''}</p><p><strong>简介：</strong></p>`;
+      }
+    },
     // 议题表单重置
     resetTopic() {
       this.topicForm = {
@@ -1174,6 +1263,8 @@ export default {
         topicTitle: null,
         topicContent: null,
         files: null,
+        avatar: null,
+        candidateId: null,
         agreeCount: 0,
         opposeCount: 0,
         abstainCount: 0,

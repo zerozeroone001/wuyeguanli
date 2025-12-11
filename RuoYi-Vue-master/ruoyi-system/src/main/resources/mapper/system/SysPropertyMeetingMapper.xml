@@ -10,6 +10,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="communityId"    column="community_id"    />
         <result property="communityName"    column="community_name"    />
         <result property="meetingType"    column="meeting_type"    />
+        <result property="meetingTag"    column="meeting_tag"    />
         <result property="meetingContent"    column="meeting_content"    />
         <result property="meetingTime"    column="meeting_time"    />
         <result property="meetingLocation"    column="meeting_location"    />
@@ -37,6 +38,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             m.community_id,
             c.community_name,
             m.meeting_type,
+            m.meeting_tag,
             m.meeting_content,
             m.meeting_time,
             m.meeting_location,
@@ -92,6 +94,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="meetingTitle != null  and meetingTitle != ''"> and m.meeting_title like concat('%', #{meetingTitle}, '%')</if>
             <if test="communityId != null "> and m.community_id = #{communityId}</if>
             <if test="meetingType != null  and meetingType != ''"> and m.meeting_type = #{meetingType}</if>
+            <if test="meetingTag != null "> and m.meeting_tag = #{meetingTag}</if>
             <if test="meetingContent != null  and meetingContent != ''"> and m.meeting_content = #{meetingContent}</if>
             <if test="meetingTime != null "> and m.meeting_time = #{meetingTime}</if>
             <if test="meetingLocation != null  and meetingLocation != ''"> and m.meeting_location like concat('%', #{meetingLocation}, '%')</if>
@@ -144,6 +147,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="meetingTitle != null and meetingTitle != ''">meeting_title,</if>
             <if test="communityId != null">community_id,</if>
             <if test="meetingType != null and meetingType != ''">meeting_type,</if>
+            <if test="meetingTag != null">meeting_tag,</if>
             <if test="meetingContent != null">meeting_content,</if>
             <if test="meetingTime != null">meeting_time,</if>
             <if test="meetingLocation != null">meeting_location,</if>
@@ -163,6 +167,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="meetingTitle != null and meetingTitle != ''">#{meetingTitle},</if>
             <if test="communityId != null">#{communityId},</if>
             <if test="meetingType != null and meetingType != ''">#{meetingType},</if>
+            <if test="meetingTag != null">#{meetingTag},</if>
             <if test="meetingContent != null">#{meetingContent},</if>
             <if test="meetingTime != null">#{meetingTime},</if>
             <if test="meetingLocation != null">#{meetingLocation},</if>
@@ -186,6 +191,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="meetingTitle != null and meetingTitle != ''">meeting_title = #{meetingTitle},</if>
             <if test="communityId != null">community_id = #{communityId},</if>
             <if test="meetingType != null and meetingType != ''">meeting_type = #{meetingType},</if>
+            <if test="meetingTag != null">meeting_tag = #{meetingTag},</if>
             <if test="meetingContent != null">meeting_content = #{meetingContent},</if>
             <if test="meetingTime != null">meeting_time = #{meetingTime},</if>
             <if test="meetingLocation != null">meeting_location = #{meetingLocation},</if>

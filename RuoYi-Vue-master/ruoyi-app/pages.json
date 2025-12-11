@@ -250,6 +250,18 @@
           }
         },
         {
+          "path": "property/meeting/tender",
+          "style": {
+            "navigationBarTitleText": "招标投票"
+          }
+        },
+        {
+          "path": "property/meeting/election",
+          "style": {
+            "navigationBarTitleText": "选举投票"
+          }
+        },
+        {
           "path": "property/meeting/result",
           "style": {
             "navigationBarTitleText": "投票结果"

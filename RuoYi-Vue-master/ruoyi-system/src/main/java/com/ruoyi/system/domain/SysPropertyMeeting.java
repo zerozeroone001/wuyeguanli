@@ -37,6 +37,10 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "会议类型")
     private String meetingType;
 
+    /** 会议标签(1:业主大会,2:招标会议,3:选举会议) */
+    @Excel(name = "会议标签", readConverterExp = "1=业主大会,2=招标会议,3=选举会议")
+    private Integer meetingTag;
+
     /** 会议内容 */
     @Excel(name = "会议内容")
     private String meetingContent;
@@ -140,6 +144,16 @@ public class SysPropertyMeeting extends BaseEntity
     public String getMeetingType() 
     {
         return meetingType;
+    }
+
+    public void setMeetingTag(Integer meetingTag)
+    {
+        this.meetingTag = meetingTag;
+    }
+
+    public Integer getMeetingTag()
+    {
+        return meetingTag;
     }
 
     public void setMeetingContent(String meetingContent) 
@@ -290,6 +304,7 @@ public class SysPropertyMeeting extends BaseEntity
             .append("communityId", getCommunityId())
             .append("communityName", getCommunityName())
             .append("meetingType", getMeetingType())
+            .append("meetingTag", getMeetingTag())
             .append("meetingContent", getMeetingContent())
             .append("meetingTime", getMeetingTime())
             .append("meetingLocation", getMeetingLocation())

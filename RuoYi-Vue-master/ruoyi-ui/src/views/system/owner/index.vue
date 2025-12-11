@@ -1,9 +1,9 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-      <el-form-item label="真实姓名" prop="realName">
+      <el-form-item label="真实姓名" prop="userName">
         <el-input
-          v-model="queryParams.realName"
+          v-model="queryParams.userName"
           placeholder="请输入真实姓名"
           clearable
           @keyup.enter.native="handleQuery"
@@ -168,8 +168,8 @@
           <el-input v-model="formAdd.communityName" placeholder="请先在右上角选择小区" disabled />
           <input type="hidden" v-model="formAdd.communityId" />
         </el-form-item>
-             <el-form-item label="真实姓名" prop="realName">
-               <el-input v-model="formAdd.realName" placeholder="请输入真实姓名" />
+             <el-form-item label="真实姓名" prop="userName">
+               <el-input v-model="formAdd.userName" placeholder="请输入真实姓名" />
              </el-form-item>
              <el-form-item label="手机号码" prop="phonenumber">
                <el-input v-model="formAdd.phonenumber" placeholder="请输入手机号码" />
@@ -205,8 +205,8 @@
       <el-form ref="formEdit" :model="formEdit" :rules="rules" label-width="100px">
         <el-row>
           <el-col :span="12">
-             <el-form-item label="真实姓名" prop="realName">
-               <el-input v-model="formEdit.realName" placeholder="请输入真实姓名" />
+             <el-form-item label="真实姓名" prop="userName">
+               <el-input v-model="formEdit.userName" placeholder="请输入真实姓名" />
              </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -367,7 +367,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         authStatus:2,
-        realName: null,
+        userName: null,
         phonenumber: null,
         contactNumber: null,
         communityId: null,
@@ -375,7 +375,7 @@ export default {
       },
       // 表单校验
       rules: {
-        realName: [
+        userName: [
           { required: true, message: "真实姓名不能为空", trigger: "blur" }
         ],
         phonenumber: [
@@ -511,7 +511,7 @@ export default {
     resetAdd() {
       this.formAdd = {
         userId: null,
-        realName: null,
+        userName: null,
         idCardNo: null,
         idCardFrontUrl: null,
         idCardBackUrl: null,
@@ -538,7 +538,7 @@ export default {
     resetEdit() {
       this.formEdit = {
         userId: null,
-        realName: null,
+        userName: null,
         idCardNo: null,
         idCardFrontUrl: null,
         idCardBackUrl: null,
@@ -785,7 +785,7 @@ export default {
     handleStatusChange(row) {
       const text = row.status === "0" ? "禁用" : "恢复";
       const newStatus = row.status === "0" ? "1" : "0";
-      this.$modal.confirm('确认要"' + text + '""' + row.realName + '"用户吗？').then(function() {
+      this.$modal.confirm('确认要"' + text + '""' + row.userName + '"用户吗？').then(function() {
         return changeUserStatus(row.userId, newStatus);
       }).then(() => {
         this.getList();
@@ -802,7 +802,7 @@ export default {
         '2': '设为业委会'
       };
       const text = identityMap[command];
-      this.$modal.confirm('确认要将"' + row.realName + '"' + text + '吗？').then(function() {
+      this.$modal.confirm('确认要将"' + row.userName + '"' + text + '吗？').then(function() {
         return changeUserIdentity(row.userId, command);
       }).then(() => {
         this.getList();

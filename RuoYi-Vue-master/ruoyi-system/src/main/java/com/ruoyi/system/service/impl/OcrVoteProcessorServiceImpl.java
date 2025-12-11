@@ -50,12 +50,8 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
 
             // 提取业主基础信息（通常在第3个表格，索引为2）
             OwnerInfo ownerInfo = extractOwnerInfo(tableDetections.getJSONObject(2));
-            
-            // 提取表决事项信息，优先从索引3提取，如果为空则尝试索引5
+            // 提取表决事项信息（通常在第6个表格，索引为5）
             List<VoteItem> voteItems = extractVoteItems(tableDetections.getJSONObject(3));
-            if (voteItems.isEmpty() && tableDetections.size() > 5) { // 检查索引5是否存在
-                voteItems = extractVoteItems(tableDetections.getJSONObject(5));
-            }
             
             return new OcrVoteData(ownerInfo, voteItems);
             
@@ -70,55 +66,28 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
      */
     private OwnerInfo extractOwnerInfo(JSONObject ownerTable) {
         JSONArray cells = ownerTable.getJSONArray("Cells");
+        Map<String, String> dataMap = new HashMap<>();
+        
+        // 按行列坐标排序单元格
         List<CellInfo> sortedCells = sortCellsByPosition(cells);
         
-        // 使用更灵活的方式提取信息
-        OwnerInfo.Builder builder = OwnerInfo.builder();
-        
-        String ownerName = findValueForLabel(sortedCells, "业主姓名", "姓名");
-        builder.ownerName(ownerName);
-        
-        String buildingAreaStr = findValueForLabel(sortedCells, "专有部分建筑面积", "建筑面积");
-        builder.buildingArea(parseDouble(buildingAreaStr));
-        
-        String roomNumber = findValueForLabel(sortedCells, "房号");
-        builder.roomNumber(roomNumber);
-        
-        String phoneNumber = findValueForLabel(sortedCells, "电话");
-        builder.phoneNumber(cleanPhoneNumber(phoneNumber));
-        
-        String agentName = findValueForLabel(sortedCells, "代理人姓名", "代理人");
-        builder.agentName(agentName);
-        
-        String agentPhone = findValueForLabel(sortedCells, "代理人联系电话", "代理人电话");
-        builder.agentPhone(cleanPhoneNumber(agentPhone));
-        
-        return builder.build();
-    }
-    
-    /**
-     * 在排序后的单元格列表中查找特定标签的值
-     */
-    private String findValueForLabel(List<CellInfo> cells, String... labelKeywords) {
-        for (int i = 0; i < cells.size(); i++) {
-            String cleanLabel = cleanText(cells.get(i).getText());
-            for (String keyword : labelKeywords) {
-                if (cleanLabel.contains(keyword)) {
-                    // 假设值在标签的右侧或下方，且在同一行或紧邻的下一行
-                    // 这里简化为查找同一行右侧的第一个非空单元格
-                    for (int j = i + 1; j < cells.size(); j++) {
-                        // 检查是否在同一行（或非常接近的行）
-                        if (Math.abs(cells.get(i).getRowTl() - cells.get(j).getRowTl()) < 10) {
-                            String value = cleanText(cells.get(j).getText());
-                            if (!StringUtils.isEmpty(value)) {
-                                return value;
-                            }
-                        }
-                    }
-                }
+        // 配对提取：标签-值
+        for (int i = 0; i < sortedCells.size(); i += 2) {
+            if (i + 1 < sortedCells.size()) {
+                String label = cleanText(sortedCells.get(i).getText());
+                String value = cleanText(sortedCells.get(i + 1).getText());
+                dataMap.put(label, value);
             }
         }
-        return "";
+        // 映射到业主信息对象
+        return OwnerInfo.builder()
+                .ownerName(dataMap.get("业主姓名"))
+                .buildingArea(parseDouble(dataMap.get("专有部分建筑面积(平方米)")))
+                .roomNumber(dataMap.get("房号"))
+                .phoneNumber(cleanPhoneNumber(dataMap.get("电话")))
+                .agentName(dataMap.get("代理人"))
+                .agentPhone(cleanPhoneNumber(dataMap.get("代理人联系电话")))
+                .build();
     }
     
     /**
@@ -128,45 +97,14 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
         JSONArray cells = voteTable.getJSONArray("Cells");
         List<CellInfo> sortedCells = sortCellsByPosition(cells);
         List<VoteItem> voteItems = new ArrayList<>();
-        
-        // 假设前几个单元格是标题，实际投票项从某个位置开始
-        // 这里需要更智能地识别投票项的起始位置
-        // 简单起见，我们假设第一个文本内容为空的单元格，或者行号显著增加的单元格，标志着新的一行的开始
-        
-        // 通常第一行是表头，第二行开始是具体事项。但为了鲁棒性，我们按行处理。
-        // 将单元格按行分组
-        Map<Integer, List<CellInfo>> rows = new TreeMap<>();
-        for (CellInfo cell : sortedCells) {
-            // 使用单元格的Y轴起始坐标作为行标识，但考虑到OCR可能不精确，可以对Y轴进行分组
-            int rowKey = (cell.getRowTl() / 10) * 10; // 粗略分组到10像素的行区间
-            rows.computeIfAbsent(rowKey, k -> new ArrayList<>()).add(cell);
-        }
-        
-        boolean firstRowSkipped = false; // 用于跳过表头
-        for (Map.Entry<Integer, List<CellInfo>> entry : rows.entrySet()) {
-            List<CellInfo> rowCells = entry.getValue();
-            if (rowCells.isEmpty()) continue;
-            
-            // 对行内单元格按X轴排序
-            rowCells.sort(Comparator.comparing(CellInfo::getColTl));
-            
-            if (!firstRowSkipped) { // 跳过第一个被识别为“行”的表头
-                firstRowSkipped = true;
-                continue;
-            }
-            
-            String topicTitle = "";
-            String voteSymbol = "";
-            
-            // 尝试在这一行中找到主题和投票符号
-            if (rowCells.size() >= 2) {
-                topicTitle = cleanText(rowCells.get(0).getText()); // 假设第一个是主题
-                voteSymbol = cleanText(rowCells.get(1).getText()); // 假设第二个是投票符号
-            } else if (rowCells.size() == 1) {
-                topicTitle = cleanText(rowCells.get(0).getText());
-            }
-            
-            if (!StringUtils.isEmpty(topicTitle)) { // 避免添加空主题
+        // 跳过表头，从第二行开始处理
+        for (int i = 2; i < sortedCells.size(); i += 2) {
+
+            if (i + 1 < sortedCells.size()) {
+                System.out.println(cleanText(sortedCells.get(i).getText())+"："+cleanText(sortedCells.get(i+1).getText()));
+                String topicTitle = cleanText(sortedCells.get(i).getText());
+                String voteSymbol = cleanText(sortedCells.get(i + 1).getText());
+                
                 // 智能识别投票选项
                 VoteItem.VoteOption option = recognizeVoteOption(voteSymbol);
                 
@@ -286,13 +224,12 @@ public class OcrVoteProcessorServiceImpl implements IOcrVoteProcessorService {
         }
         
         // 按位置排序：先行后列
-        cellList.sort((a, b) -> {
-            // 首先比较行的起始位置，如果相近则认为是同一行
-            if (Math.abs(a.getRowTl() - b.getRowTl()) < 10) { 
-                return Integer.compare(a.getColTl(), b.getColTl());
-            }
-            return Integer.compare(a.getRowTl(), b.getRowTl());
-        });
+//        cellList.sort((a, b) -> {
+//            if (Math.abs(a.getRowTl() - b.getRowTl()) < 10) { // 同一行
+//                return Integer.compare(a.getColTl(), b.getColTl());
+//            }
+//            return Integer.compare(a.getRowTl(), b.getRowTl());
+//        });
         
         return cellList;
     }
