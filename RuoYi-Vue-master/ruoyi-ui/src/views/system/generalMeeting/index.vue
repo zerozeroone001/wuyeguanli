@@ -1056,7 +1056,7 @@ export default {
       }
       this.handleDownloadBlob(
         exportVotingResults(meeting.meetingId),
-        meeting.meetingTitle + '_投票结果.xlsx'
+        meeting.meetingTitle + '_投票结果.pdf'
       );
     },
 

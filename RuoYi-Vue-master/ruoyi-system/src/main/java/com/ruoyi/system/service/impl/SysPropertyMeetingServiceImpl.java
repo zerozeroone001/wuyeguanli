@@ -13,6 +13,7 @@ import com.ruoyi.system.domain.SysPropertyMeetingTopic;
 import com.ruoyi.system.mapper.SysPropertyMeetingTopicMapper;
 import com.ruoyi.system.service.ISysMeetingFeedbackService;
 import com.ruoyi.system.service.ISysMeetingVoteService;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -381,12 +382,32 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                       if (StringUtils.isEmpty(name)) name = "业主";
                       
                       params.put("@name", name);
-                      params.put("@room", (owner.getBuildingName() != null ? owner.getBuildingName() : "") + 
-                                          (owner.getUnitName() != null ? owner.getUnitName() : "") + 
-                                          (owner.getRoomNumber() != null ? owner.getRoomNumber() : ""));
-                      params.put("@area", owner.getArea() != null ? owner.getArea().toString() : "0");
-                      params.put("@date", DateUtils.getDate());
+                      params.put("{name}", name);
+                      params.put("${name}", name);
+                      
+                      String roomInfo = (owner.getBuildingName() != null ? owner.getBuildingName() : "") + 
+                                        (owner.getUnitName() != null ? owner.getUnitName() : "") + 
+                                        (owner.getRoomNumber() != null ? owner.getRoomNumber() : "");
+                      params.put("@room", roomInfo);
+                      params.put("{room}", roomInfo);
+                      params.put("${room}", roomInfo);
+                      
+                      String areaInfo = owner.getArea() != null ? owner.getArea().toString() : "0";
+                      params.put("@area", areaInfo);
+                      params.put("{area}", areaInfo);
+                      params.put("${area}", areaInfo);
+                      
+                      String dateInfo = DateUtils.getDate();
+                      params.put("@date", dateInfo);
+                      params.put("{date}", dateInfo);
+                      params.put("${date}", dateInfo);
+                      
+                      String titleInfo = meeting.getMeetingTitle();
+                      params.put("@title", titleInfo);
+                      params.put("{title}", titleInfo);
+                      params.put("${title}", titleInfo);
 
+                      insertTopicsIntoDoc(doc, meeting.getTopics());
                       replaceTextInDoc(doc, params);
 
                       String safeName = name.replaceAll("[\\\\/:*?\"<>|]", "_");
@@ -409,57 +430,162 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         }
         CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
 
-        // 获取统计数据
-        com.ruoyi.system.domain.vo.MeetingVoteReportVO vo = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
+        // 1. 获取基础统计数据
+        com.ruoyi.system.domain.vo.MeetingVoteReportVO summary = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
         
-        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
-            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("投票结果");
+        // 2. 获取详细议题投票结果
+        List<com.ruoyi.system.domain.vo.VoteResultVO> topicResults = sysMeetingVoteMapper.selectVoteResultsByMeeting(meeting.getMeetingId(), meeting.getCommunityId());
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + java.net.URLEncoder.encode(meeting.getMeetingTitle() + "_投票结果报告.pdf", "UTF-8") + "\"");
+
+        com.itextpdf.text.Document document = new com.itextpdf.text.Document(com.itextpdf.text.PageSize.A4);
+        try {
+            com.itextpdf.text.pdf.PdfWriter.getInstance(document, response.getOutputStream());
+            document.open();
+
+            // 设置字体 (使用 iTextAsian 支持中文)
+            com.itextpdf.text.pdf.BaseFont bfChinese = com.itextpdf.text.pdf.BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", com.itextpdf.text.pdf.BaseFont.NOT_EMBEDDED);
+            com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(bfChinese, 20, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(bfChinese, 14, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(bfChinese, 12, com.itextpdf.text.Font.NORMAL);
+            com.itextpdf.text.Font boldFont = new com.itextpdf.text.Font(bfChinese, 12, com.itextpdf.text.Font.BOLD);
+
+            // 1. 标题
+            com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph(meeting.getMeetingTitle() + " - 投票结果报告", titleFont);
+            title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            // 2. 会议基本信息
+            document.add(new com.itextpdf.text.Paragraph("一、会议基本信息", headerFont));
+            document.add(new com.itextpdf.text.Paragraph(" ", normalFont)); // 空行
+
+            com.itextpdf.text.pdf.PdfPTable basicTable = new com.itextpdf.text.pdf.PdfPTable(2);
+            basicTable.setWidthPercentage(100);
+            basicTable.setSpacingAfter(10);
+            basicTable.setWidths(new float[]{3f, 7f});
+
+            addCell(basicTable, "会议名称", boldFont);
+            addCell(basicTable, meeting.getMeetingTitle(), normalFont);
+            addCell(basicTable, "所属小区", boldFont);
+            addCell(basicTable, meeting.getCommunityName(), normalFont);
+            addCell(basicTable, "会议地点", boldFont);
+            addCell(basicTable, meeting.getMeetingLocation(), normalFont);
+            addCell(basicTable, "会议时间", boldFont);
+            addCell(basicTable, DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD, meeting.getMeetingTime()), normalFont);
+            addCell(basicTable, "投票起止时间", boldFont);
+            addCell(basicTable, DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD, meeting.getVoteStartTime()) + " 至 " + DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD, meeting.getVoteEndTime()), normalFont);
+
+            document.add(basicTable);
+
+            // 3. 总体参与情况
+            document.add(new com.itextpdf.text.Paragraph("二、总体参与情况", headerFont));
+            document.add(new com.itextpdf.text.Paragraph(" ", normalFont));
+
+            com.itextpdf.text.pdf.PdfPTable summaryTable = new com.itextpdf.text.pdf.PdfPTable(4);
+            summaryTable.setWidthPercentage(100);
+            summaryTable.setSpacingAfter(20);
             
-            // 标题样式
-            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
-            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            if (summary != null) {
+                addCell(summaryTable, "总户数", boldFont);
+                addCell(summaryTable, String.valueOf(summary.getTotalOwners()) + " 户", normalFont);
+                addCell(summaryTable, "总建筑面积", boldFont);
+                addCell(summaryTable, summary.getTotalArea() + " m²", normalFont);
 
-            // 创建标题行
-            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
-            String[] headers = {"项目", "数值", "单位"};
-            for (int i = 0; i < headers.length; i++) {
-                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(headerStyle);
-            }
+                addCell(summaryTable, "参与投票户数", boldFont);
+                addCell(summaryTable, String.valueOf(summary.getParticipatedOwners()) + " 户", normalFont);
+                addCell(summaryTable, "参与投票面积", boldFont);
+                addCell(summaryTable, summary.getParticipatedArea() + " m²", normalFont);
 
-            // 填充数据
-            int rowIndex = 1;
-            if (vo != null) {
-                addRow(sheet, rowIndex++, "总户数", vo.getTotalOwners() != null ? vo.getTotalOwners().toString() : "0", "户");
-                addRow(sheet, rowIndex++, "总面积", vo.getTotalArea() != null ? vo.getTotalArea().toString() : "0", "m²");
-                addRow(sheet, rowIndex++, "参与户数", vo.getParticipatedOwners() != null ? vo.getParticipatedOwners().toString() : "0", "户");
-                addRow(sheet, rowIndex++, "参与面积", vo.getParticipatedArea() != null ? vo.getParticipatedArea().toString() : "0", "m²");
-                addRow(sheet, rowIndex++, "户数参与率", vo.getOwnerParticipationRate() != null ? vo.getOwnerParticipationRate() + "%" : "0%", "");
-                addRow(sheet, rowIndex++, "面积参与率", vo.getAreaParticipationRate() != null ? vo.getAreaParticipationRate() + "%" : "0%", "");
+                addCell(summaryTable, "户数参与率", boldFont);
+                addCell(summaryTable, summary.getOwnerParticipationRate() + "%", normalFont);
+                addCell(summaryTable, "面积参与率", boldFont);
+                addCell(summaryTable, summary.getAreaParticipationRate() + "%", normalFont);
             } else {
-                addRow(sheet, rowIndex++, "暂无统计数据", "-", "-");
+                com.itextpdf.text.pdf.PdfPCell noDataCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase("暂无统计数据", normalFont));
+                noDataCell.setColspan(4);
+                noDataCell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                summaryTable.addCell(noDataCell);
             }
-            
-            // 自动列宽
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
+            document.add(summaryTable);
+
+            // 4. 议题表决结果详情
+            document.add(new com.itextpdf.text.Paragraph("三、议题表决结果详情", headerFont));
+            document.add(new com.itextpdf.text.Paragraph(" ", normalFont));
+
+            if (topicResults != null && !topicResults.isEmpty()) {
+                int index = 1;
+                for (com.ruoyi.system.domain.vo.VoteResultVO topic : topicResults) {
+                    document.add(new com.itextpdf.text.Paragraph(index + ". 议题：" + topic.getTopicTitle(), boldFont));
+                    document.add(new com.itextpdf.text.Paragraph(" ", normalFont));
+
+                    com.itextpdf.text.pdf.PdfPTable topicTable = new com.itextpdf.text.pdf.PdfPTable(5);
+                    topicTable.setWidthPercentage(100);
+                    topicTable.setWidths(new float[]{2f, 2f, 2f, 2f, 2f});
+                    topicTable.setSpacingAfter(15);
+
+                    // 表头
+                    addCell(topicTable, "选项", boldFont);
+                    addCell(topicTable, "票数", boldFont);
+                    addCell(topicTable, "面积(m²)", boldFont);
+                    addCell(topicTable, "人数占比", boldFont);
+                    addCell(topicTable, "面积占比", boldFont);
+
+                    // 同意
+                    addCell(topicTable, "同意", normalFont);
+                    addCell(topicTable, String.valueOf(topic.getAgreePeople()), normalFont);
+                    addCell(topicTable, String.valueOf(topic.getAgreeArea()), normalFont);
+                    addCell(topicTable, topic.getAgreePeopleRate() + "%", normalFont);
+                    addCell(topicTable, topic.getAgreeAreaRate() + "%", normalFont);
+
+                    // 反对
+                    addCell(topicTable, "反对", normalFont);
+                    addCell(topicTable, String.valueOf(topic.getOpposePeople()), normalFont);
+                    addCell(topicTable, String.valueOf(topic.getOpposeArea()), normalFont);
+                    addCell(topicTable, "-", normalFont);
+                    addCell(topicTable, "-", normalFont);
+
+                    // 弃权
+                    addCell(topicTable, "弃权", normalFont);
+                    addCell(topicTable, String.valueOf(topic.getAbstainPeople()), normalFont);
+                    addCell(topicTable, String.valueOf(topic.getAbstainArea()), normalFont);
+                    addCell(topicTable, "-", normalFont);
+                    addCell(topicTable, "-", normalFont);
+                    
+                    document.add(topicTable);
+                    
+                    // 结果判定建议
+                    String passStatus = Boolean.TRUE.equals(topic.getIsPassed()) ? "通过" : "未通过/待定";
+                    com.itextpdf.text.Paragraph statusPara = new com.itextpdf.text.Paragraph("系统判定结果：" + passStatus, normalFont);
+                    statusPara.setSpacingAfter(10);
+                    document.add(statusPara);
+
+                    index++;
+                }
+            } else {
+                document.add(new com.itextpdf.text.Paragraph("暂无议题数据", normalFont));
             }
 
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + java.net.URLEncoder.encode(meeting.getMeetingTitle() + "_投票结果.xlsx", "UTF-8") + "\"");
-            workbook.write(response.getOutputStream());
+            // 5. 底部信息
+            document.add(new com.itextpdf.text.Paragraph(" ", normalFont));
+            com.itextpdf.text.Paragraph footer = new com.itextpdf.text.Paragraph("导出时间：" + DateUtils.getTime(), normalFont);
+            footer.setAlignment(com.itextpdf.text.Element.ALIGN_RIGHT);
+            document.add(footer);
+
+        } catch (com.itextpdf.text.DocumentException e) {
+            log.error("PDF生成失败", e);
+            throw new java.io.IOException("PDF生成失败");
+        } finally {
+            document.close();
         }
     }
 
-    private void addRow(org.apache.poi.ss.usermodel.Sheet sheet, int rowIndex, String label, String value, String unit) {
-        org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIndex);
-        row.createCell(0).setCellValue(label);
-        row.createCell(1).setCellValue(value);
-        row.createCell(2).setCellValue(unit);
+    private void addCell(com.itextpdf.text.pdf.PdfPTable table, String text, com.itextpdf.text.Font font) {
+        com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(text != null ? text : "", font));
+        cell.setPadding(5);
+        cell.setVerticalAlignment(com.itextpdf.text.Element.ALIGN_MIDDLE);
+        table.addCell(cell);
     }
 
     @Override
@@ -773,6 +899,177 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         return rows;
     }
 
+    private void insertTopicsIntoDoc(org.apache.poi.xwpf.usermodel.XWPFDocument doc, List<SysPropertyMeetingTopic> topics) {
+        if (topics == null || topics.isEmpty()) return;
+
+        // 策略：寻找包含 "@topic" 文本的表格行，作为模板行
+        org.apache.poi.xwpf.usermodel.XWPFTable targetTable = null;
+        org.apache.poi.xwpf.usermodel.XWPFTableRow templateRow = null;
+        int templateRowIndex = -1;
+
+        for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
+            for (int i = 0; i < table.getRows().size(); i++) {
+                org.apache.poi.xwpf.usermodel.XWPFTableRow row = table.getRow(i);
+                for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                    if (cell.getText().contains("@topic")) {
+                        targetTable = table;
+                        templateRow = row;
+                        templateRowIndex = i;
+                        break;
+                    }
+                }
+                if (targetTable != null) break;
+            }
+            if (targetTable != null) break;
+        }
+
+        if (targetTable != null && templateRow != null) {
+            // 使用模板行策略
+            // 如果只有一个议题，直接替换模板行中的 @topic
+            if (topics.size() == 1) {
+                replaceInRow(templateRow, "@topic", topics.get(0).getTopicTitle());
+            } else {
+                // 如果有多个议题，保留模板行在最后，先插入前面的
+                // 为了保持样式，我们应该复制模板行。但POI复制行比较复杂。
+                // 简化策略：复用模板行给最后一个议题，前面的议题插入新行（样式可能丢失，但内容在）
+                // 或者：每次都插入新行，第一列设置内容。
+                
+                // 更好的策略：
+                // 1. 对于前 N-1 个议题，在模板行之前插入新行
+                // 2. 将模板行的内容（包括可能的勾选框）复制到新行（简易复制）
+                // 3. 替换新行中的 @topic
+                // 4. 最后一个议题使用模板行本身
+                
+                // 但由于 POI 3.x/4.x 的 insertNewTableRow 功能有限，且复制单元格样式繁琐。
+                // 这里采用最基础的实现：只保证文字内容进去。
+                
+                for (int i = 0; i < topics.size() - 1; i++) {
+                    SysPropertyMeetingTopic topic = topics.get(i);
+                    org.apache.poi.xwpf.usermodel.XWPFTableRow newRow = targetTable.insertNewTableRow(templateRowIndex + i);
+                    if (newRow != null) {
+                         // 尝试按照模板行的单元格数量创建单元格
+                         for (org.apache.poi.xwpf.usermodel.XWPFTableCell templateCell : templateRow.getTableCells()) {
+                             org.apache.poi.xwpf.usermodel.XWPFTableCell newCell = newRow.addNewTableCell();
+                             String text = templateCell.getText();
+                             if (text.contains("@topic")) {
+                                 newCell.setText(topic.getTopicTitle());
+                             } else {
+                                 newCell.setText(text);
+                             }
+                             // 注意：样式（边框、对齐、字体）这里没有复制，可能会很难看。
+                             // 如果是严格格式的表决票，建议模板里直接预留足够多的行，或者使用 Freemarker 生成 xml。
+                         }
+                    }
+                }
+                // 最后一个议题复用模板行（保留了样式）
+                replaceInRow(templateRow, "@topic", topics.get(topics.size() - 1).getTopicTitle());
+            }
+        } else {
+            // 备选策略：如果没有找到 @topic，尝试查找表头包含“议题”或“表决事项”的表格
+             for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
+                 if (table.getRows().size() > 0) {
+                     StringBuilder headerTextBuilder = new StringBuilder();
+                     for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : table.getRow(0).getTableCells()) {
+                         headerTextBuilder.append(cell.getText());
+                     }
+                     String headerText = headerTextBuilder.toString();
+                     
+                     if (headerText.contains("议题") || headerText.contains("表决事项")) {
+                         // 在表格末尾追加行
+                         for (SysPropertyMeetingTopic topic : topics) {
+                             org.apache.poi.xwpf.usermodel.XWPFTableRow row = table.createRow();
+                             // 假设第一列是议题
+                             if (row.getTableCells().size() > 0) {
+                                 row.getCell(0).setText(topic.getTopicTitle());
+                             }
+                         }
+                         break;
+                     }
+                 }
+             }
+        }
+    }
+
+    private void replaceInRow(org.apache.poi.xwpf.usermodel.XWPFTableRow row, String key, String value) {
+        for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+            for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
+                Map<String, String> singleParam = new java.util.HashMap<>();
+                singleParam.put(key, value);
+                replaceInParagraph(p, singleParam);
+            }
+        }
+    }
+
+    private void replaceInParagraph(org.apache.poi.xwpf.usermodel.XWPFParagraph p, Map<String, String> params) {
+        List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = p.getRuns();
+        if (runs == null || runs.isEmpty()) return;
+
+        // 1. 尝试简单替换（针对未分割的情况）
+        boolean hit = false;
+        for (org.apache.poi.xwpf.usermodel.XWPFRun r : runs) {
+            String text = r.getText(0);
+            if (text != null && !text.isEmpty()) {
+                for (Map.Entry<String, String> entry : params.entrySet()) {
+                    if (text.contains(entry.getKey())) {
+                        log.info("Simple replacement hit: key={} in text={}", entry.getKey(), text);
+                        text = text.replace(entry.getKey(), entry.getValue());
+                        r.setText(text, 0);
+                        hit = true;
+                    }
+                }
+            }
+        }
+        if (hit) return; // 如果简单替换成功了，就不继续处理
+
+        // 2. 复杂替换（针对 Key 被 Word 分割成多个 Run 的情况）
+        String paragraphText = p.getText();
+        
+        // 只有当段落包含任意一个 Key 时才进行处理
+        boolean containsKey = false;
+        for (String key : params.keySet()) {
+            if (paragraphText.contains(key)) {
+                containsKey = true;
+                log.info("Complex replacement hit: key={} in paragraph={}", key, paragraphText);
+                break;
+            }
+        }
+        
+        if (containsKey) {
+            String newText = paragraphText;
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                newText = newText.replace(entry.getKey(), entry.getValue());
+            }
+            
+            // 保留第一个 Run 的样式（如果存在），移除其他 Runs
+            org.apache.poi.xwpf.usermodel.XWPFRun firstRun = runs.get(0);
+            String fontFamily = firstRun.getFontFamily();
+            int fontSize = firstRun.getFontSize();
+            boolean bold = firstRun.isBold();
+            boolean italic = firstRun.isItalic();
+            String color = firstRun.getColor();
+            // ... 其他样式属性视需要获取
+
+            removeAllRuns(p);
+            
+            org.apache.poi.xwpf.usermodel.XWPFRun newRun = p.createRun();
+            newRun.setText(newText);
+            
+            // 尽力恢复样式
+            if (fontFamily != null) newRun.setFontFamily(fontFamily);
+            if (fontSize != -1) newRun.setFontSize(fontSize);
+            newRun.setBold(bold);
+            newRun.setItalic(italic);
+            if (color != null) newRun.setColor(color);
+        }
+    }
+    
+    private void removeAllRuns(org.apache.poi.xwpf.usermodel.XWPFParagraph p) {
+        int size = p.getRuns().size();
+        for (int i = size - 1; i >= 0; i--) {
+            p.removeRun(i);
+        }
+    }
+
     private void replaceTextInDoc(org.apache.poi.xwpf.usermodel.XWPFDocument doc, Map<String, String> params) {
         for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
             replaceInParagraph(p, params);
@@ -782,23 +1079,6 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
                     for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
                         replaceInParagraph(p, params);
-                    }
-                }
-            }
-        }
-    }
-
-    private void replaceInParagraph(org.apache.poi.xwpf.usermodel.XWPFParagraph p, Map<String, String> params) {
-        List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = p.getRuns();
-        if (runs != null) {
-            for (org.apache.poi.xwpf.usermodel.XWPFRun r : runs) {
-                String text = r.getText(0);
-                if (text != null) {
-                    for (Map.Entry<String, String> entry : params.entrySet()) {
-                        if (text.contains(entry.getKey())) {
-                            text = text.replace(entry.getKey(), entry.getValue());
-                            r.setText(text, 0);
-                        }
                     }
                 }
             }
