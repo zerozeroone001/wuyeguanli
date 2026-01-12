@@ -648,10 +648,7 @@ public class SysUserServiceImpl implements ISysUserService
     @Override
     public Long countOwners()
     {
-        SysUser user = new SysUser();
-        user.setStatus("0"); // 正常状态
-        List<SysUser> userList = userMapper.selectUserList(user);
-        return (long) userList.size();
+        return userMapper.countOwners();
     }
 
     /**
@@ -662,8 +659,7 @@ public class SysUserServiceImpl implements ISysUserService
     @Override
     public Long countMonthNewOwners()
     {
-        // 模拟数据，实际应该从数据库查询
-        return 8L;
+        return userMapper.countMonthNewOwners();
     }
 
     @Override

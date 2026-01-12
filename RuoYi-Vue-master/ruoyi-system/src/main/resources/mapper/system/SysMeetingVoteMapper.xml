@@ -14,6 +14,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="voteType" column="vote_type"/>
         <result property="flieUrl" column="flie_url"/>
         <result property="voteNo" column="vote_no"/>
+        <result property="isVote" column="is_vote"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
@@ -23,8 +24,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <insert id="insertVote" parameterType="SysMeetingVote">
-        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, create_time, update_time)
-        values(#{meetingId}, #{topicId}, #{userId}, #{userName}, #{voteOption}, #{voteType}, #{flieUrl}, now(), now())
+        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, is_vote, create_time, update_time)
+        values(#{meetingId}, #{topicId}, #{userId}, #{userName}, #{voteOption}, #{voteType}, #{flieUrl}, #{isVote}, now(), now())
     </insert>
 
     <update id="updateVote" parameterType="SysMeetingVote">
@@ -32,6 +33,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         set vote_option = #{voteOption},
             vote_type = #{voteType},
             flie_url = #{flieUrl},
+            is_vote = #{isVote},
             update_time = now()
         where vote_id = #{voteId}
     </update>
@@ -50,13 +52,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectSysMeetingVoteList" parameterType="SysMeetingVote" resultMap="SysMeetingVoteResult">
-        select * from sys_meeting_vote
+        select smv.* from sys_meeting_vote smv
+        left join sys_property_meeting spm on smv.meeting_id = spm.meeting_id
         <where>
-            <if test="meetingId != null "> and meeting_id = #{meetingId}</if>
-            <if test="topicId != null "> and topic_id = #{topicId}</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="voteOption != null"> and vote_option = #{voteOption}</if>
-            <if test="voteType != null"> and vote_type = #{voteType}</if>
+            <if test="meetingId != null "> and smv.meeting_id = #{meetingId}</if>
+            <if test="topicId != null "> and smv.topic_id = #{topicId}</if>
+            <if test="userId != null "> and smv.user_id = #{userId}</if>
+            <if test="voteOption != null"> and smv.vote_option = #{voteOption}</if>
+            <if test="voteType != null"> and smv.vote_type = #{voteType}</if>
+            <if test="meetingStatus != null and meetingStatus != ''"> and spm.meeting_status = #{meetingStatus}</if>
         </where>
     </select>
 
@@ -71,6 +75,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteType != null">vote_type,</if>
             <if test="flieUrl != null and flieUrl != ''">flie_url,</if>
             <if test="voteNo != null and voteNo != ''">vote_no,</if>
+            <if test="isVote != null">is_vote,</if>
             <if test="createTime != null">create_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -82,15 +87,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteType != null">#{voteType},</if>
             <if test="flieUrl != null and flieUrl != ''">#{flieUrl},</if>
             <if test="voteNo != null and voteNo != ''">#{voteNo},</if>
+            <if test="isVote != null">#{isVote},</if>
             <if test="createTime != null">#{createTime},</if>
          </trim>
     </insert>
 
     <insert id="batchInsertSysMeetingVote">
-        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, vote_no, create_time)
+        insert into sys_meeting_vote(meeting_id, topic_id, user_id, user_name, vote_option, vote_type, flie_url, vote_no, is_vote, create_time)
         values
         <foreach item="item" index="index" collection="list" separator=",">
-            (#{item.meetingId}, #{item.topicId}, #{item.userId}, #{item.userName}, #{item.voteOption}, #{item.voteType}, #{item.flieUrl}, #{item.voteNo}, now())
+            (#{item.meetingId}, #{item.topicId}, #{item.userId}, #{item.userName}, #{item.voteOption}, #{item.voteType}, #{item.flieUrl}, #{item.voteNo}, #{item.isVote}, now())
         </foreach>
     </insert>
 
@@ -105,6 +111,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteType != null">vote_type = #{voteType},</if>
             <if test="flieUrl != null and flieUrl != ''">flie_url = #{flieUrl},</if>
             <if test="voteNo != null and voteNo != ''">vote_no = #{voteNo},</if>
+            <if test="isVote != null">is_vote = #{isVote},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
         where vote_id = #{voteId}
@@ -146,11 +153,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             SUM(ep.area) as area,
             COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
             CASE WHEN u.status = '0' THEN '正常' ELSE '冻结' END as vote_right_status,
-            CASE WHEN COUNT(mv.vote_id) > 0 THEN '已投票' ELSE '未投票' END as voter_status,
-            CASE WHEN COUNT(mv.vote_id) > 0 THEN 1 ELSE 0 END as hasVoted,
+            CASE WHEN COUNT(CASE WHEN mv.vote_option IS NOT NULL THEN 1 END) > 0 THEN '已投票' ELSE '未投票' END as voter_status,
+            CASE WHEN COUNT(CASE WHEN mv.vote_option IS NOT NULL THEN 1 END) > 0 THEN 1 ELSE 0 END as hasVoted,
 
             SUM(ep.area) as actual_vote_right,
-            MAX(mv.create_time) as participation_time,
+            MAX(CASE WHEN mv.vote_option IS NOT NULL THEN mv.create_time END) as participation_time,
             MAX(mv.vote_option) as vote_option,
             MAX(mv.vote_type) as vote_type,
             MAX(mv.vote_no) as vote_no,
@@ -159,12 +166,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             sys_owner_profile op
         LEFT JOIN 
             sys_user u ON op.user_id = u.user_id
+        LEFT JOIN
+            sys_user u_phone ON op.phonenumber = u_phone.phonenumber AND u_phone.del_flag = '0'
         LEFT JOIN 
             sys_estate_user_property eup ON op.user_id = eup.user_id AND op.community_id = eup.community_id AND eup.del_flag = '0'
         LEFT JOIN 
             sys_estate_property ep ON eup.property_id = ep.property_id AND ep.del_flag = '0'
         LEFT JOIN 
-            sys_meeting_vote mv ON op.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+            sys_meeting_vote mv ON (op.user_id = mv.user_id OR u_phone.user_id = mv.user_id) AND mv.meeting_id = #{meetingId}
         WHERE 
             op.community_id = #{communityId}
             AND (op.del_flag = '0' OR op.del_flag IS NULL)
@@ -181,10 +190,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             op.user_id, op.owner_id, op.user_name, op.phonenumber, u.phonenumber, u.status
         <trim prefix="HAVING" prefixOverrides="AND |OR ">
             <if test="voteStatus != null and voteStatus == '1'">
-                AND COUNT(mv.vote_id) > 0
+                AND COUNT(CASE WHEN mv.vote_option IS NOT NULL THEN 1 END) > 0
             </if>
             <if test="voteStatus != null and voteStatus == '0'">
-                AND COUNT(mv.vote_id) = 0
+                AND COUNT(CASE WHEN mv.vote_option IS NOT NULL THEN 1 END) = 0
             </if>
         </trim>
         ORDER BY 
@@ -218,7 +227,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <!-- 投票列表导出VO ResultMap -->
     <resultMap type="com.ruoyi.system.domain.vo.VoteListExportVO" id="VoteListExportVOResult">
-        <result property="rowNum" column="row_num"/>
         <result property="roomNumber" column="room_number"/>
         <result property="userName" column="userName"/>
         <result property="phonenumber" column="phonenumber"/>
@@ -232,12 +240,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <!-- 查询投票列表用于Excel导出 -->
     <select id="selectVoteListForExport" resultMap="VoteListExportVOResult">
         SELECT
-            ROW_NUMBER() OVER (ORDER BY ep.room_number) as row_num,
             ep.room_number,
             op.user_name,
             COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
             ep.area,
-            CASE WHEN mv.vote_id IS NOT NULL THEN '已投票' ELSE '未投票' END as voter_status,
+            CASE WHEN mv.user_id IS NOT NULL THEN '已投票' ELSE '未投票' END as voter_status,
             mv.create_time as participation_time,
             mv.vote_type,
             GROUP_CONCAT(
@@ -260,7 +267,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LEFT JOIN
             sys_owner_profile op ON eup.user_id = op.user_id AND eup.community_id = op.community_id
         LEFT JOIN
-            (SELECT DISTINCT user_id, meeting_id, vote_id, create_time, vote_type
+            (SELECT user_id, meeting_id, MAX(create_time) as create_time, MAX(vote_type) as vote_type
              FROM sys_meeting_vote WHERE meeting_id = #{meetingId}
              GROUP BY user_id, meeting_id) mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
         LEFT JOIN
@@ -274,7 +281,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
         GROUP BY
             eup.user_id, ep.room_number, op.user_name, op.phonenumber, u.phonenumber,
-            ep.area, mv.vote_id, mv.create_time, mv.vote_type
+            ep.area, mv.user_id, mv.create_time, mv.vote_type
         ORDER BY
             ep.room_number
     </select>
@@ -429,6 +436,59 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             AND mv.user_id = #{userId}
         ORDER BY 
             t.order_num
+    </select>
+
+    <resultMap type="com.ruoyi.system.domain.vo.MeetingNotificationVO" id="MeetingNotificationVOResult">
+        <result property="userName" column="user_name"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="address" column="address"/>
+        <result property="hasVoted" column="has_voted"/>
+        <result property="smsTime" column="sms_time"/>
+        <result property="phoneTime" column="phone_time"/>
+        <result property="paperTime" column="paper_time"/>
+    </resultMap>
+
+    <!-- 查询会议已投票用户ID列表（用于通知未投票用户） -->
+    <select id="selectSysMeetingUnVoteUserList" resultMap="SysMeetingVoteResult">
+        SELECT DISTINCT 
+            user_id
+        FROM 
+            sys_meeting_vote
+        WHERE
+            meeting_id = #{meetingId}
+            AND is_vote = 1
+        ORDER BY 
+            user_id
+    </select>
+
+    <select id="selectNotificationRecords" resultMap="MeetingNotificationVOResult">
+        SELECT 
+            op.user_name,
+            COALESCE(op.phonenumber, u.phonenumber) as phonenumber,
+            GROUP_CONCAT(DISTINCT CONCAT(COALESCE(ep.building_name,''), COALESCE(ep.unit_name,''), COALESCE(ep.room_number,'')) SEPARATOR '; ') as address,
+            CASE WHEN COUNT(DISTINCT mv.vote_id) > 0 THEN '是' ELSE '否' END as has_voted,
+            MAX(CASE WHEN mn.vote_type = 0 THEN mn.create_time END) as sms_time,
+            MAX(CASE WHEN mn.vote_type = 1 THEN mn.create_time END) as phone_time,
+            MAX(CASE WHEN mn.vote_type = 2 THEN mn.create_time END) as paper_time
+        FROM 
+            sys_owner_profile op
+        LEFT JOIN 
+            sys_user u ON op.user_id = u.user_id
+        LEFT JOIN 
+            sys_estate_user_property eup ON op.user_id = eup.user_id AND op.community_id = eup.community_id AND eup.del_flag = '0'
+        LEFT JOIN 
+            sys_estate_property ep ON eup.property_id = ep.property_id AND ep.del_flag = '0'
+        LEFT JOIN 
+            sys_meeting_vote mv ON op.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+        LEFT JOIN
+            sys_meeting_notice mn ON op.user_id = mn.user_id AND mn.meeting_id = #{meetingId}
+        WHERE 
+            op.community_id = #{communityId}
+            AND (op.del_flag = '0' OR op.del_flag IS NULL)
+        GROUP BY 
+            op.user_id, op.user_name, op.phonenumber, u.phonenumber
+        ORDER BY 
+            op.user_name
     </select>
 
 </mapper>

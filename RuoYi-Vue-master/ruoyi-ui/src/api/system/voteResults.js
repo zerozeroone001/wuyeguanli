@@ -10,7 +10,7 @@ export function listVoteResults(query) {
 }
 
 // 导出表决结果
-export function exportVoteResults(query) {
+export function exportVoteListExcel(query) {
   return request({
     url: '/system/voteResults/export',
     method: 'get',
@@ -23,8 +23,8 @@ export function exportVoteResults(query) {
 // 导出投票统计报告PDF
 export function exportVoteReportPdf(query) {
   return request({
-    url: '/system/meeting/export/voteReport',
-    method: 'get',
+    url: '/system/meeting/exportVotingResults',
+    method: 'post',
     params: query,
     responseType: 'blob'
   })

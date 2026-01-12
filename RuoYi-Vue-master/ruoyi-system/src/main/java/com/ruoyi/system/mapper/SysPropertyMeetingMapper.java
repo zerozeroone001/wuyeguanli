@@ -33,6 +33,8 @@ public interface SysPropertyMeetingMapper
      */
     public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting);
 
+    public List<SysPropertyMeeting> userSelectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting);
+
     /**
      * 鏂板浼氳绠＄悊
      * 
@@ -90,5 +92,35 @@ public interface SysPropertyMeetingMapper
      * @return 统计结果
      */
     List<Map<String, Object>> getBuildingVoteStats(@Param("meetingId") Long meetingId, @Param("communityId") Long communityId);
+
+    /**
+     * 统计根据条件进行的会议数
+     */
+    Long countOngoingMeetings();
+
+    /**
+     * 获取平均参与率
+     */
+    Double getAverageParticipationRate();
+
+    /**
+     * 获取投票参与趋势
+     */
+    List<Map<String, Object>> getVoteParticipationTrend();
+
+    /**
+     * 获取会议活动统计
+     */
+    List<Map<String, Object>> getMeetingActivityStats();
+
+    /**
+     * 获取最近的投票
+     */
+    List<Map<String, Object>> getRecentVotes(@Param("limit") int limit);
+
+    /**
+     * 统计即将开始的会议
+     */
+    Long countUpcomingMeetings();
 }
 

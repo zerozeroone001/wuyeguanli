@@ -217,7 +217,8 @@ public class SysOwnerProfileController extends BaseController
         return toAjax(sysOwnerProfileService.addPropertyToOwner(
             sysOwnerProfile.getOwnerId(), 
             sysOwnerProfile.getCommunityId(), 
-            sysOwnerProfile.getBuildingNo(), 
+            sysOwnerProfile.getBuildingNo(),
+            sysOwnerProfile.getUnitNo(),
             sysOwnerProfile.getRoomNo()
         ));
     }

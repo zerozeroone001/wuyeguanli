@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysContractMonthlyChecklistMapper">
+
+    <resultMap type="SysContractMonthlyChecklist" id="SysContractMonthlyChecklistResult">
+        <result property="checklistId"    column="checklist_id"    />
+        <result property="contractId"    column="contract_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="yearMonth"    column="year_month"    />
+        <result property="checklistName"    column="checklist_name"    />
+        <result property="checklistContent"    column="checklist_content"    />
+        <result property="fileUrl"    column="file_url"    />
+        <result property="uploadTime"    column="upload_time"    />
+        <result property="uploadUserId"    column="upload_user_id"    />
+        <result property="propertyFileUrl"    column="property_file_url"    />
+        <result property="propertyUploadTime"    column="property_upload_time"    />
+        <result property="propertyUploadUserId"    column="property_upload_user_id"    />
+        <result property="performanceStatus"    column="performance_status"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysContractMonthlyChecklistVo">
+        select checklist_id, contract_id, community_id, year_month, checklist_name, checklist_content, file_url, 
+        upload_time, upload_user_id, property_file_url, property_upload_time, property_upload_user_id, 
+        performance_status, status, del_flag, create_by, create_time, update_by, update_time, remark 
+        from sys_contract_monthly_checklist
+    </sql>
+
+    <select id="selectSysContractMonthlyChecklistList" parameterType="SysContractMonthlyChecklist" resultMap="SysContractMonthlyChecklistResult">
+        <include refid="selectSysContractMonthlyChecklistVo"/>
+        <where>
+            <if test="contractId != null"> and contract_id = #{contractId}</if>
+            <if test="communityId != null"> and community_id = #{communityId}</if>
+            <if test="yearMonth != null and yearMonth != ''"> and year_month = #{yearMonth}</if>
+            <if test="checklistName != null and checklistName != ''"> and checklist_name like concat('%', #{checklistName}, '%')</if>
+            <if test="performanceStatus != null and performanceStatus != ''"> and performance_status = #{performanceStatus}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+        order by year_month desc, create_time desc
+    </select>
+
+    <select id="selectSysContractMonthlyChecklistByChecklistId" parameterType="Long" resultMap="SysContractMonthlyChecklistResult">
+        <include refid="selectSysContractMonthlyChecklistVo"/>
+        where checklist_id = #{checklistId}
+    </select>
+
+    <select id="selectByContractId" parameterType="Long" resultMap="SysContractMonthlyChecklistResult">
+        <include refid="selectSysContractMonthlyChecklistVo"/>
+        where contract_id = #{contractId} and del_flag = '0'
+        order by year_month desc
+    </select>
+
+    <insert id="insertSysContractMonthlyChecklist" parameterType="SysContractMonthlyChecklist" useGeneratedKeys="true" keyProperty="checklistId">
+        insert into sys_contract_monthly_checklist
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractId != null">contract_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="yearMonth != null">year_month,</if>
+            <if test="checklistName != null">checklist_name,</if>
+            <if test="checklistContent != null">checklist_content,</if>
+            <if test="fileUrl != null">file_url,</if>
+            <if test="uploadTime != null">upload_time,</if>
+            <if test="uploadUserId != null">upload_user_id,</if>
+            <if test="propertyFileUrl != null">property_file_url,</if>
+            <if test="propertyUploadTime != null">property_upload_time,</if>
+            <if test="propertyUploadUserId != null">property_upload_user_id,</if>
+            <if test="performanceStatus != null">performance_status,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractId != null">#{contractId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="yearMonth != null">#{yearMonth},</if>
+            <if test="checklistName != null">#{checklistName},</if>
+            <if test="checklistContent != null">#{checklistContent},</if>
+            <if test="fileUrl != null">#{fileUrl},</if>
+            <if test="uploadTime != null">#{uploadTime},</if>
+            <if test="uploadUserId != null">#{uploadUserId},</if>
+            <if test="propertyFileUrl != null">#{propertyFileUrl},</if>
+            <if test="propertyUploadTime != null">#{propertyUploadTime},</if>
+            <if test="propertyUploadUserId != null">#{propertyUploadUserId},</if>
+            <if test="performanceStatus != null">#{performanceStatus},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysContractMonthlyChecklist" parameterType="SysContractMonthlyChecklist">
+        update sys_contract_monthly_checklist
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contractId != null">contract_id = #{contractId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="yearMonth != null">year_month = #{yearMonth},</if>
+            <if test="checklistName != null">checklist_name = #{checklistName},</if>
+            <if test="checklistContent != null">checklist_content = #{checklistContent},</if>
+            <if test="fileUrl != null">file_url = #{fileUrl},</if>
+            <if test="uploadTime != null">upload_time = #{uploadTime},</if>
+            <if test="uploadUserId != null">upload_user_id = #{uploadUserId},</if>
+            <if test="propertyFileUrl != null">property_file_url = #{propertyFileUrl},</if>
+            <if test="propertyUploadTime != null">property_upload_time = #{propertyUploadTime},</if>
+            <if test="propertyUploadUserId != null">property_upload_user_id = #{propertyUploadUserId},</if>
+            <if test="performanceStatus != null">performance_status = #{performanceStatus},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where checklist_id = #{checklistId}
+    </update>
+
+    <delete id="deleteSysContractMonthlyChecklistByChecklistId" parameterType="Long">
+        delete from sys_contract_monthly_checklist where checklist_id = #{checklistId}
+    </delete>
+
+    <delete id="deleteSysContractMonthlyChecklistByChecklistIds" parameterType="String">
+        delete from sys_contract_monthly_checklist where checklist_id in
+        <foreach item="checklistId" collection="array" open="(" separator="," close=")">
+            #{checklistId}
+        </foreach>
+    </delete>
+</mapper>

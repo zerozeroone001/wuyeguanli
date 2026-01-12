@@ -10,12 +10,15 @@ This project is a management system for property owners' committees, built on th
 *   **Database:** MySQL
 *   **Build Tool:** Maven
 *   **Key Modules:**
-    *   `ruoyi-admin`: Main application entry point.
+    *   `ruoyi-admin`: web management interface.
     *   `ruoyi-framework`: Core framework components.
     *   `ruoyi-system`: System management functionalities.
     *   `ruoyi-quartz`: Scheduled tasks.
     *   `ruoyi-generator`: Code generation.
     *   `ruoyi-common`: Common utility classes.
+    *   `ruoyi-user`: user management interface.
+    *   `ruoyi-app`: wechat mini program.
+    *   `ruoyi-ui`: web management system.
 
 **Frontend (Web):**
 

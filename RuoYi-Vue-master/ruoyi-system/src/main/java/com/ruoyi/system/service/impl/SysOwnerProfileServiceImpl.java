@@ -59,6 +59,12 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     @Autowired
     private RedisCache redisCache;
 
+    @Autowired
+    private com.ruoyi.system.service.IEstateCommunityService estateCommunityService;
+
+    @Autowired
+    private com.ruoyi.system.service.ISysOwnerTagService sysOwnerTagService;
+
     @Override
     public SysOwnerProfile selectSysOwnerProfileByOwnerId(Long ownerId)
     {
@@ -116,7 +122,7 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
 
         // 4. 绑定房产
         bindProperty(sysOwnerProfile.getUserId(), sysOwnerProfile.getCommunityId(),
-                     sysOwnerProfile.getBuildingNo(), sysOwnerProfile.getRoomNo(), sysOwnerProfile.getOwnerNo());
+                     sysOwnerProfile.getBuildingNo(),sysOwnerProfile.getUnitNo(), sysOwnerProfile.getRoomNo(), sysOwnerProfile.getOwnerNo());
         
         return rows;
     }
@@ -125,11 +131,6 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     @Transactional
     public int updateSysOwnerProfile(SysOwnerProfile sysOwnerProfile)
     {
-        // Sync realName to userName if needed
-        if (StringUtils.isEmpty(sysOwnerProfile.getUserName()) && StringUtils.isNotEmpty(sysOwnerProfile.getRealName())) {
-            sysOwnerProfile.setUserName(sysOwnerProfile.getRealName());
-        }
-        
         // 主要更新备注等信息，房产增删走独立接口
         sysOwnerProfile.setUpdateTime(DateUtils.getNowDate());
         return sysOwnerProfileMapper.updateSysOwnerProfile(sysOwnerProfile);
@@ -138,45 +139,69 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
     /**
      * 绑定房产逻辑
      */
-    private void bindProperty(Long userId, Long communityId, String buildingNo, String roomNo, String ownerNo) {
+    /**
+     * 安全地绑定房产 - 房产不存在时不抛出异常
+     * @return SUCCESS-成功, PROPERTY_NOT_FOUND-房产不存在, NO_USER-无关联用户, 其他-错误信息
+     */
+    private String bindPropertySafely(Long userId, Long communityId, String buildingNo, String unitName, String roomNo, String ownerNo) {
+        // 如果没有关联用户,不能绑定房产
+        if (userId == null) {
+            log.info("业主档案无关联用户,跳过房产绑定: ownerNo={}", ownerNo);
+            return "NO_USER";
+        }
+        
         if (ownerNo == null || communityId == null ||
             StringUtils.isEmpty(buildingNo) || StringUtils.isEmpty(roomNo)) {
-            throw new ServiceException("参数异常");
-
+            return "参数异常";
         }
 
         // 查找房产ID
         Long propertyId = estatePropertyService.selectPropertyIdByDetails(
-            communityId, buildingNo, roomNo);
-        if (propertyId != null) {
-            // Check for duplicates
-            EstateUserProperty checkQuery = new EstateUserProperty();
-            checkQuery.setUserId(userId);
-            checkQuery.setPropertyId(propertyId);
-            List<EstateUserProperty> exists = estateUserPropertyService.selectEstateUserPropertyList(checkQuery);
-            if (!exists.isEmpty()) {
-                log.info("已存在");
-                // 已存在，忽略或抛出异常
-                // 这里选择忽略，因为可能是重复导入
-                return;
-            }
+            communityId, buildingNo, unitName, roomNo);
+        
+        if (propertyId == null) {
+            log.warn("未找到对应的房产信息: 小区ID={}, 楼栋={}, 单元={}, 房号={}", communityId, buildingNo, unitName, roomNo);
+            return "PROPERTY_NOT_FOUND";
+        }
+        
+        // Check for duplicates
+        EstateUserProperty checkQuery = new EstateUserProperty();
+        checkQuery.setUserId(userId);
+        checkQuery.setPropertyId(propertyId);
+        List<EstateUserProperty> exists = estateUserPropertyService.selectEstateUserPropertyList(checkQuery);
+        if (!exists.isEmpty()) {
+            log.info("房产已绑定: userId={}, propertyId={}", userId, propertyId);
+            return "SUCCESS"; // 已存在视为成功
+        }
 
-            EstateUserProperty eup = new EstateUserProperty();
-            eup.setUserId(userId);
-            eup.setPropertyId(propertyId);
-            eup.setCommunityId(communityId);
-            eup.setStatus("1"); // 默认审核通过
-            eup.setUserType("10"); // 业主
-            eup.setRealName(null); // 不再冗余存储，关联User获取
-            if (StringUtils.isNotEmpty(ownerNo)) {
-                eup.setOwnerNo(ownerNo);
-            }
-            
+        EstateUserProperty eup = new EstateUserProperty();
+        eup.setUserId(userId);
+        eup.setPropertyId(propertyId);
+        eup.setCommunityId(communityId);
+        eup.setStatus("1"); // 默认审核通过
+        eup.setUserType("10"); // 业主
+        if (StringUtils.isNotEmpty(ownerNo)) {
+            eup.setOwnerNo(ownerNo);
+        }
+        
+        try {
             estateUserPropertyService.insertEstateUserProperty(eup);
-        } else {
-            log.info("未找到对应的房产信息: 小区ID={}, 楼栋={}, 房号={}", communityId, buildingNo, roomNo);
-            // 在批量导入时，可能希望记录错误而不是回滚整个事务，视需求而定
-            // 这里抛出异常以便让上层捕获
+            return "SUCCESS";
+        } catch (Exception e) {
+            log.error("绑定房产失败", e);
+            return e.getMessage();
+        }
+    }
+    
+    /**
+     * 原有的绑定房产方法 - 保留用于其他地方调用
+     */
+    private void bindProperty(Long userId, Long communityId, String buildingNo, String unitName, String roomNo, String ownerNo) {
+        String result = bindPropertySafely(userId, communityId, buildingNo, unitName, roomNo, ownerNo);
+        if (!"SUCCESS".equals(result) && !"PROPERTY_NOT_FOUND".equals(result)) {
+            throw new ServiceException(result);
+        }
+        if ("PROPERTY_NOT_FOUND".equals(result)) {
             throw new ServiceException("未找到房产: " + buildingNo + " " + roomNo);
         }
     }
@@ -262,59 +287,187 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
         int failureNum = 0;
         StringBuilder successMsg = new StringBuilder();
         StringBuilder failureMsg = new StringBuilder();
+        
         for (OwnerProfileImportDto dto : ownerList)
         {
             try
             {
-                // 构造 SysOwnerProfile 并利用 insertSysOwnerProfile 中的逻辑（查找/创建用户 + 绑定）
-                SysOwnerProfile newProfile = new SysOwnerProfile();
-                newProfile.setRealName(dto.getRealName());
-                newProfile.setPhonenumber(dto.getPhonenumber());
-                // idCardNo 已移除，暂忽略或存入User(如果User有字段)
-                // newProfile.setIdCardNo(dto.getIdCardNo()); 
+                // 1. 验证必填字段
+                if (StringUtils.isEmpty(dto.getUserName()))
+                {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、姓名不能为空");
+                    continue;
+                }
+                if (StringUtils.isEmpty(dto.getPhonenumber()))
+                {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、电话不能为空：" + dto.getUserName());
+                    continue;
+                }
+                if (StringUtils.isEmpty(dto.getCommunityName()))
+                {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、小区名称不能为空：" + dto.getUserName());
+                    continue;
+                }
+                if (StringUtils.isEmpty(dto.getBuildingNo()) || StringUtils.isEmpty(dto.getRoomNo()))
+                {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、楼栋和房号不能为空：" + dto.getUserName());
+                    continue;
+                }
+
+                // 2. 根据小区名称查找小区ID
+                com.ruoyi.system.domain.EstateCommunity communityQuery = new com.ruoyi.system.domain.EstateCommunity();
+                communityQuery.setCommunityName(dto.getCommunityName());
+                List<com.ruoyi.system.domain.EstateCommunity> communityList = estateCommunityService.selectEstateCommunityList(communityQuery);
+                if (communityList == null || communityList.isEmpty())
+                {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、未找到小区：" + dto.getCommunityName() + "(" + dto.getUserName() + ")");
+                    continue;
+                }
+                Long communityId = communityList.get(0).getCommunityId();
+
+                // 3. 根据标签名称查找标签ID(可选)
+                Long tagId = null;
+                if (StringUtils.isNotEmpty(dto.getTagName()))
+                {
+                    com.ruoyi.system.domain.SysOwnerTag tagQuery = new com.ruoyi.system.domain.SysOwnerTag();
+                    tagQuery.setTagName(dto.getTagName());
+                    List<com.ruoyi.system.domain.SysOwnerTag> tagList = sysOwnerTagService.selectSysOwnerTagList(tagQuery);
+                    if (tagList != null && !tagList.isEmpty())
+                    {
+                        tagId = tagList.get(0).getTagId();
+                    }
+                }
+
+                // 4. 查找已存在的用户(不自动创建)
+                SysUser existUser = null;
+                Long userId = null;
                 
-                // 假设导入DTO中有 propertyTag 存放楼栋号，contactNumber 存放房号？ 
-                // 通常导入DTO需要匹配 Excel 列。假设 DTO 还没改。
-                // 这里假设 DTO.remark 里有小区名，需要解析？
-                // 为了简化，假设 DTO 已经有了 buildingNo, roomNo 字段 (如果没改DTO，这里会报错)
-                // 检查 OwnerProfileImportDto 定义...
-                // 假设 dto.getHouseNumber() 是 "1-101" 格式
-                if (StringUtils.isNotEmpty(dto.getHouseNumber())) {
-                    String[] parts = dto.getHouseNumber().split("[-#]");
-                    if (parts.length >= 2) {
-                        newProfile.setBuildingNo(parts[0]);
-                        newProfile.setRoomNo(parts[1]);
+                // 通过电话查询用户
+                SysUser userByPhone = userService.selectUserByUserName(dto.getPhonenumber());
+                
+                if (userByPhone != null) {
+                    // 找到用户,验证姓名是否匹配
+                    if (dto.getUserName().equals(userByPhone.getNickName())) {
+                        existUser = userByPhone;
+                        userId = existUser.getUserId();
+                    } else {
+                        // 电话匹配但姓名不匹配,仍然使用该用户
+                        existUser = userByPhone;
+                        userId = existUser.getUserId();
+                        log.warn("导入数据姓名不匹配: 电话={}, 导入姓名={}, 系统姓名={}", 
+                                dto.getPhonenumber(), dto.getUserName(), userByPhone.getNickName());
+                    }
+                    
+                    // 如果需要更新用户信息
+                    if (isUpdateSupport)
+                    {
+                        existUser.setNickName(dto.getUserName());
+                        existUser.setIsOwner(1);
+                        existUser.setUpdateBy(operName);
+                        userService.updateUser(existUser);
+                    }
+                } else {
+                    // 用户不存在,不创建用户,userId 保持为 null
+                    log.info("未找到用户: 电话={}, 姓名={}, 将创建无关联用户的业主档案", 
+                            dto.getPhonenumber(), dto.getUserName());
+                }
+
+
+                // 5. 检查业主档案是否存在
+                SysOwnerProfile existProfile = null;
+                
+                if (userId != null) {
+                    // 如果有用户ID,通过用户ID和小区ID查询
+                    existProfile = sysOwnerProfileMapper.selectSysOwnerProfileByUserIdAndCommunityId(userId, communityId);
+                } else {
+                    // 如果没有用户ID,通过姓名、电话和小区ID查询
+                    existProfile = sysOwnerProfileMapper.selectSysOwnerProfileByPhoneNameCommunity(dto.getPhonenumber(), dto.getUserName());
+                    // 进一步检查小区是否匹配
+                    if (existProfile != null && !communityId.equals(existProfile.getCommunityId())) {
+                        existProfile = null; // 小区不匹配,视为不存在
                     }
                 }
                 
-                // 小区ID需要查找，假设 DTO.communityName
-                // 这里省略小区查找逻辑，假设上下文中有
-                // 如果 DTO 没有 communityId，会抛错。
-                // 实际项目中需要根据 Name 查 ID。
-                // 这里为了演示，假设 ownerList 导入时外部无法传入 communityId，只能根据 DTO 内容。
-                
-                newProfile.setRemark(dto.getRemark());
-                newProfile.setCreateBy(operName);
-                
-                // 注意：这里缺少 CommunityId，导入功能可能需要进一步完善
-                // 暂时跳过实际插入，避免空指针
-                // this.insertSysOwnerProfile(newProfile);
-                
-                failureNum++; // 标记为失败，提示需完善导入逻辑
-                failureMsg.append("<br/>" + failureNum + "、导入功能需根据新结构调整");
+                String ownerNo = null;
+                if (existProfile == null)
+                {
+                    // 创建新业主档案
+                    ownerNo = Utils.createOwnerNo();
+                    SysOwnerProfile newProfile = new SysOwnerProfile();
+                    newProfile.setOwnerNo(ownerNo);
+                    newProfile.setUserId(userId); // 可能为null
+                    newProfile.setCommunityId(communityId);
+                    newProfile.setUserName(dto.getUserName());
+                    newProfile.setPhonenumber(dto.getPhonenumber());
+                    newProfile.setTagId(tagId);
+                    newProfile.setIsOwner(1);
+                    newProfile.setRemark(dto.getRemark());
+                    newProfile.setCreateBy(operName);
+                    newProfile.setCreateTime(DateUtils.getNowDate());
+                    sysOwnerProfileMapper.insertSysOwnerProfile(newProfile);
+                }
+                else
+                {
+                    ownerNo = existProfile.getOwnerNo();
+                    // 如果需要更新
+                    if (isUpdateSupport && tagId != null)
+                    {
+                        existProfile.setTagId(tagId);
+                        existProfile.setUpdateBy(operName);
+                        existProfile.setUpdateTime(DateUtils.getNowDate());
+                        sysOwnerProfileMapper.updateSysOwnerProfile(existProfile);
+                    }
+                }
+
+
+                // 6. 绑定房产(如果房产存在且有关联用户)
+                String bindResult = bindPropertySafely(userId, communityId, dto.getBuildingNo(), dto.getUnitNo(), dto.getRoomNo(), ownerNo);
+                if ("SUCCESS".equals(bindResult))
+                {
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、" + dto.getUserName() + " 导入成功");
+                }
+                else if ("NO_USER".equals(bindResult))
+                {
+                    // 无关联用户,仅创建档案
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、" + dto.getUserName() + " 导入成功(无关联用户,仅创建业主档案)");
+                }
+                else if ("PROPERTY_NOT_FOUND".equals(bindResult))
+                {
+                    // 房产不存在,但档案已创建
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、" + dto.getUserName() + " 导入成功(未找到对应房产,仅创建业主档案)");
+                }
+                else
+                {
+                    // 其他错误
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、" + dto.getUserName() + " 房产绑定失败：" + bindResult);
+                }
             }
             catch (Exception e)
             {
                 failureNum++;
-                String msg = "<br/>" + failureNum + "、导入失败：";
+                String msg = "<br/>" + failureNum + "、" + (dto.getUserName() != null ? dto.getUserName() : "未知") + " 导入失败：";
                 failureMsg.append(msg + e.getMessage());
                 log.error(msg, e);
             }
         }
+        
         if (failureNum > 0)
         {
-            failureMsg.insert(0, "导入结果：");
+            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
             throw new ServiceException(failureMsg.toString());
+        }
+        else
+        {
+            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString();
     }
@@ -349,7 +502,7 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
         }
 
         SysOwnerProfile query = new SysOwnerProfile();
-        query.setRealName(userName);
+        query.setUserName(userName);
         query.setPhonenumber(phonenumber);
         
         // Use selectSysOwnerProfileRawList to find potential matches by name and phone
@@ -388,6 +541,10 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
             throw new ServiceException("源用户和目标用户不能为空");
         }
 
+        log.info("开始房产转移: sourceUserId={}, targetUserId={}, targetPropertyIds={}", 
+                sourceUserId, targetUserId, targetPropertyIds);
+
+        // 1. 查询双方用户的房产
         EstateUserProperty querySource = new EstateUserProperty();
         querySource.setUserId(sourceUserId);
         List<EstateUserProperty> sourceProps = estateUserPropertyMapper.selectEstateUserPropertyList(querySource);
@@ -401,49 +558,133 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
             targetSet.addAll(targetPropertyIds);
         }
 
+        log.info("源用户房产数量: {}, 目标用户房产数量: {}, 要转移到目标的房产ID: {}", 
+                sourceProps.size(), targetProps.size(), targetSet);
+
+        // 2. 收集需要处理的房产信息
+        // 从源用户转移到目标用户的房产
+        List<EstateUserProperty> sourceToTarget = new java.util.ArrayList<>();
+        // 从目标用户转移到源用户的房产
+        List<EstateUserProperty> targetToSource = new java.util.ArrayList<>();
+        
         for (EstateUserProperty prop : sourceProps) {
             if (targetSet.contains(prop.getPropertyId())) {
-                prop.setUserId(targetUserId);
-                prop.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
-                prop.setUpdateTime(DateUtils.getNowDate());
-                estateUserPropertyMapper.updateEstateUserProperty(prop);
-            }
-        }
-
-        for (EstateUserProperty prop : targetProps) {
-            if (!targetSet.contains(prop.getPropertyId())) {
-                prop.setUserId(sourceUserId);
-                prop.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
-                prop.setUpdateTime(DateUtils.getNowDate());
-                estateUserPropertyMapper.updateEstateUserProperty(prop);
+                sourceToTarget.add(prop);
             }
         }
         
-        // 确保目标用户有 Profile
-        SysOwnerProfile targetProfile = selectSysOwnerProfileByUserId(targetUserId);
-        if (targetProfile == null && !targetProps.isEmpty()) {
-             // 创建 Profile Link
-             SysOwnerProfile newProfile = new SysOwnerProfile();
-             newProfile.setUserId(targetUserId);
-             newProfile.setCommunityId(targetProps.get(0).getCommunityId());
-             newProfile.setCreateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
-             newProfile.setCreateTime(DateUtils.getNowDate());
-             sysOwnerProfileMapper.insertSysOwnerProfile(newProfile);
+        for (EstateUserProperty prop : targetProps) {
+            if (!targetSet.contains(prop.getPropertyId())) {
+                targetToSource.add(prop);
+            }
+        }
+        
+        log.info("需要转移: 源->目标 {} 个, 目标->源 {} 个", 
+                sourceToTarget.size(), targetToSource.size());
+
+        String currentUser = com.ruoyi.common.utils.SecurityUtils.getUsername();
+        java.util.Date now = DateUtils.getNowDate();
+
+        // 变更房产信息
+        for (EstateUserProperty prop : sourceToTarget) {
+            //根据房产id查询 用户房产表
+            EstateUserProperty queryByProperty = new EstateUserProperty();
+            queryByProperty.setPropertyId(prop.getPropertyId());
+            queryByProperty.setUserId(sourceUserId);
+            List<EstateUserProperty> propertyList = estateUserPropertyMapper.selectEstateUserPropertyList(queryByProperty);
+            
+            if (propertyList.isEmpty()) {
+                log.warn("未找到房产关联记录: propertyId={}, userId={}", prop.getPropertyId(), sourceUserId);
+                continue;
+            }
+            
+            EstateUserProperty currentProperty = propertyList.get(0);
+            
+            //查询目标用户的业主信息,如果不存在 则创建
+            SysOwnerProfile targetProfile = sysOwnerProfileMapper.selectSysOwnerProfileByUserIdAndCommunityId(
+                    targetUserId, currentProperty.getCommunityId());
+            
+            String targetOwnerNo;
+            if (targetProfile == null) {
+                // 目标用户在该小区没有业主档案,创建新档案
+                targetOwnerNo = Utils.createOwnerNo();
+                SysOwnerProfile newProfile = new SysOwnerProfile();
+                newProfile.setOwnerNo(targetOwnerNo);
+                newProfile.setUserId(targetUserId);
+                newProfile.setCommunityId(currentProperty.getCommunityId());
+                
+                // 获取目标用户信息
+                SysUser targetUser = userService.selectUserById(targetUserId);
+                if (targetUser != null) {
+                    newProfile.setUserName(targetUser.getNickName());
+                    newProfile.setPhonenumber(targetUser.getPhonenumber());
+                }
+                
+                newProfile.setIsOwner(1);
+                newProfile.setCreateBy(currentUser);
+                newProfile.setCreateTime(now);
+                sysOwnerProfileMapper.insertSysOwnerProfile(newProfile);
+                
+                log.info("为目标用户创建业主档案: userId={}, communityId={}, ownerNo={}", 
+                        targetUserId, currentProperty.getCommunityId(), targetOwnerNo);
+            } else {
+                targetOwnerNo = targetProfile.getOwnerNo();
+            }
+            
+            //将当前循环的房产用户id与业主编号改成目标业主信息
+            // 先删除原有关联,避免唯一约束冲突
+            estateUserPropertyMapper.deleteEstateUserPropertyByAssociationId(currentProperty.getAssociationId());
+            
+            // 创建新的关联记录
+            EstateUserProperty newProperty = new EstateUserProperty();
+            newProperty.setUserId(targetUserId);
+            newProperty.setPropertyId(currentProperty.getPropertyId());
+            newProperty.setCommunityId(currentProperty.getCommunityId());
+            newProperty.setOwnerNo(targetOwnerNo);
+            newProperty.setUserType("10"); // 业主
+            newProperty.setStatus("1"); // 已通过
+            newProperty.setCreateBy(currentUser);
+            newProperty.setCreateTime(now);
+            
+            estateUserPropertyMapper.insertEstateUserProperty(newProperty);
+            
+            log.info("房产转移成功: propertyId={}, 从用户 {} 转移到用户 {}, 新业主编号={}", 
+                    currentProperty.getPropertyId(), sourceUserId, targetUserId, targetOwnerNo);
         }
 
+
+        // 检查源用户转移后是否还有房产
+        EstateUserProperty querySourceAfter = new EstateUserProperty();
+        querySourceAfter.setUserId(sourceUserId);
+        List<EstateUserProperty> sourcePropsAfter = estateUserPropertyMapper.selectEstateUserPropertyList(querySourceAfter);
+        
+        log.info("转移后源用户房产数量: {}", sourcePropsAfter.size());
+        
+        // 如果源用户没有房产了,撤销业主身份
+        if (sourcePropsAfter.isEmpty()) {
+            log.info("源用户已无房产,撤销业主身份");
+            SysUser sourceUser = userService.selectUserById(sourceUserId);
+            if (sourceUser != null && sourceUser.getIsOwner() == 1) {
+                sourceUser.setIsOwner(0);
+                sourceUser.setUpdateBy(currentUser);
+                userService.updateUser(sourceUser);
+            }
+        }
+
+        log.info("房产转移完成");
         return true;
     }
 
     @Override
     @Transactional
-    public int addPropertyToOwner(Long ownerId, Long communityId, String buildingNo, String roomNo) {
+    public int addPropertyToOwner(Long ownerId, Long communityId, String buildingNo, String UtilNo, String roomNo) {
         SysOwnerProfile profile = selectSysOwnerProfileByOwnerId(ownerId);
         if (profile == null) {
             throw new ServiceException("业主信息不存在");
         }
 
 
-        bindProperty(profile.getUserId(), communityId, buildingNo, roomNo, profile.getOwnerNo());
+        bindProperty(profile.getUserId(), communityId, buildingNo,UtilNo, roomNo, profile.getOwnerNo());
         return 1;
     }
 

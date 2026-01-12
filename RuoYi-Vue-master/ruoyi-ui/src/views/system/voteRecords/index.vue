@@ -38,7 +38,7 @@
     >
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="姓名" prop="userName" align="center" width="140" />
-      <el-table-column label="投票编号" prop="voteNo" align="center" width="120" />
+      <el-table-column label="投票编号" prop="voteNo" align="center" width="200" />
       <el-table-column label="房号" prop="roomNumber" align="center"  />
       <el-table-column label="面积(m²)" prop="area" align="center"  />
       <el-table-column label="票权状态" align="center" >
@@ -67,7 +67,6 @@
             type="text"
             size="mini"
             @click="handleViewDetails(scope.row)"
-            :disabled="scope.row.hasVoted === 0"
           >查看详情</el-button>
         </template>
       </el-table-column>
@@ -83,7 +82,7 @@
     />
 
     <!-- 投票详情对话框 -->
-    <el-dialog :title="detailTitle" :visible.sync="detailOpen" width="800px" append-to-body>
+    <el-dialog :title="detailTitle" :visible.sync="detailOpen" width="900px" append-to-body>
       <el-table v-loading="detailLoading" :data="detailList" border stripe>
         <el-table-column label="议题" prop="topicTitle" align="center" />
         <el-table-column label="姓名" prop="userName" align="center" width="120" />
@@ -105,6 +104,34 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- 操作日志区域 -->
+      <div style="margin-top: 20px;">
+        <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #303133;">
+          <i class="el-icon-document"></i> 操作日志
+        </div>
+        <el-table v-loading="logLoading" :data="meetingLogList" border stripe max-height="300">
+          <el-table-column label="日志类型" align="center" width="180">
+            <template slot-scope="scope">
+              <el-tag :type="getLogTypeTag(scope.row.logType)" size="small">
+                {{ getLogTypeText(scope.row.logType) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="日志描述" prop="logDesc" align="center" show-overflow-tooltip />
+          <el-table-column label="操作人" prop="operatorName" align="center" width="120">
+            <template slot-scope="scope">
+              <span>{{ scope.row.operatorName || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="创建时间" align="center" width="160">
+            <template slot-scope="scope">
+              <span>{{ parseTime(scope.row.createTime) }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="detailOpen = false">关 闭</el-button>
       </div>
@@ -114,6 +141,7 @@
 
 <script>
 import { listVoteRecords, listVoteDetails } from '@/api/system/voteRecords'
+import { listMeetingLog } from '@/api/system/meetingLog'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -146,7 +174,11 @@ export default {
       // 详情列表数据
       detailList: [],
       // 详情加载中
-      detailLoading: false
+      detailLoading: false,
+      // 日志列表数据
+      meetingLogList: [],
+      // 日志加载中
+      logLoading: false
     }
   },
   computed: {
@@ -190,18 +222,33 @@ export default {
       this.detailTitle = `投票详情 - ${row.userName}`
       this.detailOpen = true
       this.detailLoading = true
+      this.logLoading = true
       this.detailList = []
+      this.meetingLogList = []
 
       const query = {
         meetingId: this.queryParams.meetingId,
         userId: row.userId
       }
 
+      // 查询投票详情
       listVoteDetails(query).then(response => {
         this.detailList = response.rows
         this.detailLoading = false
       }).catch(() => {
         this.detailLoading = false
+      })
+
+      // 查询操作日志
+      const logQuery = {
+        meetingId: this.queryParams.meetingId,
+        userId: row.userId
+      }
+      listMeetingLog(logQuery).then(response => {
+        this.meetingLogList = response.rows || []
+        this.logLoading = false
+      }).catch(() => {
+        this.logLoading = false
       })
     },
     /** 获取认证状态文本 */
@@ -250,6 +297,31 @@ export default {
         2: '语音投票'
       }
       return map[type] || '未知'
+    },
+    /** 获取日志类型文本 */
+    getLogTypeText(type) {
+      const map = {
+        1: '线上-已参会未投票',
+        2: '线上-已参会已投票',
+        3: '线下拜访-已送无人',
+        4: '线下拜访-已送未收',
+        5: '线下拜访-已收未投',
+        6: '线下拜访-已投待唱',
+        7: '线下拜访-已唱',
+        8: '短信通知',
+        9: '电话通知'
+      }
+      return map[type] || '未知类型'
+    },
+    /** 获取日志类型标签样式 */
+    getLogTypeTag(type) {
+      // 线上相关: success
+      if (type === 1 || type === 2) return 'success'
+      // 线下拜访相关: warning
+      if (type >= 3 && type <= 7) return 'warning'
+      // 通知相关: info
+      if (type === 8 || type === 9) return 'info'
+      return ''
     },
     /** 更新当前时间 */
     updateCurrentTime() {

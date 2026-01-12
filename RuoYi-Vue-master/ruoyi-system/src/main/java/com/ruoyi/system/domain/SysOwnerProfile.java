@@ -33,6 +33,9 @@ public class SysOwnerProfile extends BaseEntity
     /** 房产面积 */
     private BigDecimal propertyArea;
 
+    /** 标签ID */
+    private Long tagId;
+
     /** 删除标志（0存在 2删除） */
     private String delFlag;
 
@@ -45,9 +48,6 @@ public class SysOwnerProfile extends BaseEntity
     /** 用户姓名 (Snapshot) */
     @Excel(name = "用户姓名")
     private String userName;
-
-    /** 真实姓名 (DTO/Transient) */
-    private String realName;
 
     /** 用户昵称 */
     private String nickName;
@@ -126,6 +126,16 @@ public class SysOwnerProfile extends BaseEntity
         return propertyArea;
     }
 
+    public void setTagId(Long tagId) 
+    {
+        this.tagId = tagId;
+    }
+
+    public Long getTagId() 
+    {
+        return tagId;
+    }
+
     public void setDelFlag(String delFlag) 
     {
         this.delFlag = delFlag;
@@ -164,16 +174,6 @@ public class SysOwnerProfile extends BaseEntity
     public String getUserName()
     {
         return userName;
-    }
-
-    public void setRealName(String realName)
-    {
-        this.realName = realName;
-    }
-
-    public String getRealName()
-    {
-        return realName;
     }
 
     public void setNickName(String nickName)
@@ -275,7 +275,6 @@ public class SysOwnerProfile extends BaseEntity
             .append("avatar", getAvatar())
             .append("nickName", getNickName())
             .append("userName", getUserName())
-            .append("realName", getRealName())
             .append("phonenumber", getPhonenumber())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())

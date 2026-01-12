@@ -48,6 +48,25 @@ public class SysEstateUserApply extends BaseEntity
     /** 删除标志（0代表存在 2代表删除） */
     private String delFlag;
 
+    /** 业主姓名 */
+    @Excel(name = "业主姓名")
+    private String ownerName;
+
+    /** 联系电话 */
+    @Excel(name = "联系电话")
+    private String ownerPhone;
+
+    /** 小区名称 */
+    @Excel(name = "小区名称")
+    private String communityName;
+
+    /** 房号 */
+    @Excel(name = "房号")
+    private String roomNumber;
+
+    /** 楼栋名称(字符串) */
+    private String buildingNameStr;
+
     public void setApplyId(Long applyId) 
     {
         this.applyId = applyId;
@@ -136,6 +155,46 @@ public class SysEstateUserApply extends BaseEntity
     public String getDelFlag() 
     {
         return delFlag;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getOwnerPhone() {
+        return ownerPhone;
+    }
+
+    public void setOwnerPhone(String ownerPhone) {
+        this.ownerPhone = ownerPhone;
+    }
+
+    public String getCommunityName() {
+        return communityName;
+    }
+
+    public void setCommunityName(String communityName) {
+        this.communityName = communityName;
+    }
+
+    public String getRoomNumber() {
+        return roomNumber;
+    }
+
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public String getBuildingNameStr() {
+        return buildingNameStr;
+    }
+
+    public void setBuildingNameStr(String buildingNameStr) {
+        this.buildingNameStr = buildingNameStr;
     }
 
     @Override

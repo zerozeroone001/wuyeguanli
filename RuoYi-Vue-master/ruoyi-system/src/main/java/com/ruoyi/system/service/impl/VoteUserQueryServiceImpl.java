@@ -82,7 +82,7 @@ public class VoteUserQueryServiceImpl implements IVoteUserQueryService {
         
         // 通过业主信息表查询
         SysOwnerProfile queryParam = new SysOwnerProfile();
-        queryParam.setRealName(ownerName);
+        queryParam.setUserName(ownerName);
         queryParam.setRoomNo(roomNumber);
         
         try {
@@ -131,7 +131,7 @@ public class VoteUserQueryServiceImpl implements IVoteUserQueryService {
         try {
             // 这里需要根据实际的业主信息服务接口调整
             SysOwnerProfile queryParam = new SysOwnerProfile();
-            queryParam.setRealName(ownerName);
+            queryParam.setUserName(ownerName);
             queryParam.setRoomNo(roomNumber);
             
             // 假设业主信息服务有查询方法

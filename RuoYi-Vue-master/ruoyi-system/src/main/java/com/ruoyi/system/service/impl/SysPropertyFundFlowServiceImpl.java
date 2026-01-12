@@ -96,31 +96,41 @@ public class SysPropertyFundFlowServiceImpl implements ISysPropertyFundFlowServi
     @Override
     public BigDecimal getTotalFunds()
     {
-        return null;
+        return sysPropertyFundFlowMapper.getTotalFunds();
     }
 
     @Override
     public Double getFundGrowthRate()
     {
-        return 0.0;
+        BigDecimal current = sysPropertyFundFlowMapper.getTotalFunds();
+        BigDecimal last = sysPropertyFundFlowMapper.getLastMonthFunds();
+        
+        if (last == null || last.compareTo(BigDecimal.ZERO) == 0) {
+            return 0.0;
+        }
+        
+        return current.subtract(last)
+                     .divide(last, 4, BigDecimal.ROUND_HALF_UP)
+                     .multiply(new BigDecimal(100))
+                     .doubleValue();
     }
 
     @Override
     public Long countPendingApprovals()
     {
-        return 0L;
+        return sysPropertyFundFlowMapper.countPendingApprovals();
     }
 
     @Override
     public Map<String, Object> getMonthFundAnalysis()
     {
-        return Collections.emptyMap();
+        return sysPropertyFundFlowMapper.getMonthFundAnalysis();
     }
 
     @Override
     public List<Map<String, Object>> getRecentFunds(int limit)
     {
-        return Collections.emptyList();
+        return sysPropertyFundFlowMapper.getRecentFunds(limit);
     }
 
     @Override

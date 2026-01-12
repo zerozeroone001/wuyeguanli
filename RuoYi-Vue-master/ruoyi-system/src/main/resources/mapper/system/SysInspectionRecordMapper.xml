@@ -4,16 +4,21 @@
     
     <resultMap type="com.ruoyi.system.domain.SysInspectionRecord" id="SysInspectionRecordResult">
         <result property="recordId" column="record_id"/>
-        <result property="planId" column="plan_id"/>
-        <result property="location" column="location"/>
-        <result property="inspectionDate" column="inspection_date"/>
-        <result property="items" column="items"/>
-        <result property="results" column="results"/>
-        <result property="conclusion" column="conclusion"/>
-        <result property="attachments" column="attachments"/>
-        <result property="reportContent" column="report_content"/>
-        <result property="rectificationNotice" column="rectification_notice"/>
+        <result property="contractId" column="contract_id"/>
+        <result property="contractName" column="contract_name"/>
         <result property="status" column="status"/>
+        <result property="coverTocUrl" column="cover_toc_url"/>
+        <result property="prefaceUrl" column="preface_url"/>
+        <result property="terminationReportUrl" column="termination_report_url"/>
+        <result property="entryChecklistUrl" column="entry_checklist_url"/>
+        <result property="performanceNoticeUrl" column="performance_notice_url"/>
+        <result property="rectificationNoticeUrl" column="rectification_notice_url"/>
+        <result property="rectificationResultUrl" column="rectification_result_url"/>
+        <result property="assessmentNoticeUrl" column="assessment_notice_url"/>
+        <result property="annualReportUrl" column="annual_report_url"/>
+        <result property="terminationReportUrl2" column="termination_report_url2"/>
+        <result property="conclusionAnalysisUrl" column="conclusion_analysis_url"/>
+        <result property="legalOpinionUrl" column="legal_opinion_url"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
@@ -22,41 +27,63 @@
     </resultMap>
 
     <sql id="selectSysInspectionRecordVo">
-        select record_id, plan_id, location, inspection_date, items, results, conclusion, attachments, report_content, rectification_notice, status, create_by, create_time, update_by, update_time, remark from sys_inspection_record
+        select r.record_id, r.contract_id, c.contract_name, r.status,
+               r.cover_toc_url, r.preface_url, r.termination_report_url, r.entry_checklist_url,
+               r.performance_notice_url, r.rectification_notice_url, r.rectification_result_url,
+               r.assessment_notice_url, r.annual_report_url, r.termination_report_url2,
+               r.conclusion_analysis_url, r.legal_opinion_url,
+               r.create_by, r.create_time, r.update_by, r.update_time, r.remark
+        from sys_inspection_record r
+        left join sys_property_contract c on r.contract_id = c.contract_id
     </sql>
 
     <select id="selectSysInspectionRecordList" parameterType="com.ruoyi.system.domain.SysInspectionRecord" resultMap="SysInspectionRecordResult">
         <include refid="selectSysInspectionRecordVo"/>
         <where>
-            <if test="planId != null "> and plan_id = #{planId}</if>
-            <if test="location != null and location != ''"> and location like concat('%', #{location}, '%')</if>
-            <if test="status != null and status != ''"> and status = #{status}</if>
+            <if test="contractId != null">and r.contract_id = #{contractId}</if>
+            <if test="status != null and status != ''">and r.status = #{status}</if>
         </where>
+        order by r.create_time desc
     </select>
     
     <select id="selectSysInspectionRecordByRecordId" parameterType="Long" resultMap="SysInspectionRecordResult">
         <include refid="selectSysInspectionRecordVo"/>
-        where record_id = #{recordId}
+        where r.record_id = #{recordId}
     </select>
         
     <insert id="insertSysInspectionRecord" parameterType="com.ruoyi.system.domain.SysInspectionRecord" useGeneratedKeys="true" keyProperty="recordId">
-        insert into sys_inspection_record (plan_id, location, inspection_date, items, results, conclusion, attachments, report_content, rectification_notice, status, create_by, create_time, update_by, update_time, remark)
-        values (#{planId}, #{location}, #{inspectionDate}, #{items}, #{results}, #{conclusion}, #{attachments}, #{reportContent}, #{rectificationNotice}, #{status}, #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark})
+        insert into sys_inspection_record (
+            contract_id, status, cover_toc_url, preface_url, termination_report_url,
+            entry_checklist_url, performance_notice_url, rectification_notice_url,
+            rectification_result_url, assessment_notice_url, annual_report_url,
+            termination_report_url2, conclusion_analysis_url, legal_opinion_url,
+            create_by, create_time, update_by, update_time, remark
+        ) values (
+            #{contractId}, #{status}, #{coverTocUrl}, #{prefaceUrl}, #{terminationReportUrl},
+            #{entryChecklistUrl}, #{performanceNoticeUrl}, #{rectificationNoticeUrl},
+            #{rectificationResultUrl}, #{assessmentNoticeUrl}, #{annualReportUrl},
+            #{terminationReportUrl2}, #{conclusionAnalysisUrl}, #{legalOpinionUrl},
+            #{createBy}, sysdate(), #{updateBy}, sysdate(), #{remark}
+        )
     </insert>
 
     <update id="updateSysInspectionRecord" parameterType="com.ruoyi.system.domain.SysInspectionRecord">
         update sys_inspection_record
         <set>
-            <if test="planId != null">plan_id = #{planId},</if>
-            <if test="location != null and location != ''">location = #{location},</if>
-            <if test="inspectionDate != null">inspection_date = #{inspectionDate},</if>
-            <if test="items != null">items = #{items},</if>
-            <if test="results != null">results = #{results},</if>
-            <if test="conclusion != null">conclusion = #{conclusion},</if>
-            <if test="attachments != null">attachments = #{attachments},</if>
-            <if test="reportContent != null">report_content = #{reportContent},</if>
-            <if test="rectificationNotice != null">rectification_notice = #{rectificationNotice},</if>
+            <if test="contractId != null">contract_id = #{contractId},</if>
             <if test="status != null and status != ''">status = #{status},</if>
+            <if test="coverTocUrl != null">cover_toc_url = #{coverTocUrl},</if>
+            <if test="prefaceUrl != null">preface_url = #{prefaceUrl},</if>
+            <if test="terminationReportUrl != null">termination_report_url = #{terminationReportUrl},</if>
+            <if test="entryChecklistUrl != null">entry_checklist_url = #{entryChecklistUrl},</if>
+            <if test="performanceNoticeUrl != null">performance_notice_url = #{performanceNoticeUrl},</if>
+            <if test="rectificationNoticeUrl != null">rectification_notice_url = #{rectificationNoticeUrl},</if>
+            <if test="rectificationResultUrl != null">rectification_result_url = #{rectificationResultUrl},</if>
+            <if test="assessmentNoticeUrl != null">assessment_notice_url = #{assessmentNoticeUrl},</if>
+            <if test="annualReportUrl != null">annual_report_url = #{annualReportUrl},</if>
+            <if test="terminationReportUrl2 != null">termination_report_url2 = #{terminationReportUrl2},</if>
+            <if test="conclusionAnalysisUrl != null">conclusion_analysis_url = #{conclusionAnalysisUrl},</if>
+            <if test="legalOpinionUrl != null">legal_opinion_url = #{legalOpinionUrl},</if>
             <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
             update_time = sysdate(),
             <if test="remark != null">remark = #{remark},</if>

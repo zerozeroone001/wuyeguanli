@@ -66,49 +66,6 @@
       </el-form-item>
     </el-form>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="mb8">
-      <el-col :span="6">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">
-            <span>总投诉数</span>
-          </div>
-          <div class="text item">
-            <span class="number">{{ stats.total || 0 }}</span>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">
-            <span>待处理</span>
-          </div>
-          <div class="text item">
-            <span class="number warning">{{ stats.pending || 0 }}</span>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">
-            <span>处理中</span>
-          </div>
-          <div class="text item">
-            <span class="number primary">{{ stats.processing || 0 }}</span>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">
-            <span>已完成</span>
-          </div>
-          <div class="text item">
-            <span class="number success">{{ stats.completed || 0 }}</span>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
@@ -360,7 +317,6 @@ import {
   delComplaint,
   addComplaint,
   updateComplaint,
-  getComplaintStats,
   assignComplaint,
   completeComplaint,
   closeComplaint
@@ -425,8 +381,7 @@ export default {
           { required: true, message: "投诉内容不能为空", trigger: "blur" }
         ]
       },
-      // 首页统计数据
-      stats: {},
+
       // 指派处理人对话框显隐
       assignDialog: false,
       // 指派处理人表单
@@ -462,7 +417,6 @@ export default {
   },
   created() {
     this.getList()
-    this.loadStats()
   },
   methods: {
     /**
@@ -653,12 +607,7 @@ export default {
       const params = this.buildQueryParams()
       this.download("system/complaint/export", params, `complaint_${new Date().getTime()}.xlsx`)
     },
-    /** 加载统计数据 */
-    loadStats() {
-      getComplaintStats().then(response => {
-        this.stats = response.data
-      })
-    },
+
     /** 指派处理人 */
     handleAssign(row) {
       this.assignForm.complaintId = row.complaintId
@@ -670,7 +619,6 @@ export default {
         this.$modal.msgSuccess("指派成功")
         this.assignDialog = false
         this.getList()
-        this.loadStats()
       })
     },
     /** 完成处理 */
@@ -684,7 +632,6 @@ export default {
         this.$modal.msgSuccess("处理完成")
         this.completeDialog = false
         this.getList()
-        this.loadStats()
       })
     },
     /** 关闭投诉 */
@@ -693,7 +640,6 @@ export default {
         return closeComplaint({ complaintId: row.complaintId })
       }).then(() => {
         this.getList()
-        this.loadStats()
         this.$modal.msgSuccess("关闭成功")
       }).catch(() => {})
     },

@@ -17,9 +17,6 @@ public class VoteRecordVO {
     /** 用户名 */
     private String userName;
 
-    /** 真实姓名 */
-    private String realName;
-
     /** 房号 */
     private String roomNumber;
 
@@ -84,14 +81,6 @@ public class VoteRecordVO {
 
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    public String getRealName() {
-        return realName;
-    }
-
-    public void setRealName(String realName) {
-        this.realName = realName;
     }
 
     public String getRoomNumber() {

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysContractAssessmentMapper">
+
+    <resultMap type="SysContractAssessment" id="SysContractAssessmentResult">
+        <result property="assessmentId"    column="assessment_id"    />
+        <result property="contractId"    column="contract_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="assessmentYear"    column="assessment_year"    />
+        <result property="assessmentName"    column="assessment_name"    />
+        <result property="assessmentDesc"    column="assessment_desc"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="satisfactionAvgScore"    column="satisfaction_avg_score"    />
+        <result property="obligationAvgScore"    column="obligation_avg_score"    />
+        <result property="totalParticipants"    column="total_participants"    />
+        <result property="fileUrl"    column="file_url"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysContractAssessmentVo">
+        select assessment_id, contract_id, community_id, assessment_year, assessment_name, assessment_desc, 
+        start_time, end_time, satisfaction_avg_score, obligation_avg_score, total_participants, file_url, 
+        status, del_flag, create_by, create_time, update_by, update_time, remark 
+        from sys_contract_assessment
+    </sql>
+
+    <select id="selectSysContractAssessmentList" parameterType="SysContractAssessment" resultMap="SysContractAssessmentResult">
+        <include refid="selectSysContractAssessmentVo"/>
+        <where>
+            <if test="contractId != null"> and contract_id = #{contractId}</if>
+            <if test="communityId != null"> and community_id = #{communityId}</if>
+            <if test="assessmentYear != null and assessmentYear != ''"> and assessment_year = #{assessmentYear}</if>
+            <if test="assessmentName != null and assessmentName != ''"> and assessment_name like concat('%', #{assessmentName}, '%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSysContractAssessmentByAssessmentId" parameterType="Long" resultMap="SysContractAssessmentResult">
+        <include refid="selectSysContractAssessmentVo"/>
+        where assessment_id = #{assessmentId}
+    </select>
+
+    <select id="selectByContractId" parameterType="Long" resultMap="SysContractAssessmentResult">
+        <include refid="selectSysContractAssessmentVo"/>
+        where contract_id = #{contractId} and del_flag = '0'
+        order by assessment_year desc
+    </select>
+
+    <insert id="insertSysContractAssessment" parameterType="SysContractAssessment" useGeneratedKeys="true" keyProperty="assessmentId">
+        insert into sys_contract_assessment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractId != null">contract_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="assessmentYear != null">assessment_year,</if>
+            <if test="assessmentName != null">assessment_name,</if>
+            <if test="assessmentDesc != null">assessment_desc,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="satisfactionAvgScore != null">satisfaction_avg_score,</if>
+            <if test="obligationAvgScore != null">obligation_avg_score,</if>
+            <if test="totalParticipants != null">total_participants,</if>
+            <if test="fileUrl != null">file_url,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractId != null">#{contractId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="assessmentYear != null">#{assessmentYear},</if>
+            <if test="assessmentName != null">#{assessmentName},</if>
+            <if test="assessmentDesc != null">#{assessmentDesc},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="satisfactionAvgScore != null">#{satisfactionAvgScore},</if>
+            <if test="obligationAvgScore != null">#{obligationAvgScore},</if>
+            <if test="totalParticipants != null">#{totalParticipants},</if>
+            <if test="fileUrl != null">#{fileUrl},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysContractAssessment" parameterType="SysContractAssessment">
+        update sys_contract_assessment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contractId != null">contract_id = #{contractId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="assessmentYear != null">assessment_year = #{assessmentYear},</if>
+            <if test="assessmentName != null">assessment_name = #{assessmentName},</if>
+            <if test="assessmentDesc != null">assessment_desc = #{assessmentDesc},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="satisfactionAvgScore != null">satisfaction_avg_score = #{satisfactionAvgScore},</if>
+            <if test="obligationAvgScore != null">obligation_avg_score = #{obligationAvgScore},</if>
+            <if test="totalParticipants != null">total_participants = #{totalParticipants},</if>
+            <if test="fileUrl != null">file_url = #{fileUrl},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where assessment_id = #{assessmentId}
+    </update>
+
+    <delete id="deleteSysContractAssessmentByAssessmentId" parameterType="Long">
+        delete from sys_contract_assessment where assessment_id = #{assessmentId}
+    </delete>
+
+    <delete id="deleteSysContractAssessmentByAssessmentIds" parameterType="String">
+        delete from sys_contract_assessment where assessment_id in
+        <foreach item="assessmentId" collection="array" open="(" separator="," close=")">
+            #{assessmentId}
+        </foreach>
+    </delete>
+</mapper>

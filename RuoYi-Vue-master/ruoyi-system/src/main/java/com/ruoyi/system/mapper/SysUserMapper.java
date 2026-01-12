@@ -167,4 +167,18 @@ public interface SysUserMapper
      * @return 手机号码列表
      */
     List<String> selectOwnerPhoneList();
+
+    /**
+     * 统计业主总数
+     * 
+     * @return 业主总数
+     */
+    public Long countOwners();
+
+    /**
+     * 统计本月新增业主数
+     * 
+     * @return 本月新增业主数
+     */
+    public Long countMonthNewOwners();
 }

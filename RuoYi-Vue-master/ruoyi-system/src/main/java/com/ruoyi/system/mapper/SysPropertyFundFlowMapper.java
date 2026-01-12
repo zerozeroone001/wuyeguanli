@@ -72,4 +72,29 @@ public interface SysPropertyFundFlowMapper
      * @return 月度收支统计数据
      */
     public java.util.Map<String, Object> getMonthlyStats(Long communityId);
+
+    /**
+     * 获取资金总额
+     */
+    java.math.BigDecimal getTotalFunds();
+
+    /**
+     * 获取上月资金总额
+     */
+    java.math.BigDecimal getLastMonthFunds();
+
+    /**
+     * 统计待审批资金
+     */
+    Long countPendingApprovals();
+
+    /**
+     * 获取本月资金收支分析
+     */
+    java.util.Map<String, Object> getMonthFundAnalysis();
+    
+    /**
+     * 获取最近资金变动
+     */
+    List<java.util.Map<String, Object>> getRecentFunds(int limit);
 }

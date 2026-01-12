@@ -362,6 +362,7 @@ export default {
     },
     // 从isOwner字段派生出认证状态
     authStatus() {
+      console.log(this.user)
       return isAuthenticated(this.user.isOwner)
     },
     // 业主状态文本

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysMeetingLogMapper">
+    
+    <resultMap type="SysMeetingLog" id="SysMeetingLogResult">
+        <result property="logId"    column="log_id"    />
+        <result property="meetingId"    column="meeting_id"    />
+        <result property="meetingTitle"    column="meeting_title"    />
+        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="phone"    column="phone"    />
+        <result property="logType"    column="log_type"    />
+        <result property="logTypeName"    column="log_type_name"    />
+        <result property="logDesc"    column="log_desc"    />
+        <result property="operatorId"    column="operator_id"    />
+        <result property="operatorName"    column="operator_name"    />
+        <result property="remark"    column="remark"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectSysMeetingLogVo">
+        SELECT
+            l.log_id,
+            l.meeting_id,
+            m.meeting_title,
+            l.user_id,
+            l.user_name,
+            l.phone,
+            l.log_type,
+            d.dict_label as log_type_name,
+            l.log_desc,
+            l.operator_id,
+            l.operator_name,
+            l.remark,
+            l.create_time
+        FROM sys_meeting_log l
+        LEFT JOIN sys_property_meeting m ON l.meeting_id = m.meeting_id
+        LEFT JOIN sys_dict_data d ON d.dict_value = CAST(l.log_type AS CHAR) AND d.dict_type = 'sys_meeting_log_type'
+    </sql>
+
+    <select id="selectSysMeetingLogList" parameterType="SysMeetingLog" resultMap="SysMeetingLogResult">
+        <include refid="selectSysMeetingLogVo"/>
+        <where>  
+            <if test="meetingId != null "> and l.meeting_id = #{meetingId}</if>
+            <if test="userId != null "> and l.user_id = #{userId}</if>
+            <if test="userName != null  and userName != ''"> and l.user_name like concat('%', #{userName}, '%')</if>
+            <if test="phone != null  and phone != ''"> and l.phone like concat('%', #{phone}, '%')</if>
+            <if test="logType != null "> and l.log_type = #{logType}</if>
+            <if test="operatorName != null  and operatorName != ''"> and l.operator_name like concat('%', #{operatorName}, '%')</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(l.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(l.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+        order by l.create_time desc
+    </select>
+    
+    <select id="selectSysMeetingLogByLogId" parameterType="Long" resultMap="SysMeetingLogResult">
+        <include refid="selectSysMeetingLogVo"/>
+        where l.log_id = #{logId}
+    </select>
+
+    <select id="selectLatestLogByUserAndMeeting" resultMap="SysMeetingLogResult">
+        <include refid="selectSysMeetingLogVo"/>
+        where l.user_id = #{userId} and l.meeting_id = #{meetingId}
+        order by l.create_time desc
+        limit 1
+    </select>
+
+    <select id="selectLogsByMeetingId" parameterType="Long" resultMap="SysMeetingLogResult">
+        <include refid="selectSysMeetingLogVo"/>
+        where l.meeting_id = #{meetingId}
+        order by l.create_time desc
+    </select>
+        
+    <insert id="insertSysMeetingLog" parameterType="SysMeetingLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into sys_meeting_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
+            <if test="phone != null and phone != ''">phone,</if>
+            <if test="logType != null">log_type,</if>
+            <if test="logDesc != null">log_desc,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="operatorName != null">operator_name,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetingId != null">#{meetingId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="phone != null and phone != ''">#{phone},</if>
+            <if test="logType != null">#{logType},</if>
+            <if test="logDesc != null">#{logDesc},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="operatorName != null">#{operatorName},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysMeetingLog" parameterType="SysMeetingLog">
+        update sys_meeting_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="meetingId != null">meeting_id = #{meetingId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="logType != null">log_type = #{logType},</if>
+            <if test="logDesc != null">log_desc = #{logDesc},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="operatorName != null">operator_name = #{operatorName},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where log_id = #{logId}
+    </update>
+
+    <delete id="deleteSysMeetingLogByLogId" parameterType="Long">
+        delete from sys_meeting_log where log_id = #{logId}
+    </delete>
+
+    <delete id="deleteSysMeetingLogByLogIds" parameterType="String">
+        delete from sys_meeting_log where log_id in 
+        <foreach item="logId" collection="array" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+    </delete>
+</mapper>

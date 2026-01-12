@@ -63,7 +63,6 @@ public class WechatServiceImpl implements WechatService {
         // 2. 调用微信接口获取openid
         String url = "https://api.weixin.qq.com/sns/jscode2session?appid=" + appid +
                 "&secret=" + secret + "&js_code=" + wechatLoginDto.getCode() + "&grant_type=authorization_code";
-        System.out.println(wechatLoginDto.getCode()+"+++++++++++++++++++++");
         String result = HttpUtils.sendGet(url);
 
         if (StringUtils.isEmpty(result)) {
@@ -197,7 +196,16 @@ public class WechatServiceImpl implements WechatService {
         data.put("thing1", meetingTitle);
         data.put("time2", meetingTime);
         data.put("thing2", meetingLocation);
-        return sendSubscribeMessage(openId, meetingTemplateId, "pages/property/meeting/index", data);
+        return sendSubscribeMessage(openId, meetingTemplateId, "pageB/property/meeting/index", data);
+    }
+
+    @Override
+    public boolean sendMeetingDetailNotification(String openId, String meetingTitle, String meetingTime, String meetingLocation) {
+        Map<String, Object> data = new java.util.HashMap<>();
+        data.put("thing1", meetingTitle);
+        data.put("time2", meetingTime);
+        data.put("thing2", meetingLocation);
+        return sendSubscribeMessage(openId, meetingTemplateId, "pageB/property/meeting/vote", data);
     }
     
     @Override

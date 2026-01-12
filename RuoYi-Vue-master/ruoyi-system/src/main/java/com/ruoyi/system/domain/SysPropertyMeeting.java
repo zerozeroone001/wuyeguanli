@@ -26,6 +26,10 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "会议标题")
     private String meetingTitle;
 
+    /** 子标题 */
+    @Excel(name = "子标题")
+    private String subTitle;
+
     /** 小区ID */
     @Excel(name = "小区ID")
     private Long communityId;
@@ -40,6 +44,14 @@ public class SysPropertyMeeting extends BaseEntity
     /** 会议标签(1:业主大会,2:招标会议,3:选举会议) */
     @Excel(name = "会议标签", readConverterExp = "1=业主大会,2=招标会议,3=选举会议")
     private Integer meetingTag;
+
+    /** 总选项数(几选几中的总数) */
+    @Excel(name = "总选项数")
+    private Integer selectionTotal;
+
+    /** 可选数量(几选几中的可选数) */
+    @Excel(name = "可选数量")
+    private Integer selectionCount;
 
     /** 会议内容 */
     @Excel(name = "会议内容")
@@ -93,6 +105,9 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "缩略图")
     private String coverImage;
 
+    /** 投票状态 (0:未投票 1:已投票) */
+    private String voterStatus;
+
     /** 议题列表 */
     private List<SysPropertyMeetingTopic> topics;
 
@@ -114,6 +129,16 @@ public class SysPropertyMeeting extends BaseEntity
     public String getMeetingTitle() 
     {
         return meetingTitle;
+    }
+
+    public void setSubTitle(String subTitle) 
+    {
+        this.subTitle = subTitle;
+    }
+
+    public String getSubTitle() 
+    {
+        return subTitle;
     }
 
     public Long getCommunityId()
@@ -154,6 +179,26 @@ public class SysPropertyMeeting extends BaseEntity
     public Integer getMeetingTag()
     {
         return meetingTag;
+    }
+
+    public void setSelectionTotal(Integer selectionTotal)
+    {
+        this.selectionTotal = selectionTotal;
+    }
+
+    public Integer getSelectionTotal()
+    {
+        return selectionTotal;
+    }
+
+    public void setSelectionCount(Integer selectionCount)
+    {
+        this.selectionCount = selectionCount;
+    }
+
+    public Integer getSelectionCount()
+    {
+        return selectionCount;
     }
 
     public void setMeetingContent(String meetingContent) 
@@ -286,6 +331,16 @@ public class SysPropertyMeeting extends BaseEntity
         return coverImage;
     }
 
+    public String getVoterStatus() 
+    {
+        return voterStatus;
+    }
+
+    public void setVoterStatus(String voterStatus) 
+    {
+        this.voterStatus = voterStatus;
+    }
+
     public List<SysPropertyMeetingTopic> getTopics()
     {
         return topics;
@@ -301,10 +356,13 @@ public class SysPropertyMeeting extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("meetingId", getMeetingId())
             .append("meetingTitle", getMeetingTitle())
+            .append("subTitle", getSubTitle())
             .append("communityId", getCommunityId())
             .append("communityName", getCommunityName())
             .append("meetingType", getMeetingType())
             .append("meetingTag", getMeetingTag())
+            .append("selectionTotal", getSelectionTotal())
+            .append("selectionCount", getSelectionCount())
             .append("meetingContent", getMeetingContent())
             .append("meetingTime", getMeetingTime())
             .append("meetingLocation", getMeetingLocation())

@@ -266,6 +266,36 @@
         <el-button @click="cancelProperty">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 批量导入对话框 -->
+    <el-dialog title="批量导入房产信息" :visible.sync="upload.open" width="400px" append-to-body>
+      <el-upload
+        ref="upload"
+        :limit="1"
+        accept=".xlsx, .xls"
+        :headers="upload.headers"
+        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :disabled="upload.isUploading"
+        :on-progress="handleFileUploadProgress"
+        :on-success="handleFileSuccess"
+        :auto-upload="false"
+        drag
+      >
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <div class="el-upload__tip text-center" slot="tip">
+          <div class="el-upload__tip" slot="tip">
+            <el-checkbox v-model="upload.updateSupport" />是否更新已经存在的房产数据
+          </div>
+          <span>仅允许导入xls、xlsx格式文件。</span>
+          <el-link type="primary" :underline="false" style="font-size: 12px; vertical-align: baseline" @click="importTemplate">下载模板</el-link>
+        </div>
+      </el-upload>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitFileForm">确 定</el-button>
+        <el-button @click="upload.open = false">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -284,6 +314,7 @@ import {
   updateEstateProperty,
   delEstateProperty
 } from '@/api/system/estateProperty'
+import { getToken } from '@/utils/auth'
 
 const DEFAULT_UNIT = '默认单元'
 const DEFAULT_BUILDING = '未命名楼栋'
@@ -330,7 +361,20 @@ export default {
         roomNumber: [{ required: true, message: '门牌号不能为空', trigger: 'blur' }],
         status: [{ required: true, message: '请选择状态', trigger: 'change' }]
       },
-      collator: new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' })
+      collator: new Intl.Collator('zh-Hans-CN', { numeric: true, sensitivity: 'base' }),
+      // 批量导入参数
+      upload: {
+        // 是否显示弹出层
+        open: false,
+        // 是否禁用上传
+        isUploading: false,
+        // 是否更新已经存在的数据
+        updateSupport: 0,
+        // 设置上传的请求头部
+        headers: { Authorization: 'Bearer ' + getToken() },
+        // 上传的地址
+        url: process.env.VUE_APP_BASE_API + '/system/property/importData'
+      }
     }
   },
   computed: {
@@ -661,7 +705,27 @@ export default {
       this.$modal.msgInfo('房屋排序功能暂未实现')
     },
     batchImport() {
-      this.$modal.msgInfo('批量导入功能暂未实现')
+      this.upload.open = true
+    },
+    /** 下载模板操作 */
+    importTemplate() {
+      this.download('system/property/importTemplate', {}, `property_template_${new Date().getTime()}.xlsx`)
+    },
+    // 文件上传中处理
+    handleFileUploadProgress(event, file, fileList) {
+      this.upload.isUploading = true
+    },
+    // 文件上传成功处理
+    handleFileSuccess(response, file, fileList) {
+      this.upload.open = false
+      this.upload.isUploading = false
+      this.$refs.upload.clearFiles()
+      this.$alert("<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" + response.msg + "</div>", '导入结果', { dangerouslyUseHTMLString: true })
+      this.fetchPropertyList()
+    },
+    // 提交上传文件
+    submitFileForm() {
+      this.$refs.upload.submit()
     }
   },
   watch: {

@@ -32,4 +32,13 @@ public interface ISysMeetingVoteService {
      * @return 投票记录，未找到返回null
      */
     SysMeetingVote findVote(Long userId, Long topicId);
+
+    /**
+     * 查询投票列表用于导出
+     *
+     * @param meetingId 会议ID
+     * @param communityId 小区ID
+     * @return 投票导出列表
+     */
+    List<com.ruoyi.system.domain.vo.VoteListExportVO> selectVoteListForExport(Long meetingId, Long communityId);
 }

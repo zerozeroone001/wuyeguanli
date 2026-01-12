@@ -7,10 +7,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SysPropertyMeeting" id="SysPropertyMeetingResult">
         <result property="meetingId"    column="meeting_id"    />
         <result property="meetingTitle"    column="meeting_title"    />
+        <result property="subTitle"    column="sub_title"    />
         <result property="communityId"    column="community_id"    />
         <result property="communityName"    column="community_name"    />
         <result property="meetingType"    column="meeting_type"    />
         <result property="meetingTag"    column="meeting_tag"    />
+        <result property="selectionTotal"    column="selection_total"    />
+        <result property="selectionCount"    column="selection_count"    />
         <result property="meetingContent"    column="meeting_content"    />
         <result property="meetingTime"    column="meeting_time"    />
         <result property="meetingLocation"    column="meeting_location"    />
@@ -24,6 +27,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="votingAreaPercentage"    column="voting_area_percentage"    />
         <result property="showParticipantCount"    column="show_participant_count"    />
         <result property="coverImage"    column="cover_image"    />
+        <result property="voterStatus"    column="voterStatus"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
@@ -35,10 +39,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT
             m.meeting_id,
             m.meeting_title,
+            m.sub_title,
             m.community_id,
             c.community_name,
             m.meeting_type,
             m.meeting_tag,
+            m.selection_total,
+            m.selection_count,
             m.meeting_content,
             m.meeting_time,
             m.meeting_location,
@@ -61,9 +68,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT
             m.meeting_id,
             m.meeting_title,
+            m.sub_title,
             m.community_id,
             c.community_name,
             m.meeting_type,
+            m.meeting_tag,
+            m.selection_total,
+            m.selection_count,
             m.meeting_content,
             m.meeting_time,
             m.meeting_location,
@@ -85,12 +96,68 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             ) as total_voters,
             (SELECT COUNT(DISTINCT mv.user_id)
              FROM sys_meeting_vote mv
-             WHERE mv.meeting_id = m.meeting_id
+             WHERE mv.meeting_id = m.meeting_id AND mv.vote_option IS NOT NULL
             ) as actual_voters,
-            m.show_participant_count
+            (SELECT COALESCE(SUM(ep.area), 0)
+             FROM sys_estate_user_property eup
+             INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+             WHERE eup.community_id = m.community_id
+               AND eup.status = '1'
+               AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+               AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            ) as total_voting_area,
+            (SELECT COALESCE(SUM(ep.area), 0)
+             FROM sys_estate_user_property eup
+             INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+             WHERE eup.community_id = m.community_id
+               AND eup.status = '1'
+               AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+               AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+               AND eup.user_id IN (SELECT mv.user_id FROM sys_meeting_vote mv WHERE mv.meeting_id = m.meeting_id AND mv.vote_option IS NOT NULL)
+            ) as participated_area,
+            m.show_participant_count,
+            (CASE WHEN (SELECT COUNT(1) FROM sys_meeting_vote mv WHERE mv.meeting_id = m.meeting_id AND mv.user_id = #{params.userId} AND mv.vote_option IS NOT NULL) > 0 THEN '1' ELSE '0' END) as voterStatus
         FROM sys_property_meeting m
         LEFT JOIN sys_estate_community c ON m.community_id = c.community_id
         <where>  
+            <if test="meetingTitle != null  and meetingTitle != ''"> and m.meeting_title like concat('%', #{meetingTitle}, '%')</if>
+            <if test="communityId != null "> and m.community_id = #{communityId}</if>
+            <if test="meetingType != null  and meetingType != ''"> and m.meeting_type = #{meetingType}</if>
+            <if test="meetingTag != null "> and m.meeting_tag = #{meetingTag}</if>
+            <if test="meetingContent != null  and meetingContent != ''"> and m.meeting_content = #{meetingContent}</if>
+            <if test="meetingTime != null "> and m.meeting_time = #{meetingTime}</if>
+            <if test="meetingLocation != null  and meetingLocation != ''"> and m.meeting_location like concat('%', #{meetingLocation}, '%')</if>
+            <if test="meetingStatus != null  and meetingStatus != ''"> and m.meeting_status = #{meetingStatus}</if>
+            <if test="voteStartTime != null "> and m.vote_start_time = #{voteStartTime}</if>
+            <if test="voteEndTime != null "> and m.vote_end_time = #{voteEndTime}</if>
+        </where>
+        order by m.meeting_id desc
+    </select>
+
+    <select id="userSelectSysPropertyMeetingList" parameterType="SysPropertyMeeting" resultMap="SysPropertyMeetingResult">
+        SELECT
+        m.meeting_id,
+        m.meeting_title,
+        m.sub_title,
+        m.community_id,
+        m.meeting_type,
+        m.meeting_tag,
+        m.selection_total,
+        m.selection_count,
+        m.meeting_content,
+        m.meeting_time,
+        m.meeting_location,
+        m.meeting_status,
+        m.vote_start_time,
+        m.vote_end_time,
+        m.cover_image,
+        m.create_by,
+        m.create_time,
+        m.update_by,
+        m.update_time,
+        m.show_participant_count
+        FROM sys_property_meeting m
+        <where>
             <if test="meetingTitle != null  and meetingTitle != ''"> and m.meeting_title like concat('%', #{meetingTitle}, '%')</if>
             <if test="communityId != null "> and m.community_id = #{communityId}</if>
             <if test="meetingType != null  and meetingType != ''"> and m.meeting_type = #{meetingType}</if>
@@ -109,9 +176,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT
             m.meeting_id,
             m.meeting_title,
+            m.sub_title,
             m.community_id,
             c.community_name,
             m.meeting_type,
+            m.meeting_tag,
+            m.selection_total,
+            m.selection_count,
             m.meeting_content,
             m.meeting_time,
             m.meeting_location,
@@ -133,8 +204,25 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             ) as total_voters,
             (SELECT COUNT(DISTINCT mv.user_id)
              FROM sys_meeting_vote mv
-             WHERE mv.meeting_id = m.meeting_id
+             WHERE mv.meeting_id = m.meeting_id AND mv.vote_option IS NOT NULL
             ) as actual_voters,
+            (SELECT COALESCE(SUM(ep.area), 0)
+             FROM sys_estate_user_property eup
+             INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+             WHERE eup.community_id = m.community_id
+               AND eup.status = '1'
+               AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+               AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            ) as total_voting_area,
+            (SELECT COALESCE(SUM(ep.area), 0)
+             FROM sys_estate_user_property eup
+             INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+             WHERE eup.community_id = m.community_id
+               AND eup.status = '1'
+               AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+               AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+               AND eup.user_id IN (SELECT mv.user_id FROM sys_meeting_vote mv WHERE mv.meeting_id = m.meeting_id AND mv.vote_option IS NOT NULL)
+            ) as participated_area,
             m.show_participant_count
         FROM sys_property_meeting m
         LEFT JOIN sys_estate_community c ON m.community_id = c.community_id
@@ -145,9 +233,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into sys_property_meeting
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="meetingTitle != null and meetingTitle != ''">meeting_title,</if>
+            <if test="subTitle != null and subTitle != ''">sub_title,</if>
             <if test="communityId != null">community_id,</if>
             <if test="meetingType != null and meetingType != ''">meeting_type,</if>
             <if test="meetingTag != null">meeting_tag,</if>
+            <if test="selectionTotal != null">selection_total,</if>
+            <if test="selectionCount != null">selection_count,</if>
             <if test="meetingContent != null">meeting_content,</if>
             <if test="meetingTime != null">meeting_time,</if>
             <if test="meetingLocation != null">meeting_location,</if>
@@ -165,9 +256,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="meetingTitle != null and meetingTitle != ''">#{meetingTitle},</if>
+            <if test="subTitle != null and subTitle != ''">#{subTitle},</if>
             <if test="communityId != null">#{communityId},</if>
             <if test="meetingType != null and meetingType != ''">#{meetingType},</if>
             <if test="meetingTag != null">#{meetingTag},</if>
+            <if test="selectionTotal != null">#{selectionTotal},</if>
+            <if test="selectionCount != null">#{selectionCount},</if>
             <if test="meetingContent != null">#{meetingContent},</if>
             <if test="meetingTime != null">#{meetingTime},</if>
             <if test="meetingLocation != null">#{meetingLocation},</if>
@@ -189,9 +283,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update sys_property_meeting
         <trim prefix="SET" suffixOverrides=",">
             <if test="meetingTitle != null and meetingTitle != ''">meeting_title = #{meetingTitle},</if>
+            <if test="subTitle != null and subTitle != ''">sub_title = #{subTitle},</if>
             <if test="communityId != null">community_id = #{communityId},</if>
             <if test="meetingType != null and meetingType != ''">meeting_type = #{meetingType},</if>
             <if test="meetingTag != null">meeting_tag = #{meetingTag},</if>
+            <if test="selectionTotal != null">selection_total = #{selectionTotal},</if>
+            <if test="selectionCount != null">selection_count = #{selectionCount},</if>
             <if test="meetingContent != null">meeting_content = #{meetingContent},</if>
             <if test="meetingTime != null">meeting_time = #{meetingTime},</if>
             <if test="meetingLocation != null">meeting_location = #{meetingLocation},</if>
@@ -287,13 +384,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         ) total_stats
         LEFT JOIN (
             SELECT
-                COUNT(DISTINCT mv.user_id) as participated_owners,
-                COALESCE(SUM(DISTINCT ep.area), 0) as participated_area
-            FROM sys_meeting_vote mv
-            INNER JOIN sys_estate_user_property eup ON mv.user_id = eup.user_id
+                COUNT(DISTINCT sub_voted_users.user_id) as participated_owners,
+                COALESCE(SUM(ep.area), 0) as participated_area
+            FROM (
+                SELECT DISTINCT user_id 
+                FROM sys_meeting_vote 
+                WHERE meeting_id = #{meetingId} AND vote_option IS NOT NULL
+            ) sub_voted_users
+            INNER JOIN sys_estate_user_property eup ON sub_voted_users.user_id = eup.user_id
             INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
-            WHERE mv.meeting_id = #{meetingId}
-                AND eup.community_id = #{communityId}
+            WHERE eup.community_id = #{communityId}
                 AND eup.status = '1'
                 AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
                 AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
@@ -313,10 +413,67 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             AND eup.community_id = #{communityId} 
             AND eup.status = '1' 
             AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
-        LEFT JOIN sys_meeting_vote mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+        LEFT JOIN sys_meeting_vote mv ON eup.user_id = mv.user_id AND mv.meeting_id = #{meetingId} AND mv.vote_option IS NOT NULL
         WHERE ep.community_id = #{communityId}
           AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
         GROUP BY ep.building_name, ep.unit_name
         ORDER BY ep.building_name, ep.unit_name
+    </select>
+
+    <select id="countOngoingMeetings" resultType="Long">
+        select count(1) from sys_property_meeting
+        where (meeting_status = '1' or (vote_start_time &lt;= sysdate() and vote_end_time &gt;= sysdate()))
+    </select>
+
+    <select id="getAverageParticipationRate" resultType="Double">
+        SELECT AVG(rates.participation_rate) FROM (
+            SELECT 
+                CASE WHEN total_voters > 0 THEN (actual_voters * 1.0 / total_voters) * 100 ELSE 0 END as participation_rate
+            FROM (
+                 SELECT 
+                    m.meeting_id,
+                    (SELECT COUNT(DISTINCT eup.user_id) 
+                     FROM sys_estate_user_property eup 
+                     WHERE eup.community_id = m.community_id 
+                     AND eup.status = '1'
+                     AND (eup.del_flag = '0' OR eup.del_flag IS NULL)) as total_voters,
+                    (SELECT COUNT(DISTINCT mv.user_id) 
+                     FROM sys_meeting_vote mv 
+                     WHERE mv.meeting_id = m.meeting_id AND mv.vote_option IS NOT NULL) as actual_voters
+                 FROM sys_property_meeting m
+                 WHERE m.meeting_status = '2'
+            ) t
+        ) rates
+    </select>
+
+    <select id="getVoteParticipationTrend" resultType="java.util.Map">
+        select date_format(vote_end_time, '%Y-%m-%d') as `date`, 
+               count(1) as `count`
+        from sys_property_meeting
+        where vote_end_time >= date_sub(curdate(), interval 7 day)
+        group by date_format(vote_end_time, '%Y-%m-%d')
+        order by `date`
+    </select>
+
+    <select id="getMeetingActivityStats" resultType="java.util.Map">
+        select date_format(meeting_time, '%Y-%m') as `month`, count(1) as `count`
+        from sys_property_meeting
+        where meeting_time >= date_sub(curdate(), interval 3 month)
+        group by date_format(meeting_time, '%Y-%m')
+        order by `month`
+    </select>
+
+    <select id="getRecentVotes" resultType="java.util.Map">
+        select meeting_title as `title`, 
+               date_format(create_time, '%Y-%m-%d %H:%i:%s') as `time`, 
+               'vote' as `type`
+        from sys_property_meeting
+        order by create_time desc
+        limit #{limit}
+    </select>
+    
+    <select id="countUpcomingMeetings" resultType="Long">
+        select count(1) from sys_property_meeting
+        where meeting_time > sysdate()
     </select>
 </mapper>

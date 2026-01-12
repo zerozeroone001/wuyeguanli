@@ -10,29 +10,35 @@ public class OwnerProfileImportDto
     private static final long serialVersionUID = 1L;
 
     @Excel(name = "姓名")
-    private String realName;
+    private String userName;
 
-    @Excel(name = "手机号码")
+    @Excel(name = "电话")
     private String phonenumber;
 
-    @Excel(name = "身份证号")
-    private String idCardNo;
+    @Excel(name = "标签")
+    private String tagName;
 
-    @Excel(name = "小区")
+    @Excel(name = "小区名称")
     private String communityName;
 
-    @Excel(name = "门牌号")
-    private String houseNumber;
+    @Excel(name = "楼栋")
+    private String buildingNo;
+
+    @Excel(name = "单元")
+    private String unitNo;
+
+    @Excel(name = "房号")
+    private String roomNo;
 
     @Excel(name = "备注")
     private String remark;
 
-    public String getRealName() {
-        return realName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setRealName(String realName) {
-        this.realName = realName;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPhonenumber() {
@@ -43,12 +49,12 @@ public class OwnerProfileImportDto
         this.phonenumber = phonenumber;
     }
 
-    public String getIdCardNo() {
-        return idCardNo;
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setIdCardNo(String idCardNo) {
-        this.idCardNo = idCardNo;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     public String getCommunityName() {
@@ -59,12 +65,28 @@ public class OwnerProfileImportDto
         this.communityName = communityName;
     }
 
-    public String getHouseNumber() {
-        return houseNumber;
+    public String getBuildingNo() {
+        return buildingNo;
     }
 
-    public void setHouseNumber(String houseNumber) {
-        this.houseNumber = houseNumber;
+    public void setBuildingNo(String buildingNo) {
+        this.buildingNo = buildingNo;
+    }
+
+    public String getUnitNo() {
+        return unitNo;
+    }
+
+    public void setUnitNo(String unitNo) {
+        this.unitNo = unitNo;
+    }
+
+    public String getRoomNo() {
+        return roomNo;
+    }
+
+    public void setRoomNo(String roomNo) {
+        this.roomNo = roomNo;
     }
 
     public String getRemark() {

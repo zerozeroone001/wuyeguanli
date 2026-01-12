@@ -146,10 +146,10 @@ export default {
     // 统计卡片点击事件
     handleCardClick(type) {
       const routeMap = {
-        'owner': '/system/user',
-        'vote': '/system/meeting',
-        'complaint': '/system/complaint',
-        'fund': '/system/flow'
+        'owner': '/user/service/owner',
+        'vote': '/wuye/generalMeeting',
+        'complaint': '/user/service/propertyComplaint',
+        'fund': '/flow/fundFlow'
       }
 
       if (routeMap[type]) {

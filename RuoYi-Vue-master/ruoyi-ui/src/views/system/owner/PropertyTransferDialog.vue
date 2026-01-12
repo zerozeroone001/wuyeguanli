@@ -26,7 +26,7 @@
               <span>当前用户 (左侧)</span>
             </div>
             <div v-if="sourceUser">
-              <p><strong>姓名:</strong> {{ sourceUser.realName }}</p>
+              <p><strong>姓名:</strong> {{ sourceUser.userName }}</p>
               <p><strong>电话:</strong> {{ sourceUser.phonenumber }}</p>
             </div>
             <div v-else class="empty-text">请在列表中选择一个用户</div>
@@ -39,7 +39,7 @@
               <el-button style="float: right; padding: 3px 0" type="text" @click="openUserSelect">选择用户</el-button>
             </div>
             <div v-if="targetUser">
-              <p><strong>姓名:</strong> {{ targetUser.realName || targetUser.nickName || targetUser.userName }}</p>
+              <p><strong>姓名:</strong> {{ targetUser.userName || targetUser.nickName }}</p>
               <p><strong>电话:</strong> {{ targetUser.phonenumber }}</p>
             </div>
             <div v-else class="empty-text">请点击右上角选择目标用户</div>
@@ -174,10 +174,16 @@ export default {
         targetPropertyIds: this.targetPropertyIds
       };
 
+      console.log("提交房产转移请求:", data);
+
       transferProperties(data).then(response => {
-        this.$modal.msgSuccess("操作成功");
+        this.$modal.msgSuccess("房产转移成功");
         this.open = false;
         this.$emit("refresh");
+      }).catch(error => {
+        console.error("房产转移失败:", error);
+        const errorMsg = error.msg || error.message || "未知错误";
+        this.$modal.msgError("房产转移失败: " + errorMsg);
       });
     },
     cancel() {

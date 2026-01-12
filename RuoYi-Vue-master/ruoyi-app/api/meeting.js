@@ -30,7 +30,7 @@ export function submitVote(data) {
     return request({
         url: '/meeting/vote',
         method: 'post',
-        data: data // data is expected to be { meetingId, topicId, choice }
+        data: data // data is expected to be { meetingId, topicId, voteOption }
     });
 }
 

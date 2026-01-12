@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysContractRectificationMapper">
+
+    <resultMap type="SysContractRectification" id="SysContractRectificationResult">
+        <result property="rectificationId"    column="rectification_id"    />
+        <result property="contractId"    column="contract_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="sourceType"    column="source_type"    />
+        <result property="sourceId"    column="source_id"    />
+        <result property="noticeContent"    column="notice_content"    />
+        <result property="noticeFileUrl"    column="notice_file_url"    />
+        <result property="noticeTime"    column="notice_time"    />
+        <result property="noticeUserId"    column="notice_user_id"    />
+        <result property="resultContent"    column="result_content"    />
+        <result property="resultFileUrl"    column="result_file_url"    />
+        <result property="resultTime"    column="result_time"    />
+        <result property="resultUserId"    column="result_user_id"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysContractRectificationVo">
+        select rectification_id, contract_id, community_id, source_type, source_id, notice_content, notice_file_url, 
+        notice_time, notice_user_id, result_content, result_file_url, result_time, result_user_id, status, 
+        del_flag, create_by, create_time, update_by, update_time, remark 
+        from sys_contract_rectification
+    </sql>
+
+    <select id="selectSysContractRectificationList" parameterType="SysContractRectification" resultMap="SysContractRectificationResult">
+        <include refid="selectSysContractRectificationVo"/>
+        <where>
+            <if test="contractId != null"> and contract_id = #{contractId}</if>
+            <if test="communityId != null"> and community_id = #{communityId}</if>
+            <if test="sourceType != null and sourceType != ''"> and source_type = #{sourceType}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectSysContractRectificationByRectificationId" parameterType="Long" resultMap="SysContractRectificationResult">
+        <include refid="selectSysContractRectificationVo"/>
+        where rectification_id = #{rectificationId}
+    </select>
+
+    <select id="selectByContractId" parameterType="Long" resultMap="SysContractRectificationResult">
+        <include refid="selectSysContractRectificationVo"/>
+        where contract_id = #{contractId} and del_flag = '0'
+        order by create_time desc
+    </select>
+
+    <insert id="insertSysContractRectification" parameterType="SysContractRectification" useGeneratedKeys="true" keyProperty="rectificationId">
+        insert into sys_contract_rectification
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractId != null">contract_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="sourceType != null">source_type,</if>
+            <if test="sourceId != null">source_id,</if>
+            <if test="noticeContent != null">notice_content,</if>
+            <if test="noticeFileUrl != null">notice_file_url,</if>
+            <if test="noticeTime != null">notice_time,</if>
+            <if test="noticeUserId != null">notice_user_id,</if>
+            <if test="resultContent != null">result_content,</if>
+            <if test="resultFileUrl != null">result_file_url,</if>
+            <if test="resultTime != null">result_time,</if>
+            <if test="resultUserId != null">result_user_id,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractId != null">#{contractId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="sourceType != null">#{sourceType},</if>
+            <if test="sourceId != null">#{sourceId},</if>
+            <if test="noticeContent != null">#{noticeContent},</if>
+            <if test="noticeFileUrl != null">#{noticeFileUrl},</if>
+            <if test="noticeTime != null">#{noticeTime},</if>
+            <if test="noticeUserId != null">#{noticeUserId},</if>
+            <if test="resultContent != null">#{resultContent},</if>
+            <if test="resultFileUrl != null">#{resultFileUrl},</if>
+            <if test="resultTime != null">#{resultTime},</if>
+            <if test="resultUserId != null">#{resultUserId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysContractRectification" parameterType="SysContractRectification">
+        update sys_contract_rectification
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contractId != null">contract_id = #{contractId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="sourceType != null">source_type = #{sourceType},</if>
+            <if test="sourceId != null">source_id = #{sourceId},</if>
+            <if test="noticeContent != null">notice_content = #{noticeContent},</if>
+            <if test="noticeFileUrl != null">notice_file_url = #{noticeFileUrl},</if>
+            <if test="noticeTime != null">notice_time = #{noticeTime},</if>
+            <if test="noticeUserId != null">notice_user_id = #{noticeUserId},</if>
+            <if test="resultContent != null">result_content = #{resultContent},</if>
+            <if test="resultFileUrl != null">result_file_url = #{resultFileUrl},</if>
+            <if test="resultTime != null">result_time = #{resultTime},</if>
+            <if test="resultUserId != null">result_user_id = #{resultUserId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where rectification_id = #{rectificationId}
+    </update>
+
+    <delete id="deleteSysContractRectificationByRectificationId" parameterType="Long">
+        delete from sys_contract_rectification where rectification_id = #{rectificationId}
+    </delete>
+
+    <delete id="deleteSysContractRectificationByRectificationIds" parameterType="String">
+        delete from sys_contract_rectification where rectification_id in
+        <foreach item="rectificationId" collection="array" open="(" separator="," close=")">
+            #{rectificationId}
+        </foreach>
+    </delete>
+</mapper>

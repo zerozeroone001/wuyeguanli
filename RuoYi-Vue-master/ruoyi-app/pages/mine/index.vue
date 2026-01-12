@@ -16,7 +16,7 @@
         </view>
         <view class="user-info">
           <template v-if="isLoggedIn">
-            <text class="user-name">{{ nickName }}</text>
+            <text class="user-name">{{ userName }}</text>
             <view class="user-status" @click="handleAuthStatusClick">
               <text class="status-text" :class="{ verified: authStatus }">
                 {{ ownerStatusText }}
@@ -99,6 +99,7 @@ import { mapGetters } from 'vuex'
 import { isAuthenticated, getAuthStatusText, getAuthStatusColor, getAuthStatusIcon } from '@/utils/authHelper'
 import { getMyVoteRecords } from '@/api/property/meeting'
 import { listMyComplaint } from '@/api/property/complaint'
+import { checkAdmin } from '@/api/visit'
 
 export default {
   data() {
@@ -180,7 +181,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-        'nickName',
+        'userName',
         'avatar',
         'ownerProfile', // 直接获取ownerProfile对象
         'token'
@@ -212,6 +213,8 @@ export default {
     // 每次页面显示，仅在已登录时刷新认证信息
     if (this.isLoggedIn) {
       this.$store.dispatch('GetProfileInfo');
+      // 检查是否为管理员
+      this.checkAdminStatus();
     }
     // 加载统计数据（仅登录后请求接口，否则置为0）
     this.loadStats();
@@ -319,6 +322,12 @@ export default {
           return
         }
         this.handleMessageSettings();
+      } else if (item.action === 'visit') {
+        if (!this.isLoggedIn) {
+          this.goToLogin()
+          return
+        }
+        this.goToVisit();
       } else {
         uni.showToast({
           title: `${item.name}功能开发中`,
@@ -342,6 +351,61 @@ export default {
       // 跳转到订阅消息设置页面
       uni.navigateTo({
         url: '/pages/mine/subscribe/index'
+      });
+    },
+    
+    // 检查管理员身份
+    async checkAdminStatus() {
+      try {
+        const response = await checkAdmin();
+        if (response.code === 200 && response.data.isAdmin) {
+          this.isAdmin = true;
+          this.adminCommunityId = response.data.communityId;
+          this.adminCommunityName = response.data.communityName;
+          
+          // 动态添加"上门拜访"菜单项
+          const visitMenuItem = {
+            name: '上门拜访',
+            icon: 'home',
+            bgColor: '#52C41A',
+            action: 'visit'
+          };
+          
+          // 检查是否已存在,避免重复添加
+          const exists = this.settingsMenus.some(item => item.action === 'visit');
+          if (!exists) {
+            // 在"我的房产"后面插入
+            const propertyIndex = this.settingsMenus.findIndex(item => item.path === '/pageB/property/index');
+            if (propertyIndex !== -1) {
+              this.settingsMenus.splice(propertyIndex + 1, 0, visitMenuItem);
+            } else {
+              this.settingsMenus.unshift(visitMenuItem);
+            }
+          }
+        } else {
+          this.isAdmin = false;
+          // 移除"上门拜访"菜单项
+          this.settingsMenus = this.settingsMenus.filter(item => item.action !== 'visit');
+        }
+      } catch (error) {
+        console.error('检查管理员身份失败:', error);
+        this.isAdmin = false;
+      }
+    },
+    
+    // 跳转到上门拜访
+    goToVisit() {
+      if (!this.adminCommunityId) {
+        uni.showToast({
+          title: '获取小区信息失败',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 跳转到楼栋选择页面,传递小区ID
+      uni.navigateTo({
+        url: `/pageB/visit/buildings?communityId=${this.adminCommunityId}&communityName=${encodeURIComponent(this.adminCommunityName)}`
       });
     }
   }

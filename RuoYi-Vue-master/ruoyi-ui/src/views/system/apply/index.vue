@@ -49,18 +49,14 @@
 
     <el-table v-loading="loading" :data="applyList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="申请ID" align="center" prop="applyId" />
-      <el-table-column label="小区ID" align="center" prop="communityId" />
-      <el-table-column label="房产ID" align="center" prop="propertyId" />
-      <el-table-column label="楼栋" align="center" prop="buildingName" />
-      <el-table-column label="用户ID" align="center" prop="userId" />
-      <el-table-column label="用户类型" align="center" prop="userType">
+      <el-table-column label="姓名" align="center" prop="ownerName" />
+      <el-table-column label="联系电话" align="center" prop="ownerPhone" />
+      <el-table-column label="详细地址(小区楼栋房号)" align="center" >
         <template slot-scope="scope">
-          <span v-if="scope.row.userType == '00'">业主</span>
-          <span v-if="scope.row.userType == '01'">家属</span>
-          <span v-if="scope.row.userType == '02'">租户</span>
+          <span>{{ scope.row.communityName || '' }}{{ scope.row.buildingNameStr || '' }}{{ scope.row.roomNumber || '' }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="审核状态" align="center" prop="status" />
       <el-table-column label="审核状态" align="center" prop="status">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.status == '0'" type="warning">待审核</el-tag>
@@ -228,7 +224,7 @@ export default {
         this.form = response.data;
         // 默认审核通过
         if (this.form.status === '0') {
-            this.form.status = '1'; 
+            this.form.status = '1';
         }
         this.open = true;
         this.title = "审核申请";

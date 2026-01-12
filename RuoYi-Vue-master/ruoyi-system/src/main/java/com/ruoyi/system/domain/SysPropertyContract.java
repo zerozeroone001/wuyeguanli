@@ -83,6 +83,56 @@ public class SysPropertyContract extends BaseEntity
     @Excel(name = "状态", readConverterExp = "0=正常,1=已归档")
     private String status;
 
+    /** 合同类型：customize(定制)/review(审核)/modify(修改) */
+    @Excel(name = "合同类型")
+    private String contractType;
+
+    /** 合同阶段状态码 */
+    @Excel(name = "合同阶段")
+    private String contractStage;
+
+    /** 申请时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date applyTime;
+
+    /** 申请人ID */
+    private Long applyUserId;
+
+    /** 受理时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date acceptTime;
+
+    /** 受理人ID */
+    private Long acceptUserId;
+
+    /** 完成时间（定制/审核/修改完成时间） */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date completeTime;
+
+    /** 履行状态：incomplete(未完全履行)/complete(完全履行) */
+    private String performanceStatus;
+
+    /** 查验清单文件URL */
+    private String entryChecklistUrl;
+
+    /** 物业上传的查验清单URL */
+    private String propertyEntryChecklistUrl;
+
+    /** 月履行清单文件URL */
+    private String monthlyChecklistUrl;
+
+    /** 物业上传的月履行清单URL */
+    private String propertyMonthlyChecklistUrl;
+
+    /** 整改通知单文件URL */
+    private String rectificationNoticeUrl;
+
+    /** 整改结果评定通知书文件URL */
+    private String rectificationResultUrl;
+
+    /** 年度履行报告文件URL */
+    private String annualReportUrl;
+
     /** 删除标志（0存在 2删除） */
     private String delFlag;
     private List<SysFileInfo> fileList;
@@ -238,6 +288,156 @@ public class SysPropertyContract extends BaseEntity
     public String getStatus()
     {
         return status;
+    }
+
+    public String getContractType()
+    {
+        return contractType;
+    }
+
+    public void setContractType(String contractType)
+    {
+        this.contractType = contractType;
+    }
+
+    public String getContractStage()
+    {
+        return contractStage;
+    }
+
+    public void setContractStage(String contractStage)
+    {
+        this.contractStage = contractStage;
+    }
+
+    public Date getApplyTime()
+    {
+        return applyTime;
+    }
+
+    public void setApplyTime(Date applyTime)
+    {
+        this.applyTime = applyTime;
+    }
+
+    public Long getApplyUserId()
+    {
+        return applyUserId;
+    }
+
+    public void setApplyUserId(Long applyUserId)
+    {
+        this.applyUserId = applyUserId;
+    }
+
+    public Date getAcceptTime()
+    {
+        return acceptTime;
+    }
+
+    public void setAcceptTime(Date acceptTime)
+    {
+        this.acceptTime = acceptTime;
+    }
+
+    public Long getAcceptUserId()
+    {
+        return acceptUserId;
+    }
+
+    public void setAcceptUserId(Long acceptUserId)
+    {
+        this.acceptUserId = acceptUserId;
+    }
+
+    public Date getCompleteTime()
+    {
+        return completeTime;
+    }
+
+    public void setCompleteTime(Date completeTime)
+    {
+        this.completeTime = completeTime;
+    }
+
+    public String getPerformanceStatus()
+    {
+        return performanceStatus;
+    }
+
+    public void setPerformanceStatus(String performanceStatus)
+    {
+        this.performanceStatus = performanceStatus;
+    }
+
+    public String getEntryChecklistUrl()
+    {
+        return entryChecklistUrl;
+    }
+
+    public void setEntryChecklistUrl(String entryChecklistUrl)
+    {
+        this.entryChecklistUrl = entryChecklistUrl;
+    }
+
+    public String getPropertyEntryChecklistUrl()
+    {
+        return propertyEntryChecklistUrl;
+    }
+
+    public void setPropertyEntryChecklistUrl(String propertyEntryChecklistUrl)
+    {
+        this.propertyEntryChecklistUrl = propertyEntryChecklistUrl;
+    }
+
+    public String getMonthlyChecklistUrl()
+    {
+        return monthlyChecklistUrl;
+    }
+
+    public void setMonthlyChecklistUrl(String monthlyChecklistUrl)
+    {
+        this.monthlyChecklistUrl = monthlyChecklistUrl;
+    }
+
+    public String getPropertyMonthlyChecklistUrl()
+    {
+        return propertyMonthlyChecklistUrl;
+    }
+
+    public void setPropertyMonthlyChecklistUrl(String propertyMonthlyChecklistUrl)
+    {
+        this.propertyMonthlyChecklistUrl = propertyMonthlyChecklistUrl;
+    }
+
+    public String getRectificationNoticeUrl()
+    {
+        return rectificationNoticeUrl;
+    }
+
+    public void setRectificationNoticeUrl(String rectificationNoticeUrl)
+    {
+        this.rectificationNoticeUrl = rectificationNoticeUrl;
+    }
+
+    public String getRectificationResultUrl()
+    {
+        return rectificationResultUrl;
+    }
+
+    public void setRectificationResultUrl(String rectificationResultUrl)
+    {
+        this.rectificationResultUrl = rectificationResultUrl;
+    }
+
+    public String getAnnualReportUrl()
+    {
+        return annualReportUrl;
+    }
+
+    public void setAnnualReportUrl(String annualReportUrl)
+    {
+        this.annualReportUrl = annualReportUrl;
     }
 
     public void setDelFlag(String delFlag)

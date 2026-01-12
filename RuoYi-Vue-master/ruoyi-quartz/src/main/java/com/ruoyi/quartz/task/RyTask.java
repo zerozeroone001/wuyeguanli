@@ -69,7 +69,7 @@ public class RyTask
                     if (meetingVo.getMeetingStatus() == null || !meetingVo.getMeetingStatus().equals(status))
                     {
                         meetingVo.setMeetingStatus(status);
-                        sysPropertyMeetingService.updateSysPropertyMeeting(meetingVo);
+                        sysPropertyMeetingService.updateMeetingStatus(meetingVo);
                     }
                 }
             }

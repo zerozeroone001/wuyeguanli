@@ -8,6 +8,8 @@ import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.SmsService;
 import com.ruoyi.system.service.WechatService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import java.util.List;
 @Service
 public class SmsServiceImpl implements SmsService {
 
+    private static final Logger log = LoggerFactory.getLogger(SmsServiceImpl.class);
     @Autowired
     private ISysConfigService configService;
 
@@ -49,6 +52,49 @@ public class SmsServiceImpl implements SmsService {
 
             SendSmsResponse response = client.sendSms(sendSmsRequest);
             // 根据阿里云返回的Code判断发送是否成功
+            return "OK".equals(response.getBody().getCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean sendSingleMeetingSms(String phoneNumber, Long meetingId) {
+//        String url = wechatService.getPageLink(meetingId);
+//        if (url == null || url.trim().isEmpty()) {
+//            return false;
+//        }
+//
+//        String linkPath = "";
+//        int idx = url.lastIndexOf("/");
+//        if (idx != -1 && idx + 1 < url.length()) {
+//            linkPath = url.substring(idx + 1);
+//        } else {
+//            linkPath = url;
+//        }
+
+        try {
+            String accessKeyId = configService.selectConfigByKey("sys_ali_accessKeyId");
+            String accessKeySecret = configService.selectConfigByKey("sys_ali_accessKeySecret");
+            String endpoint = configService.selectConfigByKey("sys_ali_endpoint");
+            String signName = configService.selectConfigByKey("sys_ali_signName");
+            String templateCode = configService.selectConfigByKey("sys_ali_meeting_templateCode");
+
+            Config config = new Config()
+                    .setAccessKeyId(accessKeyId)
+                    .setAccessKeySecret(accessKeySecret);
+            config.endpoint = endpoint;
+            Client client = new Client(config);
+
+            SendSmsRequest sendSmsRequest = new SendSmsRequest()
+                    .setPhoneNumbers(phoneNumber)
+                    .setSignName(signName)
+                    .setTemplateCode(templateCode);
+//                    .setTemplateParam("{\"link_path\":\"" + linkPath + "\"}");
+
+            SendSmsResponse response = client.sendSms(sendSmsRequest);
+            log.info("短信通知响应："+response.getBody().toString());
             return "OK".equals(response.getBody().getCode());
         } catch (Exception e) {
             e.printStackTrace();

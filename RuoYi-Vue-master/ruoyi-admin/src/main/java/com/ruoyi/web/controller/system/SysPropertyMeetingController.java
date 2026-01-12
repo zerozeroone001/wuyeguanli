@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.system;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.system.service.MeetingNoticeService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,12 +39,8 @@ public class SysPropertyMeetingController extends BaseController
 {
     @Autowired
     private ISysPropertyMeetingService sysPropertyMeetingService;
-    
     @Autowired
-    private ISysUserService sysUserService;
-    
-    @Autowired
-    private WechatService wechatService;
+    MeetingNoticeService meetingNoticeService;
 
     /**
      * 查询会议管理列表
@@ -53,6 +50,11 @@ public class SysPropertyMeetingController extends BaseController
     public TableDataInfo list(SysPropertyMeeting sysPropertyMeeting)
     {
         sysPropertyMeeting.setCommunityId(resolveCommunityId(sysPropertyMeeting.getCommunityId()));
+        try {
+            sysPropertyMeeting.getParams().put("userId", getUserId());
+        } catch (Exception e) {
+            logger.warn("获取用户ID失败，无法计算投票状态: {}", e.getMessage());
+        }
         startPage();
         List<SysPropertyMeeting> list = sysPropertyMeetingService.selectSysPropertyMeetingList(sysPropertyMeeting);
         return getDataTable(list);
@@ -127,64 +129,7 @@ public class SysPropertyMeetingController extends BaseController
     @Log(title = "会议通知", businessType = BusinessType.UPDATE)
     @PostMapping("/notify/{meetingId}")
     public AjaxResult sendMeetingNotification(@PathVariable("meetingId") Long meetingId) {
-        try {
-            // 1. 获取会议信息
-            SysPropertyMeeting meeting = sysPropertyMeetingService.selectSysPropertyMeetingByMeetingId(meetingId);
-            if (meeting == null) {
-                return AjaxResult.error("会议不存在");
-            }
-
-            // 2. 获取所有有openId的用户
-            List<SysUser> usersWithOpenId = sysUserService.selectUserListWithOpenId();
-            if (usersWithOpenId == null || usersWithOpenId.isEmpty()) {
-                return AjaxResult.error("没有找到有效的用户");
-            }
-
-            // 3. 格式化会议时间
-            String meetingTime = "";
-            if (meeting.getMeetingTime() != null) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
-                meetingTime = sdf.format(meeting.getMeetingTime());
-            }
-
-            // 4. 发送订阅消息
-            int successCount = 0;
-            int failCount = 0;
-            StringBuilder errorMsg = new StringBuilder();
-
-            for (SysUser user : usersWithOpenId) {
-                try {
-                    boolean result = wechatService.sendMeetingNotification(
-                            user.getOpenid(),
-                            meeting.getMeetingTitle(),
-                            meetingTime,
-                            meeting.getMeetingLocation()
-                    );
-
-                    if (result) {
-                        successCount++;
-                    } else {
-                        failCount++;
-                        errorMsg.append("用户").append(user.getNickName()).append("发送失败; ");
-                    }
-                } catch (Exception e) {
-                    failCount++;
-                    errorMsg.append("用户").append(user.getNickName()).append("发送异常: ").append(e.getMessage()).append("; ");
-                }
-            }
-
-            // 5. 返回发送结果
-            String message = String.format("会议通知发送完成！成功: %d人，失败: %d人", successCount, failCount);
-            if (failCount > 0 && errorMsg.length() > 0) {
-                message += "。失败详情: " + errorMsg.toString();
-            }
-
-            return AjaxResult.success(message);
-
-        } catch (Exception e) {
-            logger.error("发送会议通知失败", e);
-            return AjaxResult.error("发送会议通知失败: " + e.getMessage());
-        }
+        return toAjax(meetingNoticeService.notice(meetingId));
     }
 
     /**
@@ -250,5 +195,26 @@ public class SysPropertyMeetingController extends BaseController
     public AjaxResult copy(@PathVariable Long meetingId)
     {
         return toAjax(sysPropertyMeetingService.copyMeeting(meetingId));
+    }
+
+    /**
+     * 获取会议通知记录
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:smsNotify')")
+    @GetMapping("/notificationRecords/{meetingId}")
+    public AjaxResult getNotificationRecords(@PathVariable("meetingId") Long meetingId)
+    {
+        return success(sysPropertyMeetingService.getNotificationRecords(meetingId));
+    }
+
+    /**
+     * 停止会议
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:stop')")
+    @Log(title = "会议管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/stop/{meetingId}")
+    public AjaxResult stop(@PathVariable Long meetingId)
+    {
+        return toAjax(sysPropertyMeetingService.stopMeeting(meetingId));
     }
 }

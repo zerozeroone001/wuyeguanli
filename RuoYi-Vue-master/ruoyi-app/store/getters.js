@@ -31,7 +31,24 @@ const getters = {
   ownerType: state => state.user.ownerType,
   ownerProfile: state => state.user.ownerProfile,
   isOwner: state => state.user.isOwner,
-  user: state => state.user,
+  user: state => ({
+    id: state.user.id,
+    name: state.user.name,
+    nickName: state.user.nickName,
+    avatar: state.user.avatar,
+    phone: state.user.phone,
+    phonenumber: state.user.phonenumber,
+    authStatus: state.user.authStatus,
+    building: state.user.building,
+    unit: state.user.unit,
+    room: state.user.room,
+    ownerType: state.user.ownerType,
+    roles: state.user.roles,
+    permissions: state.user.permissions,
+    isOwner: state.user.isOwner,
+    token: state.user.token,
+    ownerProfile: state.user.ownerProfile
+  }),
   userName: state => state.user.name,
   phonenumber: state => state.user.phonenumber
 }

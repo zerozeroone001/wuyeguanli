@@ -23,6 +23,18 @@
           <el-option label="多套房" value="多套房" />
         </el-select>
       </el-form-item>
+      <el-form-item label="业主标签" prop="tagId">
+        <el-select v-model="queryParams.tagId" placeholder="请选择业主标签" clearable>
+          <el-option
+            v-for="tag in tagDialog.tagList"
+            :key="tag.tagId"
+            :label="tag.tagName"
+            :value="tag.tagId">
+            <i :class="tag.tagIcon" style="margin-right: 10px;"></i>
+            <span>{{ tag.tagName }}</span>
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -83,11 +95,30 @@
           v-hasPermi="['system:owner:edit']"
         >合并/拆分</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          plain
+          icon="el-icon-collection-tag"
+          size="mini"
+          @click="handleTagManage"
+          v-hasPermi="['system:ownerTag:list']"
+        >标签</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="ownerList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="业主标签" align="center" prop="tagId" width="120">
+        <template slot-scope="scope">
+          <el-tag v-if="getTagById(scope.row.tagId)" size="small">
+            <i :class="getTagById(scope.row.tagId).tagIcon" style="margin-right: 5px;"></i>
+            {{ getTagById(scope.row.tagId).tagName }}
+          </el-tag>
+          <span v-else style="color: #909399;">未设置</span>
+        </template>
+      </el-table-column>
       <el-table-column label="真实姓名" align="center" prop="userName" />
       <el-table-column label="联系号码" align="center" prop="phonenumber" />
       <el-table-column label="所属小区" align="center" prop="communityName" />
@@ -98,6 +129,7 @@
         </template>
       </el-table-column>
       <el-table-column label="房产面积(㎡)" align="center" prop="propertyArea" />
+
       <el-table-column label="业委会/业主" align="center" prop="isOwner">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_owner_type" :value="scope.row.isOwner"/>
@@ -145,6 +177,13 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-collection-tag"
+            @click="handleSetTag(scope.row)"
+            v-hasPermi="['system:owner:edit']"
+          >设置标签</el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:owner:remove']"
@@ -181,17 +220,18 @@
           <el-input v-model="formAdd.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
 
-
-            <el-form-item label="楼栋号" prop="buildingNo">
-              <el-select v-model="formAdd.buildingNo" placeholder="请选择楼栋号" filterable @change="handleBuildingChangeAdd">
-                <el-option v-for="item in buildingOptions" :key="item" :label="item" :value="item" />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="房号" prop="roomNo">
-              <el-select v-model="formAdd.roomNo" placeholder="请选择房号" filterable>
-                <el-option v-for="item in roomOptions" :key="item" :label="item" :value="item" />
-              </el-select>
-            </el-form-item>
+        <el-form-item label="选择房产" prop="propertyPath">
+          <el-cascader
+            v-model="formAdd.propertyPath"
+            :options="propertyTreeOptions"
+            :props="cascaderProps"
+            placeholder="请选择楼栋/单元/房号"
+            clearable
+            filterable
+            style="width: 100%;"
+            @change="handlePropertyCascaderChangeAdd"
+          />
+        </el-form-item>
 
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -229,19 +269,20 @@
 
         <!-- Add Property Form -->
         <div v-if="isAddingProperty" class="add-property-box" style="background: #f8f8f9; padding: 15px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ebeef5;">
-            <el-form :model="newProperty" ref="propertyForm" label-width="80px" :inline="true" size="small">
+            <el-form :model="newProperty" ref="propertyForm" label-width="80px" size="small">
                 <el-form-item label="所属小区">
-                   <el-input v-model="formEdit.communityName" disabled style="width: 150px;"></el-input>
+                   <el-input v-model="formEdit.communityName" disabled style="width: 100%;"></el-input>
                 </el-form-item>
-                <el-form-item label="楼栋号">
-                  <el-select v-model="newProperty.buildingNo" placeholder="楼栋" filterable @change="handleNewBuildingChange" style="width: 120px;">
-                    <el-option v-for="item in buildingOptions" :key="item" :label="item" :value="item" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="房号">
-                  <el-select v-model="newProperty.roomNo" placeholder="房号" filterable style="width: 120px;">
-                    <el-option v-for="item in roomOptions" :key="item" :label="item" :value="item" />
-                  </el-select>
+                <el-form-item label="选择房产">
+                  <el-cascader
+                    v-model="newProperty.propertyPath"
+                    :options="propertyTreeOptions"
+                    :props="cascaderProps"
+                    placeholder="请选择楼栋/单元/房号"
+                    clearable
+                    filterable
+                    style="width: 100%;"
+                  />
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submitNewProperty">保存</el-button>
@@ -305,13 +346,115 @@
     <!-- 房产合并与拆分弹窗 -->
     <property-transfer-dialog ref="transferDialog" @refresh="getList" />
 
+    <!-- 标签管理弹窗 -->
+    <el-dialog title="标签管理" :visible.sync="tagDialog.open" width="800px" append-to-body>
+      <el-row :gutter="10" class="mb8">
+        <el-col :span="1.5">
+          <el-button
+            type="primary"
+            plain
+            icon="el-icon-plus"
+            size="mini"
+            @click="handleAddTag"
+            v-hasPermi="['system:ownerTag:add']"
+          >新增</el-button>
+        </el-col>
+      </el-row>
+
+      <el-table v-loading="tagDialog.loading" :data="tagDialog.tagList" border>
+        <el-table-column label="标签名称" align="center" prop="tagName" />
+        <el-table-column label="标签图标" align="center" prop="tagIcon">
+          <template slot-scope="scope">
+            <i :class="scope.row.tagIcon" style="font-size: 20px;"></i>
+            <span style="margin-left: 10px;">{{ scope.row.tagIcon }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip />
+        <el-table-column label="创建时间" align="center" prop="createTime" width="160" />
+        <el-table-column label="操作" align="center" width="180">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-edit"
+              @click="handleEditTag(scope.row)"
+              v-hasPermi="['system:ownerTag:edit']"
+            >修改</el-button>
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-delete"
+              @click="handleDeleteTag(scope.row)"
+              v-hasPermi="['system:ownerTag:remove']"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="tagDialog.open = false">关 闭</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 添加/修改标签对话框 -->
+    <el-dialog :title="tagForm.title" :visible.sync="tagForm.open" width="500px" append-to-body>
+      <el-form ref="tagFormRef" :model="tagForm.data" :rules="tagForm.rules" label-width="80px">
+        <el-form-item label="标签名称" prop="tagName">
+          <el-input v-model="tagForm.data.tagName" placeholder="请输入标签名称" />
+        </el-form-item>
+        <el-form-item label="标签图标" prop="tagIcon">
+          <el-input v-model="tagForm.data.tagIcon" placeholder="请输入Element UI图标类名，如：el-icon-star">
+            <i v-if="tagForm.data.tagIcon" slot="prefix" :class="tagForm.data.tagIcon" style="line-height: 32px;"></i>
+            <i v-else slot="prefix" class="el-icon-search" style="line-height: 32px;"></i>
+          </el-input>
+          <div style="margin-top: 5px; font-size: 12px; color: #909399;">
+            常用图标：el-icon-star, el-icon-user, el-icon-setting, el-icon-phone, el-icon-location
+            <a href="https://element.eleme.cn/#/zh-CN/component/icon" target="_blank" style="margin-left: 10px;">查看更多图标</a>
+          </div>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="tagForm.data.remark" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitTagForm">确 定</el-button>
+        <el-button @click="cancelTagForm">取 消</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 设置业主标签对话框 -->
+    <el-dialog title="设置业主标签" :visible.sync="setTagDialog.open" width="500px" append-to-body>
+      <el-form ref="setTagFormRef" :model="setTagDialog.data" label-width="80px">
+        <el-form-item label="业主姓名">
+          <el-input v-model="setTagDialog.ownerName" disabled />
+        </el-form-item>
+        <el-form-item label="选择标签">
+          <el-select v-model="setTagDialog.data.tagId" placeholder="请选择标签" clearable style="width: 100%;">
+            <el-option
+              v-for="tag in tagDialog.tagList"
+              :key="tag.tagId"
+              :label="tag.tagName"
+              :value="tag.tagId">
+              <i :class="tag.tagIcon" style="margin-right: 10px;"></i>
+              <span>{{ tag.tagName }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitSetTag">确 定</el-button>
+        <el-button @click="setTagDialog.open = false">取 消</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import { listOwner, getOwner, delOwner, addOwner, updateOwner, changeUserStatus, changeUserIdentity, addOwnerProperty } from "@/api/system/owner";
 import { listEstateUserProperty, delEstateUserProperty } from "@/api/system/estateUserProperty";
-import { listBuildings, listRooms } from "@/api/system/estateProperty";
+import { getPropertyTree } from "@/api/system/estateProperty";
+import { listOwnerTag, getOwnerTag, addOwnerTag, updateOwnerTag, delOwnerTag } from "@/api/system/ownerTag";
 import { getToken } from "@/utils/auth";
 import PropertyTransferDialog from "./PropertyTransferDialog";
 import { mapGetters } from "vuex";
@@ -338,18 +481,23 @@ export default {
       total: 0,
       // 业主信息表格数据
       ownerList: [],
-      // 楼栋选项
-      buildingOptions: [],
-      // 房号选项
-      roomOptions: [],
+      // 房产树形数据
+      propertyTreeOptions: [],
+      // 级联选择器配置
+      cascaderProps: {
+        value: 'value',
+        label: 'label',
+        children: 'children',
+        disabled: 'disabled',
+        expandTrigger: 'hover'
+      },
       // 业主房产列表
       ownerPropertyList: [],
       // 是否正在新增房产
       isAddingProperty: false,
       // 新增房产数据
       newProperty: {
-        buildingNo: null,
-        roomNo: null
+        propertyPath: []
       },
 
       // 新增弹窗
@@ -371,7 +519,8 @@ export default {
         phonenumber: null,
         contactNumber: null,
         communityId: null,
-        propertyTag: null
+        propertyTag: null,
+        tagId: null
       },
       // 表单校验
       rules: {
@@ -402,7 +551,36 @@ export default {
         { value: '0', label: '正常' },
         { value: '1', label: '停用' },
         { value: '2', label: '未绑定' }
-      ]
+      ],
+      // 标签管理弹窗
+      tagDialog: {
+        open: false,
+        loading: false,
+        tagList: []
+      },
+      // 标签表单
+      tagForm: {
+        open: false,
+        title: "",
+        data: {},
+        rules: {
+          tagName: [
+            { required: true, message: "标签名称不能为空", trigger: "blur" }
+          ],
+          tagIcon: [
+            { required: true, message: "标签图标不能为空", trigger: "change" }
+          ]
+        }
+      },
+      // 设置业主标签弹窗
+      setTagDialog: {
+        open: false,
+        ownerName: "",
+        data: {
+          ownerId: null,
+          tagId: null
+        }
+      }
     };
   },
   computed: {
@@ -425,6 +603,7 @@ export default {
   created() {
     this.applyCommunityFilter();
     this.getList();
+    this.loadTagListForDisplay();
   },
   methods: {
     /**
@@ -516,7 +695,9 @@ export default {
         idCardFrontUrl: null,
         idCardBackUrl: null,
         authStatus: "2",
+        propertyPath: [],
         buildingNo: null,
+        unitNo: null,
         roomNo: null,
         communityId: null,
         communityName: "",
@@ -530,8 +711,7 @@ export default {
         phonenumber: null,
         contactNumber: null
       };
-      this.buildingOptions = [];
-      this.roomOptions = [];
+      this.propertyTreeOptions = [];
       this.resetForm("formAdd");
     },
     // 表单重置 (修改)
@@ -587,7 +767,7 @@ export default {
       }
       this.resetAdd();
       this.attachCommunityInfo(this.formAdd, this.currentCommunityId);
-      this.getBuildingList(this.formAdd.communityId);
+      this.loadPropertyTree(this.formAdd.communityId);
       this.openAdd = true;
     },
     /** 修改按钮操作 */
@@ -599,7 +779,6 @@ export default {
         this.attachCommunityInfo(this.formEdit, response.data.communityId);
 
         if(this.formEdit.communityId) {
-            this.getBuildingList(this.formEdit.communityId);
             this.loadOwnerProperties();
         }
 
@@ -623,30 +802,29 @@ export default {
     /** 显示新增房产表单 */
     showAddPropertyForm() {
         this.isAddingProperty = true;
-        this.newProperty = { buildingNo: null, roomNo: null };
-        this.roomOptions = []; // Clear options for the new select
-        // Ensure building options are loaded (should be loaded in handleUpdate)
-    },
-    /** 新增房产楼栋变更 */
-    handleNewBuildingChange(value) {
-        this.newProperty.roomNo = null;
-        if (value && this.formEdit.communityId) {
-            this.getRoomList(this.formEdit.communityId, value);
-        }
+        this.newProperty = { propertyPath: [] };
+        // 加载房产树形数据,排除当前业主已绑定的房产
+        this.loadPropertyTree(this.formEdit.communityId, this.formEdit.ownerNo);
     },
     /** 提交新增房产 */
     submitNewProperty() {
-        if (!this.newProperty.buildingNo || !this.newProperty.roomNo) {
-            this.$message.error("请选择楼栋和房号");
+        if (!this.newProperty.propertyPath || this.newProperty.propertyPath.length !== 3) {
+            this.$message.error("请选择完整的房产信息(楼栋/单元/房号)");
             return;
         }
+
+        // 从级联选择器路径中提取楼栋、单元、房号
+        const buildingNo = this.newProperty.propertyPath[0];
+        const unitNo = this.newProperty.propertyPath[1] === '无单元' ? null : this.newProperty.propertyPath[1];
+        const roomNo = this.newProperty.propertyPath[2];
 
         // 构建新增数据
         const data = {
             ownerId: this.formEdit.ownerId,
             communityId: this.formEdit.communityId,
-            buildingNo: this.newProperty.buildingNo,
-            roomNo: this.newProperty.roomNo
+            buildingNo: buildingNo,
+            unitNo: unitNo,
+            roomNo: roomNo
         };
 
         addOwnerProperty(data).then(res => {
@@ -672,34 +850,38 @@ export default {
             });
         }).catch(() => {});
     },
-    /** 获取楼栋列表 */
-    getBuildingList(communityId) {
-      listBuildings({ communityId: communityId }).then(response => {
-        this.buildingOptions = response.data;
-      });
-    },
-    /** 获取房号列表 */
-    getRoomList(communityId, buildingName) {
-      listRooms({
+    /** 加载房产树形数据 */
+    loadPropertyTree(communityId, excludeOwnerNo) {
+      getPropertyTree({ 
         communityId: communityId,
-        buildingName: buildingName,
-        // ownerId: this.form.ownerId // Remove this dependency as it might confuse backend or not needed for listing rooms
+        excludeOwnerNo: excludeOwnerNo || null
       }).then(response => {
-        this.roomOptions = response.data;
+        this.propertyTreeOptions = response.data || [];
+      }).catch(error => {
+        console.error('加载房产数据失败:', error);
+        this.$message.error('加载房产数据失败');
       });
     },
-    /** 楼栋改变事件 (Add) */
-    handleBuildingChangeAdd(value) {
-      this.formAdd.roomNo = null;
-      this.roomOptions = [];
-      if (value) {
-        this.getRoomList(this.formAdd.communityId, value);
-      }
+    /** 处理级联选择器变更(新增) */
+    handlePropertyCascaderChangeAdd(value) {
+      // 级联选择器变更时的处理逻辑(如果需要)
+      console.log('选择的房产路径:', value);
     },
     /** 提交按钮 (新增) */
     submitAddForm() {
       this.$refs["formAdd"].validate(valid => {
         if (valid) {
+          // 验证是否选择了房产
+          if (!this.formAdd.propertyPath || this.formAdd.propertyPath.length !== 3) {
+            this.$message.error("请选择完整的房产信息(楼栋/单元/房号)");
+            return;
+          }
+          
+          // 从级联选择器路径中提取楼栋、单元、房号
+          this.formAdd.buildingNo = this.formAdd.propertyPath[0];
+          this.formAdd.unitNo = this.formAdd.propertyPath[1] === '无单元' ? null : this.formAdd.propertyPath[1];
+          this.formAdd.roomNo = this.formAdd.propertyPath[2];
+          
           if (this.formAdd.communityId === null || this.formAdd.communityId === undefined) {
             if (!this.isAllCommunitySelected) {
               this.formAdd.communityId = Number(this.currentCommunityId);
@@ -826,6 +1008,128 @@ export default {
         }
         this.$refs.transferDialog.init(selectedRow);
       }
+    },
+    /** 打开标签管理弹窗 */
+    handleTagManage() {
+      this.tagDialog.open = true;
+      this.tagDialog.tagList = [];
+      this.getTagList();
+    },
+    /** 查询标签列表 */
+    getTagList() {
+      this.tagDialog.loading = true;
+      listOwnerTag({}).then(response => {
+        this.tagDialog.tagList = response.rows || [];
+        this.tagDialog.loading = false;
+      }).catch(error => {
+        console.error('加载标签列表失败:', error);
+        this.tagDialog.loading = false;
+        this.$message.error('加载标签列表失败，请检查后端服务是否正常运行');
+      });
+    },
+    /** 新增标签按钮操作 */
+    handleAddTag() {
+      this.resetTagForm();
+      this.tagForm.open = true;
+      this.tagForm.title = "添加标签";
+    },
+    /** 修改标签按钮操作 */
+    handleEditTag(row) {
+      this.resetTagForm();
+      const tagId = row.tagId;
+      getOwnerTag(tagId).then(response => {
+        this.tagForm.data = response.data;
+        this.tagForm.open = true;
+        this.tagForm.title = "修改标签";
+      });
+    },
+    /** 删除标签按钮操作 */
+    handleDeleteTag(row) {
+      const tagIds = row.tagId;
+      this.$modal.confirm('是否确认删除标签"' + row.tagName + '"？').then(function() {
+        return delOwnerTag(tagIds);
+      }).then(() => {
+        this.getTagList();
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
+    },
+    /** 提交标签表单 */
+    submitTagForm() {
+      this.$refs["tagFormRef"].validate(valid => {
+        if (valid) {
+          if (this.tagForm.data.tagId != null) {
+            updateOwnerTag(this.tagForm.data).then(response => {
+              this.$modal.msgSuccess("修改成功");
+              this.tagForm.open = false;
+              this.getTagList();
+            });
+          } else {
+            addOwnerTag(this.tagForm.data).then(response => {
+              this.$modal.msgSuccess("新增成功");
+              this.tagForm.open = false;
+              this.getTagList();
+            });
+          }
+        }
+      });
+    },
+    /** 取消标签表单 */
+    cancelTagForm() {
+      this.tagForm.open = false;
+      this.resetTagForm();
+    },
+    /** 表单重置 */
+    resetTagForm() {
+      this.tagForm.data = {
+        tagId: null,
+        tagName: null,
+        tagIcon: null,
+        remark: null
+      };
+      this.resetForm("tagFormRef");
+    },
+    /** 加载标签列表用于显示 */
+    loadTagListForDisplay() {
+      listOwnerTag({}).then(response => {
+        this.tagDialog.tagList = response.rows || [];
+      }).catch(error => {
+        console.error('加载标签列表失败:', error);
+      });
+    },
+    /** 根据标签ID获取标签信息 */
+    getTagById(tagId) {
+      if (!tagId) return null;
+      return this.tagDialog.tagList.find(tag => tag.tagId === tagId);
+    },
+    /** 设置业主标签按钮操作 */
+    handleSetTag(row) {
+      // 确保标签列表已加载
+      if (!this.tagDialog.tagList || this.tagDialog.tagList.length === 0) {
+        this.loadTagListForDisplay();
+      }
+
+      this.setTagDialog.data = {
+        ownerId: row.ownerId,
+        tagId: row.tagId || null
+      };
+      this.setTagDialog.ownerName = row.userName || row.nickName || '';
+      this.setTagDialog.open = true;
+    },
+    /** 提交设置业主标签 */
+    submitSetTag() {
+      const data = {
+        ownerId: this.setTagDialog.data.ownerId,
+        tagId: this.setTagDialog.data.tagId
+      };
+
+      updateOwner(data).then(response => {
+        this.$modal.msgSuccess("设置标签成功");
+        this.setTagDialog.open = false;
+        this.getList();
+      }).catch(error => {
+        console.error('设置标签失败:', error);
+        this.$message.error('设置标签失败');
+      });
     }
   }
 };

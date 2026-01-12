@@ -398,6 +398,21 @@
           "style": {
             "navigationBarTitleText": "咨询详情"
           }
+        }, {
+          "path": "visit/buildings",
+          "style": {
+            "navigationBarTitleText": "选择楼栋"
+          }
+        }, {
+          "path": "visit/units",
+          "style": {
+            "navigationBarTitleText": "选择单元"
+          }
+        }, {
+          "path": "visit/rooms",
+          "style": {
+            "navigationBarTitleText": "房间列表"
+          }
         }
       ]
     }

@@ -68,9 +68,6 @@ public class EstateUserProperty extends BaseEntity
     /** 手机号 */
     private String phonenumber;
 
-    /** 真实姓名 */
-    private String realName;
-
     /** 用户类型（00业主 01家属 02租户） */
     @Excel(name = "用户类型", readConverterExp = "0=0业主,0=1家属,0=2租户")
     private String userType;
@@ -252,16 +249,6 @@ public class EstateUserProperty extends BaseEntity
         this.phonenumber = phonenumber;
     }
 
-    public String getRealName()
-    {
-        return realName;
-    }
-
-    public void setRealName(String realName)
-    {
-        this.realName = realName;
-    }
-
     public void setStatus(String status) 
     {
         this.status = status;
@@ -300,7 +287,6 @@ public class EstateUserProperty extends BaseEntity
             .append("userName", getUserName())
             .append("nickName", getNickName())
             .append("phonenumber", getPhonenumber())
-            .append("realName", getRealName())
             .append("userType", getUserType())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())

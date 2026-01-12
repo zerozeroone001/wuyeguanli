@@ -112,3 +112,19 @@ export function copyMeeting(meetingId) {
     method: 'post'
   })
 }
+
+// 获取会议通知记录
+export function getNotificationRecords(meetingId) {
+  return request({
+    url: '/system/meeting/notificationRecords/' + meetingId,
+    method: 'get'
+  })
+}
+
+// 停止会议
+export function stopMeeting(meetingId) {
+  return request({
+    url: '/system/meeting/stop/' + meetingId,
+    method: 'put'
+  })
+}

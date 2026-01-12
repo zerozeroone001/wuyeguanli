@@ -226,4 +226,39 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 </if>
             ) AS transactionCount
     </select>
+    <select id="getTotalFunds" resultType="java.math.BigDecimal">
+        select ifnull(sum(amount), 0) from sys_property_fund_flow
+        where approval_status = '1'
+    </select>
+
+    <select id="getLastMonthFunds" resultType="java.math.BigDecimal">
+        select ifnull(sum(amount), 0) from sys_property_fund_flow
+        where approval_status = '1'
+        and date_format(create_time, '%Y%m') &lt;= date_format(date_sub(sysdate(), interval 1 month), '%Y%m')
+    </select>
+
+    <select id="countPendingApprovals" resultType="Long">
+        select count(1) from sys_property_fund_flow
+        where approval_status = '0'
+    </select>
+
+    <select id="getMonthFundAnalysis" resultType="java.util.Map">
+        select 
+            ifnull(sum(case when flow_type in ('1', '3') then amount else 0 end), 0) as income,
+            ifnull(sum(case when flow_type in ('2', '4') then amount else 0 end), 0) as expense
+        from sys_property_fund_flow
+        where approval_status = '1'
+        and date_format(flow_date, '%Y%m') = date_format(sysdate(), '%Y%m')
+    </select>
+    
+    <select id="getRecentFunds" resultType="java.util.Map">
+        select 
+            title as `title`,
+            amount,
+            flow_type as `type`,
+            date_format(create_time, '%Y-%m-%d %H:%i:%s') as `time`
+        from sys_property_fund_flow
+        order by create_time desc
+        limit #{limit}
+    </select>
 </mapper>

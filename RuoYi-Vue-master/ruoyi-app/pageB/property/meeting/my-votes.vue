@@ -126,7 +126,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        status: null
+        meetingStatus: null
       }
     }
   },
@@ -159,7 +159,13 @@ export default {
     
     switchTab(tab) {
       this.activeTab = tab
-      this.queryParams.status = tab === 'all' ? null : tab
+      if (tab === 'all') {
+        this.queryParams.meetingStatus = null
+      } else if (tab === 'ongoing') {
+        this.queryParams.meetingStatus = '1' // 后端进行中状态为'1'
+      } else if (tab === 'finished') {
+        this.queryParams.meetingStatus = '2' // 后端已结束状态为'2'
+      }
       this.refreshData()
     },
     
@@ -216,9 +222,18 @@ export default {
     },
     
     viewVoteDetail(item) {
-      // 跳转到投票详情页面
+      // 根据 meetingTag 跳转到不同页面
+      let url = `/pageB/property/meeting/detail?id=${item.meetingId}&from=my-votes`
+      
+      // 2: 招标会议 -> tender, 3: 选举会议 -> election
+      if (item.meetingTag === 2) {
+        url = `/pageB/property/meeting/tender?id=${item.meetingId}&from=my-votes`
+      } else if (item.meetingTag === 3) {
+        url = `/pageB/property/meeting/election?id=${item.meetingId}&from=my-votes`
+      }
+      
       uni.navigateTo({
-        url: `/pageB/property/meeting/detail?id=${item.meetingId}&from=my-votes`
+        url: url
       })
     },
     

@@ -18,6 +18,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
         <result property="remark"    column="remark"    />
+        <result property="ownerName"    column="owner_name"    />
+        <result property="ownerPhone"    column="owner_phone"    />
+        <result property="communityName"    column="community_name"    />
+        <result property="roomNumber"    column="room_number"    />
+        <result property="buildingNameStr"    column="building_str"    />
     </resultMap>
 
     <sql id="selectSysEstateUserApplyVo">
@@ -25,14 +30,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
     <select id="selectSysEstateUserApplyList" parameterType="SysEstateUserApply" resultMap="SysEstateUserApplyResult">
-        <include refid="selectSysEstateUserApplyVo"/>
+        select a.apply_id, a.user_id, a.building_name, a.property_id, a.community_id, a.user_type, a.status, a.del_flag, a.create_by, a.create_time, a.update_by, a.update_time, a.remark,
+        u.nick_name as owner_name, u.phonenumber as owner_phone, c.community_name, p.room_number, p.building_name as building_str
+        from sys_estate_user_apply a
+        left join sys_user u on a.user_id = u.user_id
+        left join sys_estate_community c on a.community_id = c.community_id
+        left join sys_estate_property p on a.property_id = p.property_id
         <where>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="communityId != null "> and community_id = #{communityId}</if>
-            <if test="propertyId != null "> and property_id = #{propertyId}</if>
-            <if test="buildingName != null "> and building_name = #{buildingName}</if>
-            <if test="userType != null  and userType != ''"> and user_type = #{userType}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="userId != null "> and a.user_id = #{userId}</if>
+            <if test="communityId != null "> and a.community_id = #{communityId}</if>
+            <if test="propertyId != null "> and a.property_id = #{propertyId}</if>
+            <if test="buildingName != null "> and a.building_name = #{buildingName}</if>
+            <if test="userType != null  and userType != ''"> and a.user_type = #{userType}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
         </where>
     </select>
     

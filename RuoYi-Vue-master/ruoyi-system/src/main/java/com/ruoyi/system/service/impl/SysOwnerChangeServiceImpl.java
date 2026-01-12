@@ -147,7 +147,7 @@ public class SysOwnerChangeServiceImpl implements ISysOwnerChangeService
             
             SysOwnerProfile newProfile = new SysOwnerProfile();
             newProfile.setCommunityId(fullRequest.getCommunityId());
-            newProfile.setRealName(fullRequest.getNewOwnerName());
+            newProfile.setUserName(fullRequest.getNewOwnerName());
             newProfile.setPhonenumber(fullRequest.getNewOwnerPhone());
             newProfile.setBuildingNo(property.getBuildingName());
             newProfile.setRoomNo(property.getRoomNumber());

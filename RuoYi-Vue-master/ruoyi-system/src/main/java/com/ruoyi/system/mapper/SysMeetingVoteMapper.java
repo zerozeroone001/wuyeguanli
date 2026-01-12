@@ -26,6 +26,8 @@ public interface SysMeetingVoteMapper {
 
     List<SysMeetingVote> selectSysMeetingVoteList(SysMeetingVote sysMeetingVote);
 
+    List<SysMeetingVote> selectSysMeetingUnVoteUserList(SysMeetingVote sysMeetingVote);
+
     int insertSysMeetingVote(SysMeetingVote sysMeetingVote);
 
     int updateSysMeetingVote(SysMeetingVote sysMeetingVote);
@@ -78,4 +80,12 @@ public interface SysMeetingVoteMapper {
      * @return 结果
      */
     public int batchInsertSysMeetingVote(List<SysMeetingVote> sysMeetingVoteList);
+
+    /**
+     * 查询会议通知记录
+     * @param meetingId 会议ID
+     * @param communityId 小区ID
+     * @return 通知记录列表
+     */
+    List<com.ruoyi.system.domain.vo.MeetingNotificationVO> selectNotificationRecords(@Param("meetingId") Long meetingId, @Param("communityId") Long communityId);
 }

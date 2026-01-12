@@ -26,6 +26,8 @@ public class SysMeetingTopic extends BaseEntity
 
     private Integer abstainCount;
 
+    private String congduo;
+
     private Integer congduoCount;
 
     private List<SysMeetingTopicFile> files;
@@ -94,6 +96,16 @@ public class SysMeetingTopic extends BaseEntity
     public Integer getAbstainCount()
     {
         return abstainCount;
+    }
+
+    public void setCongduo(String congduo)
+    {
+        this.congduo = congduo;
+    }
+
+    public String getCongduo()
+    {
+        return congduo;
     }
 
     public void setCongduoCount(Integer congduoCount)

@@ -151,7 +151,9 @@ const user = {
           commit('SET_NICKNAME', nickName)
           commit('SET_AVATAR', avatar)
           // 更新认证状态和其他物业信息
-          commit('SET_AUTH_STATUS', res.is_owner > 0) // 使用新的is_owner字段
+          // 从 user 对象中获取 isOwner 字段（0-未认证，1-业主，2-业委会）
+          const isOwner = user.isOwner || 0
+          commit('SET_AUTH_STATUS', isOwner > 0)
           commit('SET_PHONE', user.phonenumber)
           commit('SET_PROPERTY_INFO', {
             building: user.building,
@@ -159,8 +161,8 @@ const user = {
             room: user.room
           })
           commit('SET_OWNER_TYPE', user.ownerType)
-          // 保存is_owner字段
-          commit('SET_IS_OWNER', res.is_owner)
+          // 保存 isOwner 字段
+          commit('SET_IS_OWNER', isOwner)
           resolve(res)
         }).catch(error => {
           reject(error)

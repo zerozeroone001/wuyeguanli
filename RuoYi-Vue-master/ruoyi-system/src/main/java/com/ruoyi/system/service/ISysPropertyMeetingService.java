@@ -30,6 +30,8 @@ public interface ISysPropertyMeetingService
      */
     public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting);
 
+    public List<SysPropertyMeeting> userSelectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting);
+
     /**
      * 新增会议管理
      * 
@@ -175,4 +177,28 @@ public interface ISysPropertyMeetingService
      * @return 结果
      */
     public int copyMeeting(Long meetingId);
+
+    /**
+     * 更新会议状态（系统任务专用，跳过权限检查和议题更新）
+     * 
+     * @param sysPropertyMeeting 会议信息
+     * @return 结果
+     */
+    public int updateMeetingStatus(SysPropertyMeeting sysPropertyMeeting);
+
+    /**
+     * 获取会议通知记录
+     * 
+     * @param meetingId 会议ID
+     * @return 通知记录列表
+     */
+    public List<com.ruoyi.system.domain.vo.MeetingNotificationVO> getNotificationRecords(Long meetingId);
+
+    /**
+     * 停止会议
+     * 
+     * @param meetingId 会议ID
+     * @return 结果
+     */
+    public int stopMeeting(Long meetingId);
 }

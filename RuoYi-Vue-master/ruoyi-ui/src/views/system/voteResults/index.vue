@@ -90,15 +90,15 @@
           </div>
           <div class="stat-item">
             <div class="stat-label">参与人数</div>
-            <div class="stat-value">{{ currentResult.participatePeople || 0 }}</div>
+            <div class="stat-value">{{ currentResult.actualPeople || 0 }}</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">参与面积(㎡)</div>
-            <div class="stat-value">{{ formatArea(currentResult.participateArea) }}</div>
+            <div class="stat-value">{{ formatArea(currentResult.actualArea) }}</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">参与率</div>
-            <div class="stat-value">{{ getRate(currentResult.participatePeople, currentResult.totalPeople) }}%</div>
+            <div class="stat-value">{{ getRate(currentResult.actualPeople, currentResult.totalPeople) }}%</div>
           </div>
         </div>
       </el-card>
@@ -122,7 +122,7 @@
             </div>
             <div class="stat">
               <div class="stat-title">占比</div>
-              <div class="stat-number">{{ getRate(currentResult.agreePeople, currentResult.participatePeople) }}%</div>
+              <div class="stat-number">{{ getRate(currentResult.agreePeople, currentResult.actualPeople) }}%</div>
             </div>
           </div>
         </el-card>
@@ -136,15 +136,15 @@
           <div class="vote-stats">
             <div class="stat">
               <div class="stat-title">人数</div>
-              <div class="stat-number">{{ currentResult.disagreePeople || 0 }}</div>
+              <div class="stat-number">{{ currentResult.opposePeople || 0 }}</div>
             </div>
             <div class="stat">
               <div class="stat-title">面积(㎡)</div>
-              <div class="stat-number">{{ formatArea(currentResult.disagreeArea) }}</div>
+              <div class="stat-number">{{ formatArea(currentResult.opposeArea) }}</div>
             </div>
             <div class="stat">
               <div class="stat-title">占比</div>
-              <div class="stat-number">{{ getRate(currentResult.disagreePeople, currentResult.participatePeople) }}%</div>
+              <div class="stat-number">{{ getRate(currentResult.opposePeople, currentResult.actualPeople) }}%</div>
             </div>
           </div>
         </el-card>
@@ -166,7 +166,7 @@
             </div>
             <div class="stat">
               <div class="stat-title">占比</div>
-              <div class="stat-number">{{ getRate(currentResult.abstainPeople, currentResult.participatePeople) }}%</div>
+              <div class="stat-number">{{ getRate(currentResult.abstainPeople, currentResult.actualPeople) }}%</div>
             </div>
           </div>
         </el-card>
@@ -180,15 +180,15 @@
           <div class="vote-stats">
             <div class="stat">
               <div class="stat-title">人数</div>
-              <div class="stat-number">{{ currentResult.unvotedPeople || 0 }}</div>
+              <div class="stat-number">{{ currentResult.notVotedPeople || 0 }}</div>
             </div>
             <div class="stat">
               <div class="stat-title">面积(㎡)</div>
-              <div class="stat-number">{{ formatArea(currentResult.unvotedArea) }}</div>
+              <div class="stat-number">{{ formatArea(currentResult.notVotedArea) }}</div>
             </div>
             <div class="stat">
               <div class="stat-title">占比</div>
-              <div class="stat-number">{{ getRate(currentResult.unvotedPeople, currentResult.totalPeople) }}%</div>
+              <div class="stat-number">{{ getRate(currentResult.notVotedPeople, currentResult.totalPeople) }}%</div>
             </div>
           </div>
         </el-card>
@@ -202,7 +202,7 @@
 
 <script>
 import { listVoteResults, exportVoteListExcel, exportVoteReportPdf } from '@/api/system/voteResults'
-import { getMeeting } from '@/api/system/meeting'
+import { getMeeting,exportVotingDetailsPublic } from '@/api/system/meeting'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -312,6 +312,51 @@ export default {
     },
 
     /**
+     * 通用下载处理
+     */
+    handleDownload(promise, fileName) {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在生成文件，请稍候...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
+
+      promise.then(blob => {
+        // 检查是否是JSON（错误信息）
+        if (blob.type === 'application/json') {
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            try {
+              const res = JSON.parse(e.target.result)
+              this.$message.error(res.msg || '导出失败')
+            } catch (err) {
+              this.$message.error('导出失败')
+            }
+            loading.close()
+          }
+          reader.readAsText(blob)
+          return
+        }
+
+        const link = document.createElement('a')
+        const url = window.URL.createObjectURL(blob)
+        link.href = url
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(link)
+        this.$message.success('导出成功')
+        loading.close()
+      }).catch(error => {
+        console.error('导出失败', error)
+        this.$message.error('导出失败: ' + (error.message || '未知错误'))
+        loading.close()
+      })
+    },
+
+    /**
      * 导出Excel投票列表
      */
     handleExportExcel() {
@@ -326,24 +371,11 @@ export default {
         type: 'info'
       }).then(() => {
         this.showExportDialog = false
-        const loading = this.$loading({
-          lock: true,
-          text: '正在生成Excel文件，请稍候...',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        })
-
-        exportVoteListExcel({
-          meetingId: this.meetingId,
-          communityId: this.targetCommunityId
-        }).then(response => {
-          this.$message.success('导出成功')
-        }).catch(error => {
-          console.error('导出失败', error)
-          this.$message.error('导出失败: ' + (error.message || '未知错误'))
-        }).finally(() => {
-          loading.close()
-        })
+        const fileName = (this.meetingTitle || '会议') + '_投票列表.xlsx'
+        this.handleDownload(
+          exportVotingDetailsPublic(this.meetingId),
+          fileName
+        )
       }).catch(() => {
         // 用户取消
       })
@@ -364,24 +396,14 @@ export default {
         type: 'info'
       }).then(() => {
         this.showExportDialog = false
-        const loading = this.$loading({
-          lock: true,
-          text: '正在生成PDF报告，请稍候...',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        })
-
-        exportVoteReportPdf({
-          meetingId: this.meetingId,
-          communityId: this.targetCommunityId
-        }).then(response => {
-          this.$message.success('导出成功')
-        }).catch(error => {
-          console.error('导出失败', error)
-          this.$message.error('导出失败: ' + (error.message || '未知错误'))
-        }).finally(() => {
-          loading.close()
-        })
+        const fileName = (this.meetingTitle || '会议') + '_投票统计报告.pdf'
+        this.handleDownload(
+          exportVoteReportPdf({
+            meetingId: this.meetingId,
+            communityId: this.targetCommunityId
+          }),
+          fileName
+        )
       }).catch(() => {
         // 用户取消
       })

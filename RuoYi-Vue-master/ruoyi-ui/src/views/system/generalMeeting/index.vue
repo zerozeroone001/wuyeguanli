@@ -28,10 +28,10 @@
       </el-form>
 
       <div class="action-buttons">
-        <el-button icon="el-icon-picture" size="small" plain>待发布</el-button>
-        <el-button icon="el-icon-edit" size="small" plain>未开始</el-button>
-        <el-button icon="el-icon-clock" size="small" plain>进行中</el-button>
-        <el-button icon="el-icon-check" size="small" plain>已结束</el-button>
+        <el-button icon="el-icon-s-grid" size="small" :type="!queryParams.meetingStatus ? 'primary' : ''" :plain="!!queryParams.meetingStatus" @click="handleStatusFilter(null)">全部</el-button>
+        <el-button icon="el-icon-edit" size="small" :type="queryParams.meetingStatus === '0' ? 'primary' : ''" :plain="queryParams.meetingStatus !== '0'" @click="handleStatusFilter('0')">未开始</el-button>
+        <el-button icon="el-icon-clock" size="small" :type="queryParams.meetingStatus === '1' ? 'primary' : ''" :plain="queryParams.meetingStatus !== '1'" @click="handleStatusFilter('1')">进行中</el-button>
+        <el-button icon="el-icon-check" size="small" :type="queryParams.meetingStatus === '2' ? 'primary' : ''" :plain="queryParams.meetingStatus !== '2'" @click="handleStatusFilter('2')">已结束</el-button>
         <el-button type="primary" icon="el-icon-plus" size="small" @click="handleAdd" v-hasPermi="['system:meeting:add']">新增</el-button>
       </div>
     </div>
@@ -151,7 +151,8 @@
                 <div class="meeting-action-list">
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleExportBallot(meeting)" v-hasPermi="['system:meeting:exportBallot']">表决票导出</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handlePublicizeResults(meeting)" v-hasPermi="['system:meeting:publicize']">公示结果</el-button>
-                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleUpdate(meeting)" v-hasPermi="['system:meeting:edit']">编辑活动</el-button>
+                   <el-button v-if="meeting.meetingStatus === '0'" type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleUpdate(meeting)" v-hasPermi="['system:meeting:edit']">编辑活动</el-button>
+                   <el-button v-if="meeting.meetingStatus === '1'" type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0;color:#E6A23C" @click="handleStopMeeting(meeting)" v-hasPermi="['system:meeting:stop']">停止会议</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleCopyActivity(meeting)" v-hasPermi="['system:meeting:copy']">复制活动</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0;color:#F56C6C" @click="handleDelete(meeting)" v-hasPermi="['system:meeting:remove']">删除活动</el-button>
                 </div>
@@ -168,6 +169,7 @@
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleViewVoteRecords(meeting)" v-hasPermi="['system:meeting:viewVoteRecords']">投票记录</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handlePreserveCertificate(meeting)" v-hasPermi="['system:meeting:preserveCert']">保全证书</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleSmsNotify(meeting)" v-hasPermi="['system:meeting:smsNotify']">短信/电话通知投票</el-button>
+                  <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleViewNotificationRecords(meeting)" v-hasPermi="['system:meeting:smsNotify']">通知记录</el-button>
                 </div>
                 <div class="text-btn-item" slot="reference">
                   <span>投票/票权</span>
@@ -213,6 +215,11 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
+            <el-form-item label="子标题">
+              <el-input v-model="form.subTitle" placeholder="请输入子标题" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
              <el-form-item label="会议标签" prop="meetingTag">
                <el-radio-group v-model="form.meetingTag">
                  <el-radio :label="1">业主大会</el-radio>
@@ -220,6 +227,29 @@
                  <el-radio :label="3">选举会议</el-radio>
                </el-radio-group>
              </el-form-item>
+          </el-col>
+          <el-col :span="12" v-if="form.meetingTag === 2 || form.meetingTag === 3">
+            <el-form-item label="选举数">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <el-input-number 
+                  v-model="form.selectionTotal" 
+                  :min="1" 
+                  :max="99"
+                  controls-position="right"
+                  placeholder="总数"
+                  style="flex: 1"
+                ></el-input-number>
+                <span style="color: #606266;">选</span>
+                <el-input-number 
+                  v-model="form.selectionCount" 
+                  :min="1" 
+                  :max="99"
+                  controls-position="right"
+                  placeholder="可选数"
+                  style="flex: 1"
+                ></el-input-number>
+              </div>
+            </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="所属小区" prop="communityId">
@@ -471,13 +501,45 @@
       </div>
     </el-dialog>
 
-    <user-select-dialog :visible.sync="userSelectVisible" @confirm="handleUserSelectConfirm" />
+    <!-- 通知记录对话框 -->
+    <el-dialog title="通知记录" :visible.sync="notificationDialogVisible" width="70%" append-to-body>
+      <el-table :data="notificationRecords" border v-loading="notificationLoading" stripe height="500">
+        <el-table-column label="用户姓名" prop="userName" align="center" width="120" />
+        <el-table-column label="联系电话" prop="phonenumber" align="center" width="150" />
+        <el-table-column label="详细地址(楼栋号房号)" prop="address" align="center" show-overflow-tooltip />
+        <el-table-column label="是否投票" prop="hasVoted" align="center" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.hasVoted === '是' ? 'success' : 'info'">{{ scope.row.hasVoted }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="短信通知" prop="smsTime" align="center" width="160">
+          <template slot-scope="scope">
+            <span>{{ scope.row.smsTime || '无' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="电话通知" prop="phoneTime" align="center" width="160">
+          <template slot-scope="scope">
+            <span>{{ scope.row.phoneTime || '无' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="纸质票发放记录" prop="paperTime" align="center" width="160">
+          <template slot-scope="scope">
+            <span>{{ scope.row.paperTime || '无' }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="notificationDialogVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
+
+    <user-select-dialog :visible.sync="userSelectVisible" :community-id="form.communityId" @confirm="handleUserSelectConfirm" />
 
   </div>
 </template>
 
 <script>
-import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, exportBallot, copyMeeting, exportVotingResults, exportVotingDetailsPublic, exportMeetingDocuments, getBuildingStats } from "@/api/system/meeting"
+import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, exportBallot, copyMeeting, exportVotingResults, exportVotingDetailsPublic, exportMeetingDocuments, getBuildingStats, getNotificationRecords, sendNotification, stopMeeting } from "@/api/system/meeting"
 import { exportVoteListExcel, exportVoteReportPdf } from '@/api/system/voteResults'
 import { mapGetters } from "vuex"
 import UserSelectDialog from "@/components/UserSelectDialog";
@@ -587,6 +649,10 @@ export default {
       ],
       // 用户选择弹窗
       userSelectVisible: false,
+      // 通知记录
+      notificationDialogVisible: false,
+      notificationRecords: [],
+      notificationLoading: false,
     }
   },
   computed: {
@@ -728,8 +794,11 @@ export default {
       this.form = {
         meetingId: null,
         meetingTitle: null,
+        subTitle: null,
         meetingType: 1,
         meetingTag: 1, // 默认业主大会
+        selectionTotal: null, // 几选几-总数
+        selectionCount: null, // 几选几-可选数
         communityId: null,
         communityName: '',
         coverImage: null,
@@ -962,7 +1031,17 @@ export default {
     },
     /** 短信通知/投票 */
     handleSmsNotify(meeting) {
-      this.$message.info('短信通知功能开发中');
+      if (!meeting || !meeting.meetingId) {
+        this.$message.warning('请选择有效的会议');
+        return;
+      }
+      this.$modal.confirm('确认向未投票业主发送会议通知？').then(() => {
+        sendNotification(meeting.meetingId).then(response => {
+          this.$modal.msgSuccess(response.msg);
+        }).catch(() => {
+          this.$modal.msgError("通知发送失败");
+        });
+      }).catch(() => {});
     },
     /** 查看投票记录 */
     handleViewVoteRecords(meeting) {
@@ -970,8 +1049,7 @@ export default {
       this.$router.push({
         path: '/system/voteRecords/index',
         query: {
-          meetingId: meeting.meetingId,
-          meetingTitle: meeting.meetingTitle
+          meetingId: meeting.meetingId
         }
       });
     },
@@ -1245,15 +1323,13 @@ export default {
     /** 用户选择确认 */
     handleUserSelectConfirm(user) {
       // 自动填充信息
-      this.topicForm.topicTitle = user.nickName || user.userName;
+      this.topicForm.topicTitle = user.userName || '--';
       this.topicForm.candidateId = user.userId;
       // 如果用户有头像，尽量使用（这里假设是相对路径或完整URL）
-      if (user.avatar) {
-          this.topicForm.avatar = user.avatar;
-      }
+
       // 可以在内容中自动填充简介模板
       if (!this.topicForm.topicContent) {
-          this.topicForm.topicContent = `<p><strong>姓名：</strong>${user.nickName || user.userName}</p><p><strong>电话：</strong>${user.phonenumber || ''}</p><p><strong>简介：</strong></p>`;
+          this.topicForm.topicContent = `<p><strong>姓名：</strong>${ user.userName}</p><p><strong>电话：</strong>${user.phonenumber || ''}</p><p><strong>简介：</strong></p>`;
       }
     },
     // 议题表单重置
@@ -1424,6 +1500,44 @@ export default {
       }).catch(() => {
         this.buildingStatsLoading = false;
       });
+    },
+    /** 查看通知记录 */
+    handleViewNotificationRecords(meeting) {
+      this.notificationDialogVisible = true;
+      this.notificationLoading = true;
+      this.notificationRecords = [];
+
+      getNotificationRecords(meeting.meetingId).then(response => {
+        this.notificationRecords = response.data;
+        this.notificationLoading = false;
+      }).catch(() => {
+        this.notificationLoading = false;
+      });
+    },
+    /** 状态筛选 */
+    handleStatusFilter(status) {
+      // 如果传入null,直接清除筛选
+      if (status === null) {
+        this.queryParams.meetingStatus = null;
+      } else {
+        // 如果点击的是当前已选中的状态,则清除筛选(显示全部)
+        if (this.queryParams.meetingStatus === status) {
+          this.queryParams.meetingStatus = null;
+        } else {
+          this.queryParams.meetingStatus = status;
+        }
+      }
+      this.queryParams.pageNum = 1;
+      this.getList();
+    },
+    /** 停止会议 */
+    handleStopMeeting(meeting) {
+      this.$modal.confirm('确认停止会议"' + meeting.meetingTitle + '"吗?停止后会议将无法继续进行。').then(() => {
+        return stopMeeting(meeting.meetingId);
+      }).then(() => {
+        this.$modal.msgSuccess("会议已停止");
+        this.getList();
+      }).catch(() => {});
     }
   }
 }

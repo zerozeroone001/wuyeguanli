@@ -23,6 +23,12 @@ public class SysMeetingVote extends BaseEntity {
     /** 投票编号 */
     private String voteNo;
 
+    /** 会议状态（0未开始 1进行中 2已结束）*/
+    private String meetingStatus;
+
+    /** 是否投票（0否 1是）*/
+    private Integer isVote;
+
     // Getters and Setters
     public Long getVoteId() {
         return voteId;
@@ -94,5 +100,21 @@ public class SysMeetingVote extends BaseEntity {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getMeetingStatus() {
+        return meetingStatus;
+    }
+
+    public void setMeetingStatus(String meetingStatus) {
+        this.meetingStatus = meetingStatus;
+    }
+
+    public Integer getIsVote() {
+        return isVote;
+    }
+
+    public void setIsVote(Integer isVote) {
+        this.isVote = isVote;
     }
 }

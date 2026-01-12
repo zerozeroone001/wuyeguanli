@@ -137,13 +137,13 @@ public interface ISysOwnerProfileService
      * @param roomNo 房号
      * @return 结果
      */
-    public int addPropertyToOwner(Long ownerId, Long communityId, String buildingNo, String roomNo);
+    public int addPropertyToOwner(Long ownerId, Long communityId, String buildingNo,String UtilNo, String roomNo);
 
     /**
      * 根据用户联系电话、用户姓名、小区ID查询单条业主信息
      * @param phonenumber 用户联系电话
-     * @param realName 用户姓名 (实际对应u.nick_name)
+     * @param userName 用户姓名
      * @return 业主信息扩展
      */
-    public SysOwnerProfile selectSysOwnerProfileByPhoneNameCommunity(String phonenumber, String realName);
+    public SysOwnerProfile selectSysOwnerProfileByPhoneNameCommunity(String phonenumber, String userName);
 }

@@ -13,11 +13,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="opposeCount"    column="oppose_count"    />
         <result property="abstainCount"    column="abstain_count"    />
         <result property="congduoCount"    column="congduo_count"    />
+        <result property="congduo"    column="congduo"    />
         <result property="filesRaw"    column="files"    />
     </resultMap>
 
     <sql id="selectSysMeetingTopicVo">
-        select topic_id, meeting_id, topic_title, topic_content, agree_count, oppose_count, abstain_count, congduo_count, files from sys_property_meeting_topic t
+        select topic_id, meeting_id, topic_title, topic_content, agree_count, oppose_count, abstain_count,congduo, congduo_count, files from sys_property_meeting_topic t
     </sql>
 
     <select id="selectMeetingTopicList" parameterType="Long" resultMap="SysMeetingTopicResult">

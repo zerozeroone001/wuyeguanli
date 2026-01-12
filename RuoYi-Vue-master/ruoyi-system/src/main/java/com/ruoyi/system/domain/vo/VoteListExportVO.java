@@ -16,7 +16,7 @@ public class VoteListExportVO {
     private String roomNumber;
 
     @Excel(name = "业主姓名")
-    private String realName;
+    private String userName;
 
     @Excel(name = "手机号")
     private String phonenumber;
@@ -55,12 +55,12 @@ public class VoteListExportVO {
         this.roomNumber = roomNumber;
     }
 
-    public String getRealName() {
-        return realName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setRealName(String realName) {
-        this.realName = realName;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPhonenumber() {

@@ -186,7 +186,7 @@ export const dynamicRoutes = [
         path: 'index',
         component: () => import('@/views/system/voteRecords/index'),
         name: 'VoteRecords',
-        meta: { title: '投票记录', activeMenu: '/system/generalMeeting' }
+        meta: { title: '投票记录', activeMenu: '/system/generalMeeting', noCache: true }
       }
     ]
   },

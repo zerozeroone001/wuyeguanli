@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysContractAssessmentScoreMapper">
+
+    <resultMap type="SysContractAssessmentScore" id="SysContractAssessmentScoreResult">
+        <result property="scoreId"    column="score_id"    />
+        <result property="assessmentId"    column="assessment_id"    />
+        <result property="contractId"    column="contract_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="satisfactionScore"    column="satisfaction_score"    />
+        <result property="obligationScore"    column="obligation_score"    />
+        <result property="satisfactionComment"    column="satisfaction_comment"    />
+        <result property="obligationComment"    column="obligation_comment"    />
+        <result property="submitTime"    column="submit_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectSysContractAssessmentScoreVo">
+        select score_id, assessment_id, contract_id, community_id, user_id, satisfaction_score, obligation_score, 
+        satisfaction_comment, obligation_comment, submit_time, del_flag, create_by, create_time, update_by, update_time 
+        from sys_contract_assessment_score
+    </sql>
+
+    <select id="selectSysContractAssessmentScoreList" parameterType="SysContractAssessmentScore" resultMap="SysContractAssessmentScoreResult">
+        <include refid="selectSysContractAssessmentScoreVo"/>
+        <where>
+            <if test="assessmentId != null"> and assessment_id = #{assessmentId}</if>
+            <if test="contractId != null"> and contract_id = #{contractId}</if>
+            <if test="communityId != null"> and community_id = #{communityId}</if>
+            <if test="userId != null"> and user_id = #{userId}</if>
+        </where>
+        order by submit_time desc
+    </select>
+
+    <select id="selectSysContractAssessmentScoreByScoreId" parameterType="Long" resultMap="SysContractAssessmentScoreResult">
+        <include refid="selectSysContractAssessmentScoreVo"/>
+        where score_id = #{scoreId}
+    </select>
+
+    <select id="selectByAssessmentId" parameterType="Long" resultMap="SysContractAssessmentScoreResult">
+        <include refid="selectSysContractAssessmentScoreVo"/>
+        where assessment_id = #{assessmentId} and del_flag = '0'
+    </select>
+
+    <select id="selectByAssessmentIdAndUserId" resultMap="SysContractAssessmentScoreResult">
+        <include refid="selectSysContractAssessmentScoreVo"/>
+        where assessment_id = #{assessmentId} and user_id = #{userId} and del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="countByAssessmentId" parameterType="Long" resultType="int">
+        select count(1) from sys_contract_assessment_score 
+        where assessment_id = #{assessmentId} and del_flag = '0'
+    </select>
+
+    <insert id="insertSysContractAssessmentScore" parameterType="SysContractAssessmentScore" useGeneratedKeys="true" keyProperty="scoreId">
+        insert into sys_contract_assessment_score
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="assessmentId != null">assessment_id,</if>
+            <if test="contractId != null">contract_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="satisfactionScore != null">satisfaction_score,</if>
+            <if test="obligationScore != null">obligation_score,</if>
+            <if test="satisfactionComment != null">satisfaction_comment,</if>
+            <if test="obligationComment != null">obligation_comment,</if>
+            <if test="submitTime != null">submit_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="assessmentId != null">#{assessmentId},</if>
+            <if test="contractId != null">#{contractId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="satisfactionScore != null">#{satisfactionScore},</if>
+            <if test="obligationScore != null">#{obligationScore},</if>
+            <if test="satisfactionComment != null">#{satisfactionComment},</if>
+            <if test="obligationComment != null">#{obligationComment},</if>
+            <if test="submitTime != null">#{submitTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysContractAssessmentScore" parameterType="SysContractAssessmentScore">
+        update sys_contract_assessment_score
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="assessmentId != null">assessment_id = #{assessmentId},</if>
+            <if test="contractId != null">contract_id = #{contractId},</if>
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="satisfactionScore != null">satisfaction_score = #{satisfactionScore},</if>
+            <if test="obligationScore != null">obligation_score = #{obligationScore},</if>
+            <if test="satisfactionComment != null">satisfaction_comment = #{satisfactionComment},</if>
+            <if test="obligationComment != null">obligation_comment = #{obligationComment},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where score_id = #{scoreId}
+    </update>
+
+    <delete id="deleteSysContractAssessmentScoreByScoreId" parameterType="Long">
+        delete from sys_contract_assessment_score where score_id = #{scoreId}
+    </delete>
+
+    <delete id="deleteSysContractAssessmentScoreByScoreIds" parameterType="String">
+        delete from sys_contract_assessment_score where score_id in
+        <foreach item="scoreId" collection="array" open="(" separator="," close=")">
+            #{scoreId}
+        </foreach>
+    </delete>
+</mapper>

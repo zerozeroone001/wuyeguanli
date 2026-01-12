@@ -10,6 +10,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="communityId"    column="community_id"    />
         <result property="contractName"    column="contract_name"    />
         <result property="contractVersion"    column="contract_version"    />
+        <result property="contractType"    column="contract_type"    />
+        <result property="contractStage"    column="contract_stage"    />
         <result property="fileUrl"    column="file_url"    />
         <result property="effectiveDate"    column="effective_date"    />
         <result property="expiryDate"    column="expiry_date"    />
@@ -20,6 +22,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="importantClauses"    column="important_clauses"    />
         <result property="managerName"    column="manager_name"    />
         <result property="managerPhone"    column="manager_phone"    />
+        <result property="applyTime"    column="apply_time"    />
+        <result property="applyUserId"    column="apply_user_id"    />
+        <result property="acceptTime"    column="accept_time"    />
+        <result property="acceptUserId"    column="accept_user_id"    />
+        <result property="completeTime"    column="complete_time"    />
+        <result property="performanceStatus"    column="performance_status"    />
+        <result property="entryChecklistUrl"    column="entry_checklist_url"    />
+        <result property="propertyEntryChecklistUrl"    column="property_entry_checklist_url"    />
+        <result property="monthlyChecklistUrl"    column="monthly_checklist_url"    />
+        <result property="propertyMonthlyChecklistUrl"    column="property_monthly_checklist_url"    />
+        <result property="rectificationNoticeUrl"    column="rectification_notice_url"    />
+        <result property="rectificationResultUrl"    column="rectification_result_url"    />
+        <result property="annualReportUrl"    column="annual_report_url"    />
         <result property="status"    column="status"    />
         <result property="delFlag"    column="del_flag"    />
         <result property="createBy"    column="create_by"    />
@@ -30,7 +45,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysPropertyContractVo">
-        select contract_id, contract_no, community_id, contract_name, contract_version, file_url, effective_date, expiry_date, contract_amount, party_a, party_b, contract_content, important_clauses, manager_name, manager_phone, status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
+        select contract_id, contract_no, community_id, contract_name, contract_version, contract_type, contract_stage, 
+        file_url, effective_date, expiry_date, contract_amount, party_a, party_b, contract_content, important_clauses, 
+        manager_name, manager_phone, apply_time, apply_user_id, accept_time, accept_user_id, complete_time, performance_status,
+        entry_checklist_url, property_entry_checklist_url, monthly_checklist_url, property_monthly_checklist_url,
+        rectification_notice_url, rectification_result_url, annual_report_url,
+        status, del_flag, create_by, create_time, update_by, update_time, remark from sys_property_contract
     </sql>
 
     <select id="selectSysPropertyContractList" parameterType="SysPropertyContract" resultMap="SysPropertyContractResult">
@@ -38,9 +58,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>
             <if test="contractName != null  and contractName != ''"> and contract_name like concat('%', #{contractName}, '%')</if>
             <if test="contractVersion != null  and contractVersion != ''"> and contract_version = #{contractVersion}</if>
+            <if test="contractType != null  and contractType != ''"> and contract_type = #{contractType}</if>
+            <if test="contractStage != null  and contractStage != ''"> and contract_stage = #{contractStage}</if>
             <if test="communityId != null "> and community_id = #{communityId}</if>
             <if test="effectiveDate != null "> and effective_date = #{effectiveDate}</if>
             <if test="expiryDate != null "> and expiry_date = #{expiryDate}</if>
+            <if test="performanceStatus != null  and performanceStatus != ''"> and performance_status = #{performanceStatus}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
     </select>
@@ -67,6 +90,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="importantClauses != null and importantClauses != ''">important_clauses,</if>
             <if test="managerName != null and managerName != ''">manager_name,</if>
             <if test="managerPhone != null and managerPhone != ''">manager_phone,</if>
+            <if test="contractType != null and contractType != ''">contract_type,</if>
+            <if test="contractStage != null and contractStage != ''">contract_stage,</if>
+            <if test="applyTime != null">apply_time,</if>
+            <if test="applyUserId != null">apply_user_id,</if>
+            <if test="acceptTime != null">accept_time,</if>
+            <if test="acceptUserId != null">accept_user_id,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="performanceStatus != null and performanceStatus != ''">performance_status,</if>
             <if test="status != null">status,</if>
             <if test="delFlag != null">del_flag,</if>
             <if test="createBy != null">create_by,</if>
@@ -90,6 +121,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="importantClauses != null and importantClauses != ''">#{importantClauses},</if>
             <if test="managerName != null and managerName != ''">#{managerName},</if>
             <if test="managerPhone != null and managerPhone != ''">#{managerPhone},</if>
+            <if test="contractType != null and contractType != ''">#{contractType},</if>
+            <if test="contractStage != null and contractStage != ''">#{contractStage},</if>
+            <if test="applyTime != null">#{applyTime},</if>
+            <if test="applyUserId != null">#{applyUserId},</if>
+            <if test="acceptTime != null">#{acceptTime},</if>
+            <if test="acceptUserId != null">#{acceptUserId},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="performanceStatus != null and performanceStatus != ''">#{performanceStatus},</if>
             <if test="status != null">#{status},</if>
             <if test="delFlag != null">#{delFlag},</if>
             <if test="createBy != null">#{createBy},</if>
@@ -117,6 +156,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="importantClauses != null">important_clauses = #{importantClauses},</if>
             <if test="managerName != null and managerName != ''">manager_name = #{managerName},</if>
             <if test="managerPhone != null and managerPhone != ''">manager_phone = #{managerPhone},</if>
+            <if test="contractType != null and contractType != ''">contract_type = #{contractType},</if>
+            <if test="contractStage != null and contractStage != ''">contract_stage = #{contractStage},</if>
+            <if test="applyTime != null">apply_time = #{applyTime},</if>
+            <if test="applyUserId != null">apply_user_id = #{applyUserId},</if>
+            <if test="acceptTime != null">accept_time = #{acceptTime},</if>
+            <if test="acceptUserId != null">accept_user_id = #{acceptUserId},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="performanceStatus != null and performanceStatus != ''">performance_status = #{performanceStatus},</if>
+            <if test="entryChecklistUrl != null">entry_checklist_url = #{entryChecklistUrl},</if>
+            <if test="propertyEntryChecklistUrl != null">property_entry_checklist_url = #{propertyEntryChecklistUrl},</if>
+            <if test="monthlyChecklistUrl != null">monthly_checklist_url = #{monthlyChecklistUrl},</if>
+            <if test="propertyMonthlyChecklistUrl != null">property_monthly_checklist_url = #{propertyMonthlyChecklistUrl},</if>
+            <if test="rectificationNoticeUrl != null">rectification_notice_url = #{rectificationNoticeUrl},</if>
+            <if test="rectificationResultUrl != null">rectification_result_url = #{rectificationResultUrl},</if>
+            <if test="annualReportUrl != null">annual_report_url = #{annualReportUrl},</if>
             <if test="status != null">status = #{status},</if>
             <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="createBy != null">create_by = #{createBy},</if>

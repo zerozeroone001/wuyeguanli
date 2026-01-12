@@ -29,8 +29,7 @@ import com.ruoyi.system.service.ISysPropertyMeetingService;
  * <p>围绕多小区权限改造，实现对查询、增删改的社区隔离。</p>
  */
 @Service
-public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
-{
+public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService {
     private static final Logger log = LoggerFactory.getLogger(SysPropertyMeetingServiceImpl.class);
 
     @Autowired
@@ -55,30 +54,24 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     private com.ruoyi.system.mapper.SysOwnerProfileMapper sysOwnerProfileMapper;
 
     @Override
-    public SysPropertyMeeting selectSysPropertyMeetingByMeetingId(Long meetingId)
-    {
+    public SysPropertyMeeting selectSysPropertyMeetingByMeetingId(Long meetingId) {
         SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
-        if (meeting != null)
-        {
+        if (meeting != null) {
             CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
-            
-            // 填充统计数据
-            try {
-                com.ruoyi.system.domain.vo.MeetingVoteReportVO vo = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
-                if (vo != null) {
-                    meeting.setTotalVoters(vo.getTotalOwners() == null ? 0L : vo.getTotalOwners().longValue());
-                    meeting.setTotalVotingArea(vo.getTotalArea());
-                    meeting.setParticipatedArea(vo.getParticipatedArea());
-                    meeting.setVotingAreaPercentage(vo.getAreaParticipationRate() + "%");
-                }
-            } catch (Exception e) {
-                log.error("获取会议统计数据失败: {}", meetingId, e);
+
+            // 计算投票面积占比
+            if (meeting.getTotalVotingArea() != null && meeting.getTotalVotingArea().compareTo(java.math.BigDecimal.ZERO) > 0
+                    && meeting.getParticipatedArea() != null) {
+                java.math.BigDecimal percentage = meeting.getParticipatedArea()
+                        .multiply(new java.math.BigDecimal(100))
+                        .divide(meeting.getTotalVotingArea(), 2, java.math.RoundingMode.HALF_UP);
+                meeting.setVotingAreaPercentage(percentage.toString() + "%");
+            } else {
+                meeting.setVotingAreaPercentage("0.00%");
             }
 
-            if (StringUtils.isNotEmpty(meeting.getTopics()))
-            {
-                for (SysPropertyMeetingTopic topic : meeting.getTopics())
-                {
+            if (StringUtils.isNotEmpty(meeting.getTopics())) {
+                for (SysPropertyMeetingTopic topic : meeting.getTopics()) {
                     List<SysMeetingVote> voteList = sysMeetingVoteService.selectSysMeetingVoteListByTopicId(topic.getTopicId());
                     List<SysMeetingFeedback> feedbackList = sysMeetingFeedbackService.selectSysMeetingFeedbackListByTopicId(topic.getTopicId());
                     topic.setVoteList(voteList);
@@ -90,37 +83,39 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     }
 
     @Override
-    public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting)
-    {
+    public List<SysPropertyMeeting> selectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting) {
         List<SysPropertyMeeting> list = sysPropertyMeetingMapper.selectSysPropertyMeetingList(sysPropertyMeeting);
         for (SysPropertyMeeting meeting : list) {
-            try {
-                com.ruoyi.system.domain.vo.MeetingVoteReportVO vo = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
-                if (vo != null) {
-                    meeting.setTotalVoters(vo.getTotalOwners() == null ? 0L : vo.getTotalOwners().longValue());
-                    meeting.setTotalVotingArea(vo.getTotalArea());
-                    meeting.setParticipatedArea(vo.getParticipatedArea());
-                    meeting.setVotingAreaPercentage(vo.getAreaParticipationRate() + "%");
-                }
-            } catch (Exception e) {
-                log.error("获取会议统计数据失败: {}", meeting.getMeetingId(), e);
+            // 计算投票面积占比
+            if (meeting.getTotalVotingArea() != null && meeting.getTotalVotingArea().compareTo(java.math.BigDecimal.ZERO) > 0
+                    && meeting.getParticipatedArea() != null) {
+                java.math.BigDecimal percentage = meeting.getParticipatedArea()
+                        .multiply(new java.math.BigDecimal(100))
+                        .divide(meeting.getTotalVotingArea(), 2, java.math.RoundingMode.HALF_UP);
+                meeting.setVotingAreaPercentage(percentage.toString() + "%");
+            } else {
+                meeting.setVotingAreaPercentage("0.00%");
             }
         }
         return list;
     }
 
     @Override
+    public List<SysPropertyMeeting> userSelectSysPropertyMeetingList(SysPropertyMeeting sysPropertyMeeting) {
+        return sysPropertyMeetingMapper.userSelectSysPropertyMeetingList(sysPropertyMeeting);
+    }
+
+    @Override
     @Transactional
-    public int insertSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting)
-    {
+    public int insertSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting) {
         enforceCommunityScope(sysPropertyMeeting.getCommunityId());
         sysPropertyMeeting.setCreateTime(DateUtils.getNowDate());
         int rows = sysPropertyMeetingMapper.insertSysPropertyMeeting(sysPropertyMeeting);
         insertTopics(sysPropertyMeeting);
-        
+
         // 生成初始投票记录
         generateInitialVotes(sysPropertyMeeting);
-        
+
         return rows;
     }
 
@@ -142,17 +137,18 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         java.util.Set<Long> processedUserIds = new java.util.HashSet<>();
 
         for (com.ruoyi.system.domain.SysOwnerProfile owner : owners) {
-             if (owner.getUserId() == null) continue;
-             if (processedUserIds.contains(owner.getUserId())) continue;
-             processedUserIds.add(owner.getUserId());
-
-             for (SysPropertyMeetingTopic topic : topics) {
+            if (owner.getUserId() == null) continue;
+            if (processedUserIds.contains(owner.getUserId())) continue;
+            processedUserIds.add(owner.getUserId());
+            String voteNo = org.apache.commons.lang3.RandomStringUtils.random(16, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            for (SysPropertyMeetingTopic topic : topics) {
                 SysMeetingVote vote = new SysMeetingVote();
                 vote.setMeetingId(meeting.getMeetingId());
                 vote.setTopicId(topic.getTopicId());
                 vote.setUserId(owner.getUserId());
                 vote.setUserName(owner.getUserName());
                 vote.setCreateTime(DateUtils.getNowDate());
+                vote.setVoteNo(voteNo);
                 // voteOption, voteType, flieUrl 默认 null
                 voteList.add(vote);
             }
@@ -171,8 +167,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
     @Override
     @Transactional
-    public int updateSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting)
-    {
+    public int updateSysPropertyMeeting(SysPropertyMeeting sysPropertyMeeting) {
         enforceCommunityScope(sysPropertyMeeting.getCommunityId());
         sysPropertyMeeting.setUpdateTime(DateUtils.getNowDate());
         int rows = sysPropertyMeetingMapper.updateSysPropertyMeeting(sysPropertyMeeting);
@@ -183,13 +178,10 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
     @Override
     @Transactional
-    public int deleteSysPropertyMeetingByMeetingIds(Long[] meetingIds)
-    {
-        for (Long meetingId : meetingIds)
-        {
+    public int deleteSysPropertyMeetingByMeetingIds(Long[] meetingIds) {
+        for (Long meetingId : meetingIds) {
             SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
-            if (meeting != null)
-            {
+            if (meeting != null) {
                 CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
                 sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
             }
@@ -199,25 +191,20 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
     @Override
     @Transactional
-    public int deleteSysPropertyMeetingByMeetingId(Long meetingId)
-    {
+    public int deleteSysPropertyMeetingByMeetingId(Long meetingId) {
         SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
-        if (meeting != null)
-        {
+        if (meeting != null) {
             CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
         }
         sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
         return sysPropertyMeetingMapper.deleteSysPropertyMeetingByMeetingId(meetingId);
     }
 
-    public void insertTopics(SysPropertyMeeting sysPropertyMeeting)
-    {
+    public void insertTopics(SysPropertyMeeting sysPropertyMeeting) {
         List<SysPropertyMeetingTopic> topics = sysPropertyMeeting.getTopics();
         Long meetingId = sysPropertyMeeting.getMeetingId();
-        if (StringUtils.isNotEmpty(topics))
-        {
-            for (SysPropertyMeetingTopic topic : topics)
-            {
+        if (StringUtils.isNotEmpty(topics)) {
+            for (SysPropertyMeetingTopic topic : topics) {
                 topic.setMeetingId(meetingId);
                 sysPropertyMeetingTopicMapper.insertSysPropertyMeetingTopic(topic);
             }
@@ -225,72 +212,61 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     }
 
     @Override
-    public List<Map<String, Object>> getMeetingMarks()
-    {
+    public List<Map<String, Object>> getMeetingMarks() {
         return sysPropertyMeetingMapper.getMeetingMarks(resolveCommunityIdForStatistics());
     }
 
     @Override
-    public Long countOngoingMeetings()
-    {
-        return null;
+    public Long countOngoingMeetings() {
+        return sysPropertyMeetingMapper.countOngoingMeetings();
     }
 
     @Override
-    public Double getAverageParticipationRate()
-    {
-        return null;
+    public Double getAverageParticipationRate() {
+        return sysPropertyMeetingMapper.getAverageParticipationRate();
+    }
+    
+    @Override
+    public List<Map<String, Object>> getVoteParticipationTrend() {
+        return sysPropertyMeetingMapper.getVoteParticipationTrend();
     }
 
     @Override
-    public Long countUpcomingMeetings()
-    {
-        return null;
+    public List<Map<String, Object>> getMeetingActivityStats() {
+        return sysPropertyMeetingMapper.getMeetingActivityStats();
     }
 
     @Override
-    public List<Map<String, Object>> getVoteParticipationTrend()
-    {
-        return null;
+    public List<Map<String, Object>> getRecentVotes(int limit) {
+        return sysPropertyMeetingMapper.getRecentVotes(limit);
+    }
+    
+    @Override
+    public Long countUpcomingMeetings() {
+        return sysPropertyMeetingMapper.countUpcomingMeetings();
     }
 
-    @Override
-    public List<Map<String, Object>> getMeetingActivityStats()
-    {
-        return null;
-    }
+
 
     @Override
-    public List<Map<String, Object>> getRecentVotes(int limit)
-    {
-        return null;
-    }
-
-    @Override
-    public void sendCommitteeMeetingNotification(Long meetingId)
-    {
+    public void sendCommitteeMeetingNotification(Long meetingId) {
         log.warn("业主委员会会议通知功能已移除，会议ID: {}", meetingId);
     }
 
     @Override
-    public void sendGeneralMeetingNotification(Long meetingId)
-    {
+    public void sendGeneralMeetingNotification(Long meetingId) {
         log.warn("业主大会会议通知功能已移除，会议ID: {}", meetingId);
     }
 
-    private void enforceCommunityScope(Long communityId)
-    {
-        if (communityId == null)
-        {
+    private void enforceCommunityScope(Long communityId) {
+        if (communityId == null) {
             throw new ServiceException("会议必须绑定所属小区");
         }
         CommunityUtils.checkCommunityPermission(communityId);
     }
 
-    private Long resolveCommunityIdForStatistics()
-    {
-        if (CommunityUtils.isCurrentUserAdmin())
-        {
+    private Long resolveCommunityIdForStatistics() {
+        if (CommunityUtils.isCurrentUserAdmin()) {
             return CommunityUtils.getCurrentCommunityId();
         }
         return CommunityUtils.requireCurrentCommunityId("当前账号未绑定任何小区");
@@ -303,19 +279,39 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             throw new ServiceException("会议不存在");
         }
 
+        // 加载会议议题
+        List<SysPropertyMeetingTopic> topics = sysPropertyMeetingTopicMapper.selectSysPropertyMeetingTopicListByMeetingId(meetingId);
+        meeting.setTopics(topics);
+        log.info("会议ID={}, 议题数量={}", meetingId, topics != null ? topics.size() : 0);
+
         // 导出空白表决票 (模板)
         if ("blank".equals(type)) {
             response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
             response.setHeader("Content-Disposition", "attachment; filename=\"" + java.net.URLEncoder.encode(meeting.getMeetingTitle() + "_空白表决票.docx", "UTF-8") + "\"");
-            
+
             org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("template.docx");
             if (!resource.exists()) {
-                 throw new ServiceException("模板文件 template.docx 不存在，请联系管理员上传");
+                throw new ServiceException("模板文件 template.docx 不存在，请联系管理员上传");
             }
-            
+
+            // 加载模板文档并替换议题
             try (java.io.InputStream is = resource.getInputStream();
+                 org.apache.poi.xwpf.usermodel.XWPFDocument doc = new org.apache.poi.xwpf.usermodel.XWPFDocument(is);
                  java.io.OutputStream os = response.getOutputStream()) {
-                org.apache.commons.io.IOUtils.copy(is, os);
+
+                // 替换文档中的议题占位符
+                insertTopicsIntoDoc(doc, meeting.getTopics());
+
+                // 替换其他基本信息占位符
+                Map<String, String> params = new java.util.HashMap<>();
+                params.put("@title", meeting.getMeetingTitle());
+                params.put("{title}", meeting.getMeetingTitle());
+                params.put("${title}", meeting.getMeetingTitle());
+
+                replaceTextInDoc(doc, params);
+
+                // 输出文档
+                doc.write(os);
             }
             return;
         }
@@ -330,95 +326,228 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             }
         }
 
-        // 2. 获取小区所有业主
+        // 2. 获取小区所有业主的房产记录
         com.ruoyi.system.domain.EstateUserProperty query = new com.ruoyi.system.domain.EstateUserProperty();
         query.setCommunityId(meeting.getCommunityId());
         query.setUserType("00"); // 业主
         List<com.ruoyi.system.domain.EstateUserProperty> allOwners = estateUserPropertyMapper.selectEstateUserPropertyList(query);
 
-        // 3. 过滤未投票用户
-        List<com.ruoyi.system.domain.EstateUserProperty> unvotedOwners = new java.util.ArrayList<>();
+        // 3. 按用户ID分组房产记录,并过滤已投票用户
+        Map<Long, List<com.ruoyi.system.domain.EstateUserProperty>> userPropertiesMap = new java.util.LinkedHashMap<>();
         for (com.ruoyi.system.domain.EstateUserProperty owner : allOwners) {
             if (!votedUserIds.contains(owner.getUserId())) {
-                unvotedOwners.add(owner);
+                userPropertiesMap.computeIfAbsent(owner.getUserId(), k -> new java.util.ArrayList<>()).add(owner);
             }
         }
-        
-        if (unvotedOwners.isEmpty()) {
-             response.setContentType("application/json;charset=UTF-8");
-             response.getWriter().write("{\"msg\":\"没有未投票的业主\",\"code\":500}");
-             return;
+
+        if (userPropertiesMap.isEmpty()) {
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"msg\":\"没有未投票的业主\",\"code\":500}");
+            return;
         }
 
         // 4. 准备ZIP输出
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + java.net.URLEncoder.encode(meeting.getMeetingTitle() + "_未投票表决票.zip", "UTF-8") + "\"");
-        
+
         try (java.util.zip.ZipOutputStream zipOut = new java.util.zip.ZipOutputStream(response.getOutputStream())) {
-             // 假设模板在 resources 目录下
-             org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("template.docx");
-             if (!resource.exists()) {
-                  throw new ServiceException("模板文件 template.docx 不存在，请联系管理员上传");
-             }
+            // 读取模板到内存
+            org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("template.docx");
+            if (!resource.exists()) {
+                throw new ServiceException("模板文件 template.docx 不存在,请联系管理员上传");
+            }
 
-             // 读取模板到内存，避免重复IO
-             java.io.ByteArrayOutputStream templateBaos = new java.io.ByteArrayOutputStream();
-             try (java.io.InputStream is = resource.getInputStream()) {
-                 byte[] buffer = new byte[1024];
-                 int len;
-                 while ((len = is.read(buffer)) != -1) {
-                     templateBaos.write(buffer, 0, len);
-                 }
-             }
-             byte[] templateBytes = templateBaos.toByteArray();
+            java.io.ByteArrayOutputStream templateBaos = new java.io.ByteArrayOutputStream();
+            try (java.io.InputStream is = resource.getInputStream()) {
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = is.read(buffer)) != -1) {
+                    templateBaos.write(buffer, 0, len);
+                }
+            }
+            byte[] templateBytes = templateBaos.toByteArray();
 
-             for (com.ruoyi.system.domain.EstateUserProperty owner : unvotedOwners) {
-                 try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(templateBytes);
-                      org.apache.poi.xwpf.usermodel.XWPFDocument doc = new org.apache.poi.xwpf.usermodel.XWPFDocument(bais)) {
-                      
-                      Map<String, String> params = new java.util.HashMap<>();
-                      String name = owner.getRealName();
-                      if (StringUtils.isEmpty(name)) name = owner.getUserName();
-                      if (StringUtils.isEmpty(name)) name = "业主";
-                      
-                      params.put("@name", name);
-                      params.put("{name}", name);
-                      params.put("${name}", name);
-                      
-                      String roomInfo = (owner.getBuildingName() != null ? owner.getBuildingName() : "") + 
-                                        (owner.getUnitName() != null ? owner.getUnitName() : "") + 
-                                        (owner.getRoomNumber() != null ? owner.getRoomNumber() : "");
-                      params.put("@room", roomInfo);
-                      params.put("{room}", roomInfo);
-                      params.put("${room}", roomInfo);
-                      
-                      String areaInfo = owner.getArea() != null ? owner.getArea().toString() : "0";
-                      params.put("@area", areaInfo);
-                      params.put("{area}", areaInfo);
-                      params.put("${area}", areaInfo);
-                      
-                      String dateInfo = DateUtils.getDate();
-                      params.put("@date", dateInfo);
-                      params.put("{date}", dateInfo);
-                      params.put("${date}", dateInfo);
-                      
-                      String titleInfo = meeting.getMeetingTitle();
-                      params.put("@title", titleInfo);
-                      params.put("{title}", titleInfo);
-                      params.put("${title}", titleInfo);
+            // 5. 按用户生成表决票
+            for (Map.Entry<Long, List<com.ruoyi.system.domain.EstateUserProperty>> entry : userPropertiesMap.entrySet()) {
+                Long userId = entry.getKey();
 
-                      insertTopicsIntoDoc(doc, meeting.getTopics());
-                      replaceTextInDoc(doc, params);
+                try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(templateBytes);
+                     org.apache.poi.xwpf.usermodel.XWPFDocument doc = new org.apache.poi.xwpf.usermodel.XWPFDocument(bais)) {
 
-                      String safeName = name.replaceAll("[\\\\/:*?\"<>|]", "_");
-                      String fileName = safeName + "_" + (owner.getRoomNumber()!=null?owner.getRoomNumber():"") + ".docx";
-                      zipOut.putNextEntry(new java.util.zip.ZipEntry(fileName));
-                      doc.write(zipOut);
-                      zipOut.closeEntry();
-                 } catch (Exception e) {
-                     log.error("生成用户 {} 表决票失败", owner.getUserName(), e);
-                 }
-             }
+                    // 在循环内部根据用户ID和小区ID重新查询该用户在当前小区的所有房产
+                    com.ruoyi.system.domain.EstateUserProperty propertyQuery = new com.ruoyi.system.domain.EstateUserProperty();
+                    propertyQuery.setUserId(userId);
+                    propertyQuery.setCommunityId(meeting.getCommunityId());
+                    List<com.ruoyi.system.domain.EstateUserProperty> properties = estateUserPropertyMapper.selectEstateUserPropertyList(propertyQuery);
+
+                    if (properties == null || properties.isEmpty()) {
+                        log.warn("用户ID {} 在小区ID {} 下没有查询到房产记录", userId, meeting.getCommunityId());
+                        continue;
+                    }
+                    // 查询用户的投票记录,获取voteNo
+                    String voteNo = null;
+                    List<SysMeetingVote> userVotes = sysMeetingVoteMapper.selectSysMeetingVoteList(
+                            new SysMeetingVote() {{
+                                setMeetingId(meetingId);
+                                setUserId(userId);
+                            }}
+                    );
+
+                    if (userVotes != null && !userVotes.isEmpty()) {
+                        voteNo = userVotes.get(0).getVoteNo();
+                        log.info("用户ID {} 的投票编号: {}", userId, voteNo);
+                    } else {
+                        log.warn("用户ID {} 在会议ID {} 下没有投票记录", userId, meetingId);
+                        // 如果没有投票记录,生成一个新的编号
+                        voteNo = org.apache.commons.lang3.RandomStringUtils.random(10, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+                    }
+
+                    // 获取用户基本信息(取第一条记录)
+                    com.ruoyi.system.domain.EstateUserProperty firstProperty = properties.get(0);
+
+                    // 用户姓名
+                    String name = firstProperty.getUserName();
+                    if (StringUtils.isEmpty(name)) name = "业主";
+
+                    // 合并房号(逗号分隔)
+                    List<String> rooms = new java.util.ArrayList<>();
+                    java.math.BigDecimal totalArea = java.math.BigDecimal.ZERO;
+
+                    log.info("用户 {} (ID:{}) 在小区 {} 的房产数量: {}", name, userId, meeting.getCommunityId(), properties.size());
+
+                    for (com.ruoyi.system.domain.EstateUserProperty prop : properties) {
+                        // 拼接房号: 楼栋+单元+房号
+                        StringBuilder roomBuilder = new StringBuilder();
+                        if (prop.getBuildingName() != null && !prop.getBuildingName().isEmpty()) {
+                            roomBuilder.append(prop.getBuildingName());
+                        }
+                        if (prop.getUnitName() != null && !prop.getUnitName().isEmpty()) {
+                            roomBuilder.append(prop.getUnitName());
+                        }
+                        if (prop.getRoomNumber() != null && !prop.getRoomNumber().isEmpty()) {
+                            roomBuilder.append(prop.getRoomNumber());
+                        }
+
+                        String room = roomBuilder.toString();
+                        if (!room.isEmpty()) {
+                            rooms.add(room);
+                            log.info("添加房号: {}, 面积: {}", room, prop.getArea());
+                        }
+
+                        // 累加面积
+                        if (prop.getArea() != null) {
+                            totalArea = totalArea.add(prop.getArea());
+                        }
+                    }
+
+                    // 房号列表(逗号分隔)
+                    String roomInfo = String.join(",", rooms);
+                    if (roomInfo.isEmpty()) {
+                        roomInfo = "未登记";
+                    }
+                    log.info("用户 {} 最终房号信息: {}", name, roomInfo);
+
+                    // 总面积
+                    String areaInfo = totalArea.toString();
+                    log.info("用户 {} 总面积: {}", name, areaInfo);
+
+
+// 电话号码
+                    String phoneInfo = firstProperty.getPhonenumber();
+                    if (StringUtils.isEmpty(phoneInfo)) {
+                        phoneInfo = "";
+                    }
+
+                    // 准备占位符参数
+                    Map<String, String> params = new java.util.HashMap<>();
+
+                    // 姓名
+                    params.put("@name", name);
+                    params.put("{name}", name);
+                    params.put("${name}", name);
+                    params.put("业主姓名", name);  // 添加中文字段名
+
+
+// 房号
+                    params.put("@room", roomInfo);
+                    params.put("{room}", roomInfo);
+                    params.put("${room}", roomInfo);
+                    params.put("房号", roomInfo);  // 添加中文字段名
+
+
+// 面积
+                    params.put("@area", areaInfo);
+                    params.put("{area}", areaInfo);
+                    params.put("${area}", areaInfo);
+                    params.put("专有部分建筑面积(平方米)", areaInfo);  // 添加中文字段名
+                    params.put("建筑面积", areaInfo);  // 添加简化的中文字段名
+
+
+// 电话
+                    params.put("@phone", phoneInfo);
+                    params.put("{phone}", phoneInfo);
+                    params.put("${phone}", phoneInfo);
+                    params.put("电话", phoneInfo);  // 添加中文字段名
+
+                    // 代理人信息(暂时留空,如需要可以从数据库获取)
+                    params.put("代理人", "");
+                    params.put("代理人联系号码", "");
+
+
+//                    params.put("@number", numberInfo);
+//                    params.put("{number}", numberInfo);
+//                    params.put("${number}", numberInfo);
+//                    params.put("编号", numberInfo);  // 直接使用中文
+
+                    // 日期
+                    String dateInfo = DateUtils.getDate();
+                    params.put("@date", dateInfo);
+                    params.put("{date}", dateInfo);
+                    params.put("${date}", dateInfo);
+
+                    // 会议标题
+                    String titleInfo = meeting.getMeetingTitle();
+                    params.put("@title", titleInfo);
+                    params.put("{title}", titleInfo);
+                    params.put("${title}", titleInfo);
+
+                    // 插入议题并替换占位符
+                    log.info("开始处理用户 {}, 议题数量={}", name, meeting.getTopics() != null ? meeting.getTopics().size() : 0);
+                    insertTopicsIntoDoc(doc, meeting.getTopics());
+
+                    // 先填充表格单元格(左列=字段名,右列=值)
+                    fillTableCellValues(doc, params);
+
+                    // 再处理其他占位符(如标题、编号、日期等 - 这些字段可能在表格外)
+                    Map<String, String> otherParams = new java.util.HashMap<>();
+                    // 标题
+                    otherParams.put("@title", meeting.getMeetingTitle());
+                    otherParams.put("{title}", meeting.getMeetingTitle());
+                    otherParams.put("${title}", meeting.getMeetingTitle());
+                    // 编号(右上角)
+//                    otherParams.put("@number", numberInfo);
+//                    otherParams.put("{number}", numberInfo);
+//                    otherParams.put("${number}", numberInfo);
+//                    otherParams.put("编号", voteNo);
+                    // 日期
+                    otherParams.put("@date", dateInfo);
+                    otherParams.put("{date}", dateInfo);
+                    otherParams.put("${date}", dateInfo);
+                    replaceTextInDoc(doc, otherParams);
+
+                    log.info("完成用户 {} 的表决票生成", name);
+
+                    // 生成文件名(只用姓名,因为可能有多套房产)
+                    String safeName = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+                    String fileName = safeName + ".docx";
+
+                    zipOut.putNextEntry(new java.util.zip.ZipEntry(fileName));
+                    doc.write(zipOut);
+                    zipOut.closeEntry();
+                } catch (Exception e) {
+                    log.error("生成用户 {} 表决票失败", entry.getKey(), e);
+                }
+            }
         }
     }
 
@@ -432,7 +561,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
         // 1. 获取基础统计数据
         com.ruoyi.system.domain.vo.MeetingVoteReportVO summary = sysPropertyMeetingMapper.selectMeetingVoteReportData(meeting.getMeetingId(), meeting.getCommunityId());
-        
+
         // 2. 获取详细议题投票结果
         List<com.ruoyi.system.domain.vo.VoteResultVO> topicResults = sysMeetingVoteMapper.selectVoteResultsByMeeting(meeting.getMeetingId(), meeting.getCommunityId());
 
@@ -486,7 +615,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             com.itextpdf.text.pdf.PdfPTable summaryTable = new com.itextpdf.text.pdf.PdfPTable(4);
             summaryTable.setWidthPercentage(100);
             summaryTable.setSpacingAfter(20);
-            
+
             if (summary != null) {
                 addCell(summaryTable, "总户数", boldFont);
                 addCell(summaryTable, String.valueOf(summary.getTotalOwners()) + " 户", normalFont);
@@ -552,9 +681,9 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                     addCell(topicTable, String.valueOf(topic.getAbstainArea()), normalFont);
                     addCell(topicTable, "-", normalFont);
                     addCell(topicTable, "-", normalFont);
-                    
+
                     document.add(topicTable);
-                    
+
                     // 结果判定建议
                     String passStatus = Boolean.TRUE.equals(topic.getIsPassed()) ? "通过" : "未通过/待定";
                     com.itextpdf.text.Paragraph statusPara = new com.itextpdf.text.Paragraph("系统判定结果：" + passStatus, normalFont);
@@ -596,12 +725,12 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         }
         CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
 
-        // 获取所有投票记录 (1=已投票)
-        List<com.ruoyi.system.domain.vo.VoteRecordVO> records = sysMeetingVoteMapper.selectVoteRecordsList(meetingId, null, null, "1");
+        // 获取所有投票记录 (复用导出列表的逻辑，包含详细的议题投票情况)
+        List<com.ruoyi.system.domain.vo.VoteListExportVO> records = sysMeetingVoteService.selectVoteListForExport(meetingId, meeting.getCommunityId());
 
         try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("投票明细(公示)");
-            
+
             // 标题样式
             org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
             org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
@@ -610,7 +739,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
             // 标题行
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
-            String[] headers = {"房号", "建筑面积(m²)", "业主姓名(脱敏)", "投票选项", "投票时间"};
+            String[] headers = {"房号", "建筑面积(m²)", "业主姓名(脱敏)", "投票详情", "投票时间"};
             for (int i = 0; i < headers.length; i++) {
                 org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -620,40 +749,44 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             // 数据行
             int rowIndex = 1;
             if (records != null) {
-                for (com.ruoyi.system.domain.vo.VoteRecordVO record : records) {
+                for (com.ruoyi.system.domain.vo.VoteListExportVO record : records) {
+                    // 只导出已投票的记录 (根据需求，公示通常只公示已投票的，或者全部？)
+                    // 原逻辑是 selectVoteRecordsList(..., "1") 即已投票
+                    // selectVoteListForExport 返回所有业主。我们需要过滤。
+                    if (!"已投票".equals(record.getVoterStatus())) {
+                        continue;
+                    }
+
                     org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIndex++);
-                    
+
                     // 房号
                     row.createCell(0).setCellValue(record.getRoomNumber());
-                    
+
                     // 面积
                     row.createCell(1).setCellValue(record.getArea() != null ? record.getArea().toString() : "0");
-                    
+
                     // 姓名脱敏 (张三 -> 张*)
-                    String name = record.getRealName();
-                    if (StringUtils.isEmpty(name)) name = record.getUserName();
+                    String name = record.getUserName();
                     if (StringUtils.isNotEmpty(name) && name.length() > 1) {
                         name = name.substring(0, 1) + StringUtils.repeat("*", name.length() - 1);
+                    } else if (StringUtils.isEmpty(name)) {
+                        name = "业主";
                     }
                     row.createCell(2).setCellValue(name);
-                    
-                    // 投票选项
-                    String option = "未知";
-                    if (record.getVoteOption() != null) {
-                        switch (record.getVoteOption()) {
-                            case 0: option = "同意"; break;
-                            case 1: option = "反对"; break;
-                            case 2: option = "弃权"; break;
-                        }
-                    }
-                    row.createCell(3).setCellValue(option);
-                    
+
+                    // 投票详情 (议题1:同意; 议题2:反对)
+                    row.createCell(3).setCellValue(record.getTopicVotes());
+
                     // 时间
-                    row.createCell(4).setCellValue(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, record.getParticipationTime()));
+                    if (record.getParticipationTime() != null) {
+                        row.createCell(4).setCellValue(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, record.getParticipationTime()));
+                    } else {
+                        row.createCell(4).setCellValue("-");
+                    }
                 }
             }
-            
-             // 自动列宽
+
+            // 自动列宽
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
@@ -674,7 +807,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
         // 收集文件路径
         List<String> filePaths = new java.util.ArrayList<>();
-        
+
         // 1. 议题附件
         if (meeting.getTopics() != null) {
             for (SysPropertyMeetingTopic topic : meeting.getTopics()) {
@@ -688,16 +821,16 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 }
             }
         }
-        
+
         // 2. 会议封面 (可选)
         if (StringUtils.isNotEmpty(meeting.getCoverImage())) {
             filePaths.add(meeting.getCoverImage().trim());
         }
 
         if (filePaths.isEmpty()) {
-             response.setContentType("application/json;charset=UTF-8");
-             response.getWriter().write("{\"msg\":\"该会议没有相关文件\",\"code\":500}");
-             return;
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"msg\":\"该会议没有相关文件\",\"code\":500}");
+            return;
         }
 
         response.reset();
@@ -713,11 +846,11 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             // 防止文件名重复
             java.util.Set<String> entryNames = new java.util.HashSet<>();
             boolean hasFile = false;
-            
+
             for (String filePath : filePaths) {
                 java.io.InputStream fis = null;
                 String fileName = null;
-                
+
                 try {
                     // 判断是否为远程文件 (HTTP/HTTPS)
                     if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
@@ -729,7 +862,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                         conn.setConnectTimeout(10000); // 10秒连接超时
                         conn.setReadTimeout(60000);    // 60秒读取超时
                         fis = conn.getInputStream();
-                        
+
                         // 从URL提取文件名
                         fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
                         if (fileName.contains("?")) {
@@ -752,7 +885,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
                         localPath = localPath.replace("/", java.io.File.separator).replace("\\", java.io.File.separator);
                         java.io.File file = new java.io.File(localPath);
-                        
+
                         if (file.exists()) {
                             fis = new java.io.FileInputStream(file);
                             fileName = file.getName();
@@ -773,7 +906,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                             fileName = name + "(" + count++ + ")" + ext;
                         }
                         entryNames.add(fileName);
-                        
+
                         java.util.zip.ZipEntry zipEntry = new java.util.zip.ZipEntry(fileName);
                         zipOut.putNextEntry(zipEntry);
 
@@ -790,11 +923,14 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                     errorLog.append("导出失败: ").append(filePath).append(" - 原因: ").append(e.getMessage()).append("\n");
                 } finally {
                     if (fis != null) {
-                        try { fis.close(); } catch (Exception e) {}
+                        try {
+                            fis.close();
+                        } catch (Exception e) {
+                        }
                     }
                 }
             }
-            
+
             // 总是写入日志文件，方便排查
             if (errorLog.length() > 10) { // "文件导出日志:\n".length() > 10
                 java.util.zip.ZipEntry logEntry = new java.util.zip.ZipEntry("error_log.txt");
@@ -802,7 +938,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 zipOut.write(errorLog.toString().getBytes("UTF-8"));
                 zipOut.closeEntry();
             }
-            
+
             if (!hasFile) {
                 java.util.zip.ZipEntry zipEntry = new java.util.zip.ZipEntry("readme.txt");
                 zipOut.putNextEntry(zipEntry);
@@ -822,14 +958,14 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
 
         List<Map<String, Object>> stats = sysPropertyMeetingMapper.getBuildingVoteStats(meetingId, meeting.getCommunityId());
-        
+
         // 计算百分比
         for (Map<String, Object> item : stats) {
             Number totalNum = (Number) item.get("totalHouseholds");
             Number votedNum = (Number) item.get("votedHouseholds");
             long total = totalNum != null ? totalNum.longValue() : 0L;
             long voted = votedNum != null ? votedNum.longValue() : 0L;
-            
+
             if (total > 0) {
                 double percent = (double) voted * 100 / total;
                 item.put("votePercentage", String.format("%.2f%%", percent));
@@ -862,23 +998,23 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         copy.setMeetingLocation(origin.getMeetingLocation());
         copy.setCoverImage(origin.getCoverImage());
         copy.setMeetingTime(origin.getMeetingTime());
-        
+
         // 重置状态和时间 (0=未开始)
-        copy.setMeetingStatus("0"); 
+        copy.setMeetingStatus("0");
         copy.setCreateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
         copy.setCreateTime(DateUtils.getNowDate());
-        
+
         // 清空投票时间
         copy.setVoteStartTime(null);
         copy.setVoteEndTime(null);
-        
+
         int rows = sysPropertyMeetingMapper.insertSysPropertyMeeting(copy);
-        
+
         // 2. 复制议题
         SysPropertyMeetingTopic topicQuery = new SysPropertyMeetingTopic();
         topicQuery.setMeetingId(meetingId);
         List<SysPropertyMeetingTopic> topics = sysPropertyMeetingTopicMapper.selectSysPropertyMeetingTopicList(topicQuery);
-        
+
         if (topics != null && !topics.isEmpty()) {
             for (SysPropertyMeetingTopic originTopic : topics) {
                 SysPropertyMeetingTopic copyTopic = new SysPropertyMeetingTopic();
@@ -888,21 +1024,61 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 // 复制文件路径
                 copyTopic.setFiles(originTopic.getFiles());
                 copyTopic.setCongduo(originTopic.getCongduo());
-                
+
                 copyTopic.setCreateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
                 copyTopic.setCreateTime(DateUtils.getNowDate());
-                
+
                 sysPropertyMeetingTopicMapper.insertSysPropertyMeetingTopic(copyTopic);
             }
         }
-        
+
         return rows;
+    }
+
+    @Override
+    public int updateMeetingStatus(SysPropertyMeeting sysPropertyMeeting) {
+        // 仅更新基本信息，不涉及关联表操作，不检查社区权限
+        sysPropertyMeeting.setUpdateTime(DateUtils.getNowDate());
+        return sysPropertyMeetingMapper.updateSysPropertyMeeting(sysPropertyMeeting);
+    }
+
+    @Override
+    public List<com.ruoyi.system.domain.vo.MeetingNotificationVO> getNotificationRecords(Long meetingId) {
+        SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        if (meeting == null) {
+            throw new ServiceException("会议不存在");
+        }
+        CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+
+        return sysMeetingVoteMapper.selectNotificationRecords(meetingId, meeting.getCommunityId());
+    }
+
+    @Override
+    public int stopMeeting(Long meetingId) {
+        SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        if (meeting == null) {
+            throw new ServiceException("会议不存在");
+        }
+        CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+
+        // 只有进行中的会议才能停止
+        if (!"1".equals(meeting.getMeetingStatus())) {
+            throw new ServiceException("只有进行中的会议才能停止");
+        }
+
+        SysPropertyMeeting updateMeeting = new SysPropertyMeeting();
+        updateMeeting.setMeetingId(meetingId);
+        updateMeeting.setMeetingStatus("9"); // 9-已停止
+        updateMeeting.setUpdateTime(DateUtils.getNowDate());
+        updateMeeting.setUpdateBy(com.ruoyi.common.utils.SecurityUtils.getUsername());
+
+        return sysPropertyMeetingMapper.updateSysPropertyMeeting(updateMeeting);
     }
 
     private void insertTopicsIntoDoc(org.apache.poi.xwpf.usermodel.XWPFDocument doc, List<SysPropertyMeetingTopic> topics) {
         if (topics == null || topics.isEmpty()) return;
 
-        // 策略：寻找包含 "@topic" 文本的表格行，作为模板行
+        // 策略:寻找包含 "@topic" 文本的表格行,作为模板行
         org.apache.poi.xwpf.usermodel.XWPFTable targetTable = null;
         org.apache.poi.xwpf.usermodel.XWPFTableRow templateRow = null;
         int templateRowIndex = -1;
@@ -924,74 +1100,139 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         }
 
         if (targetTable != null && templateRow != null) {
-            // 使用模板行策略
-            // 如果只有一个议题，直接替换模板行中的 @topic
+            // 新策略:删除模板行之后的所有行(这些是模板中的默认议题)
+            // 然后根据实际议题数量,复制模板行
+
+            // 1. 先删除模板行之后的所有行
+            int totalRows = targetTable.getRows().size();
+            for (int i = totalRows - 1; i > templateRowIndex; i--) {
+                targetTable.removeRow(i);
+            }
+
+            // 2. 根据议题数量复制模板行
             if (topics.size() == 1) {
+                // 只有一个议题,直接替换模板行
                 replaceInRow(templateRow, "@topic", topics.get(0).getTopicTitle());
+                // 设置行高(800 twips ≈ 1.4cm)
+                templateRow.setHeight(800);
             } else {
-                // 如果有多个议题，保留模板行在最后，先插入前面的
-                // 为了保持样式，我们应该复制模板行。但POI复制行比较复杂。
-                // 简化策略：复用模板行给最后一个议题，前面的议题插入新行（样式可能丢失，但内容在）
-                // 或者：每次都插入新行，第一列设置内容。
-                
-                // 更好的策略：
-                // 1. 对于前 N-1 个议题，在模板行之前插入新行
-                // 2. 将模板行的内容（包括可能的勾选框）复制到新行（简易复制）
-                // 3. 替换新行中的 @topic
-                // 4. 最后一个议题使用模板行本身
-                
-                // 但由于 POI 3.x/4.x 的 insertNewTableRow 功能有限，且复制单元格样式繁琐。
-                // 这里采用最基础的实现：只保证文字内容进去。
-                
+                // 多个议题:先插入 N-1 行,最后一行使用模板行本身
                 for (int i = 0; i < topics.size() - 1; i++) {
                     SysPropertyMeetingTopic topic = topics.get(i);
+                    // 在模板行之前插入新行
                     org.apache.poi.xwpf.usermodel.XWPFTableRow newRow = targetTable.insertNewTableRow(templateRowIndex + i);
                     if (newRow != null) {
-                         // 尝试按照模板行的单元格数量创建单元格
-                         for (org.apache.poi.xwpf.usermodel.XWPFTableCell templateCell : templateRow.getTableCells()) {
-                             org.apache.poi.xwpf.usermodel.XWPFTableCell newCell = newRow.addNewTableCell();
-                             String text = templateCell.getText();
-                             if (text.contains("@topic")) {
-                                 newCell.setText(topic.getTopicTitle());
-                             } else {
-                                 newCell.setText(text);
-                             }
-                             // 注意：样式（边框、对齐、字体）这里没有复制，可能会很难看。
-                             // 如果是严格格式的表决票，建议模板里直接预留足够多的行，或者使用 Freemarker 生成 xml。
-                         }
+                        // 设置行高(800 twips ≈ 1.4cm)
+                        newRow.setHeight(800);
+                        // 复制模板行的单元格结构
+                        for (int cellIndex = 0; cellIndex < templateRow.getTableCells().size(); cellIndex++) {
+                            org.apache.poi.xwpf.usermodel.XWPFTableCell templateCell = templateRow.getCell(cellIndex);
+                            org.apache.poi.xwpf.usermodel.XWPFTableCell newCell = newRow.addNewTableCell();
+
+                            // 复制单元格内容
+                            String text = templateCell.getText();
+                            if (text.contains("@topic")) {
+                                newCell.setText(topic.getTopicTitle());
+                            } else {
+                                newCell.setText(text);
+                            }
+
+                            // 尝试复制基本样式
+                            try {
+                                if (templateCell.getCTTc() != null && newCell.getCTTc() != null) {
+                                    // 复制单元格属性(边框、宽度等)
+                                    if (templateCell.getCTTc().getTcPr() != null) {
+                                        newCell.getCTTc().setTcPr(
+                                                (org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr)
+                                                        templateCell.getCTTc().getTcPr().copy()
+                                        );
+                                    }
+                                    // 设置垂直居中对齐
+                                    if (newCell.getCTTc().getTcPr() == null) {
+                                        newCell.getCTTc().addNewTcPr();
+                                    }
+                                    if (newCell.getCTTc().getTcPr().getVAlign() == null) {
+                                        newCell.getCTTc().getTcPr().addNewVAlign();
+                                    }
+                                    newCell.getCTTc().getTcPr().getVAlign().setVal(
+                                            org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc.CENTER
+                                    );
+                                }
+                            } catch (Exception e) {
+                                // 样式复制失败,忽略
+                                log.warn("复制单元格样式失败", e);
+                            }
+                        }
                     }
                 }
-                // 最后一个议题复用模板行（保留了样式）
+                // 最后一个议题使用模板行本身(保留完整样式)
                 replaceInRow(templateRow, "@topic", topics.get(topics.size() - 1).getTopicTitle());
+                // 设置行高
+                templateRow.setHeight(800);
             }
         } else {
-            // 备选策略：如果没有找到 @topic，尝试查找表头包含“议题”或“表决事项”的表格
-             for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
-                 if (table.getRows().size() > 0) {
-                     StringBuilder headerTextBuilder = new StringBuilder();
-                     for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : table.getRow(0).getTableCells()) {
-                         headerTextBuilder.append(cell.getText());
-                     }
-                     String headerText = headerTextBuilder.toString();
-                     
-                     if (headerText.contains("议题") || headerText.contains("表决事项")) {
-                         // 在表格末尾追加行
-                         for (SysPropertyMeetingTopic topic : topics) {
-                             org.apache.poi.xwpf.usermodel.XWPFTableRow row = table.createRow();
-                             // 假设第一列是议题
-                             if (row.getTableCells().size() > 0) {
-                                 row.getCell(0).setText(topic.getTopicTitle());
-                             }
-                         }
-                         break;
-                     }
-                 }
-             }
+            // 备选策略:如果没有找到 @topic,尝试查找表头包含"议题"或"表决事项"的表格
+            for (org.apache.poi.xwpf.usermodel.XWPFTable table : doc.getTables()) {
+                if (table.getRows().size() > 0) {
+                    StringBuilder headerTextBuilder = new StringBuilder();
+                    for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : table.getRow(0).getTableCells()) {
+                        headerTextBuilder.append(cell.getText());
+                    }
+                    String headerText = headerTextBuilder.toString();
+
+                    if (headerText.contains("议题") || headerText.contains("表决事项")) {
+                        // 删除表头之后的所有行
+                        int totalRows = table.getRows().size();
+                        for (int i = totalRows - 1; i > 0; i--) {
+                            table.removeRow(i);
+                        }
+
+                        // 添加实际议题行
+                        for (SysPropertyMeetingTopic topic : topics) {
+                            org.apache.poi.xwpf.usermodel.XWPFTableRow row = table.createRow();
+                            // 设置行高
+                            row.setHeight(800);
+                            // 假设第一列是议题
+                            if (row.getTableCells().size() > 0) {
+                                row.getCell(0).setText(topic.getTopicTitle());
+                            }
+                            // 设置所有单元格垂直居中
+                            for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                                setCellVerticalCenter(cell);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 设置单元格垂直居中对齐
+     */
+    private void setCellVerticalCenter(org.apache.poi.xwpf.usermodel.XWPFTableCell cell) {
+        try {
+            if (cell.getCTTc() != null) {
+                if (cell.getCTTc().getTcPr() == null) {
+                    cell.getCTTc().addNewTcPr();
+                }
+                if (cell.getCTTc().getTcPr().getVAlign() == null) {
+                    cell.getCTTc().getTcPr().addNewVAlign();
+                }
+                cell.getCTTc().getTcPr().getVAlign().setVal(
+                        org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc.CENTER
+                );
+            }
+        } catch (Exception e) {
+            log.warn("设置单元格垂直居中失败", e);
         }
     }
 
     private void replaceInRow(org.apache.poi.xwpf.usermodel.XWPFTableRow row, String key, String value) {
         for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+            // 设置垂直居中
+            setCellVerticalCenter(cell);
             for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
                 Map<String, String> singleParam = new java.util.HashMap<>();
                 singleParam.put(key, value);
@@ -1023,7 +1264,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
 
         // 2. 复杂替换（针对 Key 被 Word 分割成多个 Run 的情况）
         String paragraphText = p.getText();
-        
+
         // 只有当段落包含任意一个 Key 时才进行处理
         boolean containsKey = false;
         for (String key : params.keySet()) {
@@ -1033,13 +1274,13 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 break;
             }
         }
-        
+
         if (containsKey) {
             String newText = paragraphText;
             for (Map.Entry<String, String> entry : params.entrySet()) {
                 newText = newText.replace(entry.getKey(), entry.getValue());
             }
-            
+
             // 保留第一个 Run 的样式（如果存在），移除其他 Runs
             org.apache.poi.xwpf.usermodel.XWPFRun firstRun = runs.get(0);
             String fontFamily = firstRun.getFontFamily();
@@ -1050,10 +1291,10 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             // ... 其他样式属性视需要获取
 
             removeAllRuns(p);
-            
+
             org.apache.poi.xwpf.usermodel.XWPFRun newRun = p.createRun();
             newRun.setText(newText);
-            
+
             // 尽力恢复样式
             if (fontFamily != null) newRun.setFontFamily(fontFamily);
             if (fontSize != -1) newRun.setFontSize(fontSize);
@@ -1062,7 +1303,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             if (color != null) newRun.setColor(color);
         }
     }
-    
+
     private void removeAllRuns(org.apache.poi.xwpf.usermodel.XWPFParagraph p) {
         int size = p.getRuns().size();
         for (int i = size - 1; i >= 0; i--) {
@@ -1079,6 +1320,53 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
                     for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
                         replaceInParagraph(p, params);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 填充表格单元格的值(专门处理两列表格:左列=字段名,右列=值)
+     *
+     * @param doc    Word文档
+     * @param params 字段名和值的映射
+     */
+    private void fillTableCellValues(org.apache.poi.xwpf.usermodel.XWPFDocument doc, Map<String, String> params) {
+        for (org.apache.poi.xwpf.usermodel.XWPFTable tbl : doc.getTables()) {
+            for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : tbl.getRows()) {
+                // 确保行至少有2个单元格(左列=字段名,右列=值)
+                if (row.getTableCells().size() >= 2) {
+                    org.apache.poi.xwpf.usermodel.XWPFTableCell leftCell = row.getCell(0);
+                    org.apache.poi.xwpf.usermodel.XWPFTableCell rightCell = row.getCell(1);
+
+                    // 获取左列单元格的文本
+                    String leftText = leftCell.getText();
+
+                    // 检查左列文本是否匹配任何字段名
+                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                        String fieldName = entry.getKey();
+                        String fieldValue = entry.getValue();
+
+                        // 如果左列包含字段名称,则将值填充到右列
+                        if (leftText.contains(fieldName)) {
+                            // 清空右列的所有段落
+                            while (rightCell.getParagraphs().size() > 0) {
+                                rightCell.removeParagraph(0);
+                            }
+
+                            // 创建新段落并设置值
+                            org.apache.poi.xwpf.usermodel.XWPFParagraph p = rightCell.addParagraph();
+                            org.apache.poi.xwpf.usermodel.XWPFRun run = p.createRun();
+                            run.setText(fieldValue != null ? fieldValue : "");
+
+                            // 设置字体(可选,保持与模板一致)
+                            run.setFontFamily("宋体");
+                            run.setFontSize(12);
+
+                            log.info("填充表格单元格: {} -> {}", fieldName, fieldValue);
+                            break; // 找到匹配后跳出循环
+                        }
                     }
                 }
             }

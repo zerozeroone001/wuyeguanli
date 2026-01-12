@@ -11,6 +11,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="communityId"    column="community_id"    />
         <result property="userName"    column="user_name"    />
         <result property="phonenumber" column="phonenumber"  />
+        <result property="tagId"    column="tag_id"    />
         <result property="delFlag"    column="del_flag"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
@@ -30,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSysOwnerProfileVo">
-        select p.owner_id, p.owner_no, p.user_id, p.community_id, u.user_name, u.phonenumber, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
+        select p.owner_id, p.owner_no, p.user_id, p.community_id, u.user_name, u.phonenumber, p.tag_id, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
                u.is_owner, u.avatar, u.nick_name, u.status, u.nick_name as real_name,
                (SELECT GROUP_CONCAT(CONCAT(sub_ep.building_name, '号楼', sub_ep.room_number) ORDER BY sub_ep.building_name, sub_ep.room_number SEPARATOR ', ')
                 FROM sys_estate_user_property sub_eup 
@@ -55,6 +56,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             MAX(u.nick_name) as real_name,
             MAX(p.phonenumber) as phonenumber, 
             MAX(p.user_name) as user_name,
+            MAX(p.tag_id) as tag_id,
             
             (SELECT GROUP_CONCAT(CONCAT(sub_ep.building_name, '号楼', sub_ep.room_number) ORDER BY sub_ep.building_name, sub_ep.room_number SEPARATOR ', ')
              FROM sys_estate_user_property sub_eup 
@@ -90,6 +92,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
             <if test="phonenumber != null and phonenumber != ''">
                  AND (p.phonenumber like concat('%', #{phonenumber}, '%') OR u.phonenumber like concat('%', #{phonenumber}, '%'))
+            </if>
+            <if test="tagId != null">
+                AND p.tag_id = #{tagId}
             </if>
         </where>
         GROUP BY u.nick_name, p.community_id, p.user_id
@@ -140,6 +145,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="communityId != null">community_id,</if>
             <if test="userName != null and userName != ''">user_name,</if>
             <if test="phonenumber != null and phonenumber != ''">phonenumber,</if>
+            <if test="tagId != null">tag_id,</if>
             <if test="delFlag != null">del_flag,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
@@ -153,6 +159,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="communityId != null">#{communityId},</if>
             <if test="userName != null and userName != ''">#{userName},</if>
             <if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
+            <if test="tagId != null">#{tagId},</if>
             <if test="delFlag != null">#{delFlag},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
@@ -169,6 +176,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="communityId != null">community_id = #{communityId},</if>
             <if test="userName != null and userName != ''">user_name = #{userName},</if>
             <if test="phonenumber != null and phonenumber != ''">phonenumber = #{phonenumber},</if>
+            <if test="tagId != null">tag_id = #{tagId},</if>
             <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>

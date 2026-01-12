@@ -46,14 +46,22 @@ public class PropertyMeetingController extends BaseController
     @Autowired
     private ISysOpinionConsultationService opinionConsultationService;
 
+    @Autowired
+    private ISysMeetingLogService sysMeetingLogService;
+
     /**
      * 查询会议管理列表
      */
     @GetMapping("/list")
     public TableDataInfo list(SysPropertyMeeting sysPropertyMeeting)
     {
+        try {
+            sysPropertyMeeting.getParams().put("userId", getUserId());
+        } catch (Exception e) {
+            // 忽略获取用户ID失败，可能未登录
+        }
         startPage();
-        List<SysPropertyMeeting> list = sysPropertyMeetingService.selectSysPropertyMeetingList(sysPropertyMeeting);
+        List<SysPropertyMeeting> list = sysPropertyMeetingService.userSelectSysPropertyMeetingList(sysPropertyMeeting);
         return getDataTable(list);
     }
 
@@ -75,7 +83,24 @@ public class PropertyMeetingController extends BaseController
     @GetMapping(value = "/{meetingId}")
     public AjaxResult getInfo(@PathVariable("meetingId") Long meetingId)
     {
-        return success(sysPropertyMeetingService.selectSysPropertyMeetingByMeetingId(meetingId));
+        SysPropertyMeeting meeting = sysPropertyMeetingService.selectSysPropertyMeetingByMeetingId(meetingId);
+        
+        // 记录访问日志
+        try {
+            Long userId = getUserId();
+            if (userId != null && meetingId != null) {
+                // 检查用户是否已投票
+                Map<Long, String> voteData = meetingVoteService.selectUserVotesInMeeting(userId, meetingId);
+                boolean hasVoted = voteData != null && !voteData.isEmpty();
+                
+                // 记录访问日志
+                sysMeetingLogService.logMeetingAccess(userId, meetingId, hasVoted);
+            }
+        } catch (Exception e) {
+            log.warn("记录会议访问日志失败: {}", e.getMessage());
+        }
+        
+        return success(meeting);
     }
 
     /**
@@ -220,7 +245,14 @@ public class PropertyMeetingController extends BaseController
             // 6. 提交投票
             SysMeetingTopic updatedTopic = meetingVoteService.submitVote(vote);
 
-            // 7. 构建返回数据
+            // 7. 记录投票日志
+            try {
+                sysMeetingLogService.logMeetingVote(userId, vote.getMeetingId());
+            } catch (Exception e) {
+                log.warn("记录投票日志失败: {}", e.getMessage());
+            }
+
+            // 8. 构建返回数据
             AjaxResult result = AjaxResult.success("投票成功");
             result.put("topic", updatedTopic);
             result.put("voteOption", vote.getVoteOption());
@@ -413,6 +445,7 @@ public class PropertyMeetingController extends BaseController
                     if (meeting != null) {
                         voteMap.put("meetingTitle", meeting.getMeetingTitle());
                         voteMap.put("meetingStatus", meeting.getMeetingStatus());
+                        voteMap.put("meetingTag", meeting.getMeetingTag());
                         voteMap.put("voteStartTime", meeting.getVoteStartTime());
                         voteMap.put("voteEndTime", meeting.getVoteEndTime());
                     }
@@ -443,6 +476,9 @@ public class PropertyMeetingController extends BaseController
                             break;
                         case 2:
                             myChoice = "弃权";
+                            break;
+                        case 3:
+                            myChoice = "从多";
                             break;
                     }
                 }

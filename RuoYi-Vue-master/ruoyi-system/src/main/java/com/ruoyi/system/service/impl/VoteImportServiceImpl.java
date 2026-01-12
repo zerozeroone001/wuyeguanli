@@ -282,7 +282,7 @@ public class VoteImportServiceImpl implements IVoteImportService {
             vote.setUserId(userId);
             vote.setUserName(ocrData.getOwnerInfo().getOwnerName());
             vote.setCreateTime(new Date());
-            
+            vote.setIsVote(1);
             // 安全处理voteOption，避免NullPointerException
             if (voteItem.getVoteOption() != null) {
                 vote.setVoteOption(voteItem.getVoteOption().getCode());

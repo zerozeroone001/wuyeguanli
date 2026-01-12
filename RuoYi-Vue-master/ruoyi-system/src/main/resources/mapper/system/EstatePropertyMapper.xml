@@ -142,8 +142,98 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         from sys_estate_property
         where community_id = #{communityId}
           and building_name = #{buildingName}
+          and (unit_name = #{unitName} OR (unit_name IS NULL AND #{unitName} IS NULL))
           and room_number = #{roomNumber}
           and (del_flag = '0' OR del_flag IS NULL)
         limit 1
+    </select>
+
+    <!-- 查询可用房产列表,用于构建树形结构 -->
+    <select id="selectAvailableProperties" resultMap="EstatePropertyResult">
+        SELECT DISTINCT 
+            p.property_id,
+            p.community_id,
+            p.building_name, 
+            p.unit_name, 
+            p.room_number,
+            p.floor,
+            p.area,
+            CASE WHEN eup.user_id IS NOT NULL THEN 1 ELSE 0 END as status
+        FROM sys_estate_property p
+        LEFT JOIN sys_estate_user_property eup 
+            ON p.property_id = eup.property_id 
+            AND eup.del_flag = '0'
+            AND eup.status = '1'
+        WHERE p.community_id = #{communityId}
+            AND p.del_flag = '0'
+            AND (eup.user_id IS NULL 
+                <if test="excludeOwnerNo != null and excludeOwnerNo != ''">
+                    OR eup.owner_no = #{excludeOwnerNo}
+                </if>
+            )
+        ORDER BY p.building_name, p.unit_name, p.room_number
+    </select>
+
+    <!-- 查询小区的楼栋信息(包含是否有单元的判断) -->
+    <select id="selectBuildingInfoByCommunityId" parameterType="Long" resultType="java.util.HashMap">
+        SELECT 
+            building_name as buildingName,
+            CASE WHEN COUNT(DISTINCT unit_name) > 1 OR (COUNT(DISTINCT unit_name) = 1 AND MAX(unit_name) IS NOT NULL AND MAX(unit_name) != '') THEN 1 ELSE 0 END as hasUnit,
+            COUNT(*) as roomCount
+        FROM sys_estate_property
+        WHERE community_id = #{communityId} AND del_flag = '0'
+        GROUP BY building_name
+        ORDER BY building_name
+    </select>
+
+    <!-- 查询楼栋的单元列表 -->
+    <select id="selectUnitsByBuilding" resultType="String">
+        SELECT DISTINCT unit_name
+        FROM sys_estate_property
+        WHERE community_id = #{communityId}
+          AND building_name = #{buildingName}
+          AND del_flag = '0'
+          AND unit_name IS NOT NULL
+          AND unit_name != ''
+        ORDER BY unit_name
+    </select>
+
+    <!-- 查询房屋详细信息(用于上门拜访) - 关联 sys_meeting_log 表 -->
+    <select id="selectRoomDetailsForVisit" resultType="java.util.HashMap">
+        SELECT 
+            p.property_id as propertyId,
+            p.room_number as roomNumber,
+            p.unit_name as unitName,
+            MAX(eup.user_id) as userId,
+            MAX(u.user_name) as ownerName,
+            MAX(u.phonenumber) as phone,
+            MAX(CASE WHEN mv.vote_id IS NOT NULL THEN 1 ELSE 0 END) as hasVoted,
+            MAX(ml.log_type) as offlineStatus,
+            MAX(ml.log_id) as logId
+        FROM sys_estate_property p
+        LEFT JOIN sys_estate_user_property eup ON p.property_id = eup.property_id AND eup.del_flag = '0' AND eup.status = '1'
+        LEFT JOIN sys_user u ON eup.user_id = u.user_id
+        LEFT JOIN sys_meeting_vote mv ON u.user_id = mv.user_id AND mv.meeting_id = #{meetingId}
+        LEFT JOIN (
+            SELECT user_id, meeting_id, log_type, log_id
+            FROM sys_meeting_log
+            WHERE meeting_id = #{meetingId}
+              AND log_type IN (3, 4, 5, 6, 7)
+              AND (user_id, create_time) IN (
+                SELECT user_id, MAX(create_time)
+                FROM sys_meeting_log
+                WHERE meeting_id = #{meetingId}
+                  AND log_type IN (3, 4, 5, 6, 7)
+                GROUP BY user_id
+              )
+        ) ml ON u.user_id = ml.user_id
+        WHERE p.community_id = #{communityId}
+          AND p.building_name = #{buildingName}
+          <if test="unitName != null and unitName != ''">
+          AND p.unit_name = #{unitName}
+          </if>
+          AND p.del_flag = '0'
+        GROUP BY p.property_id, p.room_number, p.unit_name
+        ORDER BY p.unit_name, p.room_number
     </select>
 </mapper>

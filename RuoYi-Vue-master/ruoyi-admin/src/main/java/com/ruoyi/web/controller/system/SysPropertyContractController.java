@@ -106,4 +106,123 @@ public class SysPropertyContractController extends BaseController
     {
         return toAjax(sysPropertyContractService.deleteSysPropertyContractByContractIds(contractIds));
     }
+
+    /**
+     * 更新合同阶段
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/stage/{contractId}/{newStage}")
+    public AjaxResult updateStage(@PathVariable Long contractId, @PathVariable String newStage)
+    {
+        return toAjax(sysPropertyContractService.updateContractStage(contractId, newStage));
+    }
+
+    /**
+     * 审核合同（待审核 -> 待制作查验清单）
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/review/{contractId}")
+    public AjaxResult reviewContract(@PathVariable Long contractId)
+    {
+        return toAjax(sysPropertyContractService.reviewContract(contractId));
+    }
+
+    /**
+     * 上传查验清单
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadEntryChecklist/{contractId}")
+    public AjaxResult uploadEntryChecklist(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadEntryChecklist(contractId, fileUrl));
+    }
+
+    /**
+     * 上传物业查验清单
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadPropertyEntryChecklist/{contractId}")
+    public AjaxResult uploadPropertyEntryChecklist(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadPropertyEntryChecklist(contractId, fileUrl));
+    }
+
+    /**
+     * 上传合同月履行清单
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadMonthlyChecklist/{contractId}")
+    public AjaxResult uploadMonthlyChecklist(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadMonthlyChecklist(contractId, fileUrl));
+    }
+
+    /**
+     * 上传物业月履行清单
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadPropertyMonthlyChecklist/{contractId}")
+    public AjaxResult uploadPropertyMonthlyChecklist(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadPropertyMonthlyChecklist(contractId, fileUrl));
+    }
+
+    /**
+     * 月履行清单审核
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/reviewMonthlyChecklist/{contractId}")
+    public AjaxResult reviewMonthlyChecklist(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String result = params.get("result");
+        return toAjax(sysPropertyContractService.reviewMonthlyChecklist(contractId, result));
+    }
+
+    /**
+     * 上传整改通知单
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadRectificationNotice/{contractId}")
+    public AjaxResult uploadRectificationNotice(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadRectificationNotice(contractId, fileUrl));
+    }
+
+    /**
+     * 上传整改结果评定通知书
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadRectificationResult/{contractId}")
+    public AjaxResult uploadRectificationResult(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadRectificationResult(contractId, fileUrl));
+    }
+
+    /**
+     * 上传年度履行报告
+     */
+    @PreAuthorize("@ss.hasPermi('system:contract:edit')")
+    @Log(title = "物业服务合同", businessType = BusinessType.UPDATE)
+    @PutMapping("/uploadAnnualReport/{contractId}")
+    public AjaxResult uploadAnnualReport(@PathVariable Long contractId, @RequestBody java.util.Map<String, String> params)
+    {
+        String fileUrl = params.get("fileUrl");
+        return toAjax(sysPropertyContractService.uploadAnnualReport(contractId, fileUrl));
+    }
 }
+

@@ -43,6 +43,9 @@ public interface WechatService {
      * @return 发送结果
      */
     boolean sendMeetingNotification(String openId, String meetingTitle, String meetingTime, String meetingLocation);
+
+
+    boolean sendMeetingDetailNotification(String openId, String meetingTitle, String meetingTime, String meetingLocation);
     
     /**
      * 发送缴费提醒

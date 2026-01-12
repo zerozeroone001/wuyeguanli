@@ -60,3 +60,12 @@ export function listRooms(query) {
     params: query
   })
 }
+
+// 查询房产树形结构(楼栋→单元→房号)
+export function getPropertyTree(query) {
+  return request({
+    url: '/system/property/tree',
+    method: 'get',
+    params: query
+  })
+}
