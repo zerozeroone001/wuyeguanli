@@ -40,7 +40,7 @@
       <el-table-column label="姓名" prop="userName" align="center" width="140" />
       <el-table-column label="投票编号" prop="voteNo" align="center" width="200" />
       <el-table-column label="房号" prop="roomNumber" align="center"  />
-      <el-table-column label="面积(m²)" prop="area" align="center"  />
+      <el-table-column label="专有部分面积" prop="area" align="center"  />
       <el-table-column label="票权状态" align="center" >
         <template slot-scope="scope">
           <el-tag :type="scope.row.voteRightStatus === '正常' ? 'success' : 'danger'" size="mini">
@@ -48,7 +48,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="选民状态" align="center">
+      <el-table-column label="投票状态" align="center">
         <template slot-scope="scope">
           <el-tag :type="scope.row.voterStatus === '已投票' ? 'success' : 'info'" size="mini">
             {{ scope.row.voterStatus }}

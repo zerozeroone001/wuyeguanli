@@ -201,4 +201,28 @@ public interface ISysPropertyMeetingService
      * @return 结果
      */
     public int stopMeeting(Long meetingId);
+
+    /**
+     * 查询已删除的会议列表(回收站)
+     * 
+     * @param sysPropertyMeeting 查询条件
+     * @return 已删除的会议集合
+     */
+    public List<SysPropertyMeeting> selectDeletedMeetingList(SysPropertyMeeting sysPropertyMeeting);
+
+    /**
+     * 恢复已删除的会议
+     * 
+     * @param meetingId 会议ID
+     * @return 结果
+     */
+    public int restoreMeeting(Long meetingId);
+
+    /**
+     * 永久删除会议
+     * 
+     * @param meetingId 会议ID
+     * @return 结果
+     */
+    public int permanentlyDeleteMeeting(Long meetingId);
 }

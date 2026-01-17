@@ -333,7 +333,12 @@ public class EstatePropertyServiceImpl implements IEstatePropertyService
             }
             
             // 创建房号节点(叶子节点,不应有children)
-            com.ruoyi.system.domain.dto.PropertyTreeNode roomNode = new com.ruoyi.system.domain.dto.PropertyTreeNode(roomNumber, roomNumber, 3);
+            // 使用propertyId作为value确保唯一性,label显示roomNumber
+            com.ruoyi.system.domain.dto.PropertyTreeNode roomNode = new com.ruoyi.system.domain.dto.PropertyTreeNode(
+                String.valueOf(property.getPropertyId()), // value使用propertyId确保唯一
+                roomNumber, // label显示房号
+                3
+            );
             roomNode.setPropertyId(property.getPropertyId());
             roomNode.setDisabled(isBound); // 已绑定的房产设置为禁用
             roomNode.setChildren(null); // 叶子节点不应有children属性

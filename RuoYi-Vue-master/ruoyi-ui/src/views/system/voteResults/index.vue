@@ -81,23 +81,23 @@
         <div class="statistics-grid">
           <!-- 总人数和总面积 -->
           <div class="stat-item">
-            <div class="stat-label">总人数</div>
+            <div class="stat-label">物业管理区域投票人数</div>
             <div class="stat-value">{{ currentResult.totalPeople || 0 }}</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label">总面积(㎡)</div>
+            <div class="stat-label">专有部分总建筑面积</div>
             <div class="stat-value">{{ formatArea(currentResult.totalArea) }}</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label">参与人数</div>
+            <div class="stat-label">参与表决人数</div>
             <div class="stat-value">{{ currentResult.actualPeople || 0 }}</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label">参与面积(㎡)</div>
+            <div class="stat-label">参与表决专有部分面积</div>
             <div class="stat-value">{{ formatArea(currentResult.actualArea) }}</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label">参与率</div>
+            <div class="stat-label">参与表决占比</div>
             <div class="stat-value">{{ getRate(currentResult.actualPeople, currentResult.totalPeople) }}%</div>
           </div>
         </div>
@@ -167,6 +167,28 @@
             <div class="stat">
               <div class="stat-title">占比</div>
               <div class="stat-number">{{ getRate(currentResult.abstainPeople, currentResult.actualPeople) }}%</div>
+            </div>
+          </div>
+        </el-card>
+
+        <!-- 从多 -->
+        <el-card class="vote-card follow-majority-card" shadow="hover">
+          <div class="card-header follow-majority-header">
+            <i class="el-icon-s-flag"></i>
+            <span>从多</span>
+          </div>
+          <div class="vote-stats">
+            <div class="stat">
+              <div class="stat-title">人数</div>
+              <div class="stat-number">{{ currentResult.followMajorityPeople || 0 }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">面积(㎡)</div>
+              <div class="stat-number">{{ formatArea(currentResult.followMajorityArea) }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">占比</div>
+              <div class="stat-number">{{ getRate(currentResult.followMajorityPeople, currentResult.actualPeople) }}%</div>
             </div>
           </div>
         </el-card>
@@ -680,6 +702,21 @@ export default {
 
           .stat-number {
             color: #e6a23c;
+          }
+        }
+
+        &.follow-majority-card {
+          .card-header {
+            color: #409eff;
+            border-bottom-color: #c6e2ff;
+
+            i {
+              color: #409eff;
+            }
+          }
+
+          .stat-number {
+            color: #409eff;
           }
         }
 

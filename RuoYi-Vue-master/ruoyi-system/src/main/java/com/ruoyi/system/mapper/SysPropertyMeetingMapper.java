@@ -122,5 +122,29 @@ public interface SysPropertyMeetingMapper
      * 统计即将开始的会议
      */
     Long countUpcomingMeetings();
+
+    /**
+     * 查询已删除的会议列表(回收站)
+     * 
+     * @param sysPropertyMeeting 查询条件
+     * @return 已删除的会议集合
+     */
+    List<SysPropertyMeeting> selectDeletedMeetingList(SysPropertyMeeting sysPropertyMeeting);
+
+    /**
+     * 恢复已删除的会议
+     * 
+     * @param meetingId 会议ID
+     * @return 结果
+     */
+    int restoreMeeting(Long meetingId);
+
+    /**
+     * 永久删除会议
+     * 
+     * @param meetingId 会议ID
+     * @return 结果
+     */
+    int permanentlyDeleteMeeting(Long meetingId);
 }
 

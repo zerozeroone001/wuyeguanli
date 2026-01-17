@@ -31,6 +31,12 @@ public class VoteResultVO {
     /** 弃权面积 */
     private BigDecimal abstainArea;
 
+    /** 从多人数 */
+    private Integer followMajorityPeople;
+
+    /** 从多面积 */
+    private BigDecimal followMajorityArea;
+
     /** 未投票人数 */
     private Integer notVotedPeople;
 
@@ -126,6 +132,22 @@ public class VoteResultVO {
 
     public void setAbstainArea(BigDecimal abstainArea) {
         this.abstainArea = abstainArea;
+    }
+
+    public Integer getFollowMajorityPeople() {
+        return followMajorityPeople;
+    }
+
+    public void setFollowMajorityPeople(Integer followMajorityPeople) {
+        this.followMajorityPeople = followMajorityPeople;
+    }
+
+    public BigDecimal getFollowMajorityArea() {
+        return followMajorityArea;
+    }
+
+    public void setFollowMajorityArea(BigDecimal followMajorityArea) {
+        this.followMajorityArea = followMajorityArea;
     }
 
     public Integer getNotVotedPeople() {

@@ -33,6 +33,7 @@
         <el-button icon="el-icon-clock" size="small" :type="queryParams.meetingStatus === '1' ? 'primary' : ''" :plain="queryParams.meetingStatus !== '1'" @click="handleStatusFilter('1')">进行中</el-button>
         <el-button icon="el-icon-check" size="small" :type="queryParams.meetingStatus === '2' ? 'primary' : ''" :plain="queryParams.meetingStatus !== '2'" @click="handleStatusFilter('2')">已结束</el-button>
         <el-button type="primary" icon="el-icon-plus" size="small" @click="handleAdd" v-hasPermi="['system:meeting:add']">新增</el-button>
+        <el-button type="warning" icon="el-icon-delete" size="small" @click="handleRecycleBin" v-hasPermi="['system:meeting:list']">回收站</el-button>
       </div>
     </div>
 
@@ -58,9 +59,9 @@
             <div class="meeting-header">
               <div class="meeting-title">
                 {{ meeting.meetingTitle }}
-                <el-tag size="small" v-if="meeting.meetingTag == 1" type="success" style="margin-left: 10px;">业主大会</el-tag>
-                <el-tag size="small" v-else-if="meeting.meetingTag == 2" type="warning" style="margin-left: 10px;">招标会议</el-tag>
-                <el-tag size="small" v-else-if="meeting.meetingTag == 3" type="danger" style="margin-left: 10px;">选举会议</el-tag>
+                <el-tag size="small" type="success" style="margin-left: 10px;">业主大会</el-tag>
+<!--                <el-tag size="small" v-else-if="meeting.meetingTag == 2" type="warning" style="margin-left: 10px;">招标会议</el-tag>-->
+<!--                <el-tag size="small" v-else-if="meeting.meetingTag == 3" type="danger" style="margin-left: 10px;">选举会议</el-tag>-->
               </div>
             </div>
 
@@ -150,7 +151,6 @@
                 trigger="click">
                 <div class="meeting-action-list">
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleExportBallot(meeting)" v-hasPermi="['system:meeting:exportBallot']">表决票导出</el-button>
-                   <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handlePublicizeResults(meeting)" v-hasPermi="['system:meeting:publicize']">公示结果</el-button>
                    <el-button v-if="meeting.meetingStatus === '0'" type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleUpdate(meeting)" v-hasPermi="['system:meeting:edit']">编辑活动</el-button>
                    <el-button v-if="meeting.meetingStatus === '1'" type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0;color:#E6A23C" @click="handleStopMeeting(meeting)" v-hasPermi="['system:meeting:stop']">停止会议</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleCopyActivity(meeting)" v-hasPermi="['system:meeting:copy']">复制活动</el-button>
@@ -180,6 +180,7 @@
                 width="120"
                 trigger="click">
                 <div class="meeting-action-list">
+                  <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handlePublicizeResults(meeting)" v-hasPermi="['system:meeting:publicize']">决议公告</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleVoteCount(meeting)" v-hasPermi="['system:meeting:voteRights']">唱票计票</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleViewVoteResults(meeting)" v-hasPermi="['system:meeting:viewVoteRecords']">表决结果</el-button>
                    <el-button type="text" size="small" style="display:block;width:100%;text-align:left;margin-left:0" @click="handleBuildingStats(meeting)" v-hasPermi="['system:meeting:voteRights']">楼栋统计</el-button>
@@ -214,7 +215,7 @@
               <el-input v-model="form.meetingTitle" placeholder="请输入会议标题" />
             </el-form-item>
           </el-col>
-          <el-col :span="24">
+          <el-col :span="24" v-if="form.meetingTag === 2 || form.meetingTag === 3">
             <el-form-item label="子标题">
               <el-input v-model="form.subTitle" placeholder="请输入子标题" />
             </el-form-item>
@@ -222,27 +223,27 @@
           <el-col :span="24">
              <el-form-item label="会议标签" prop="meetingTag">
                <el-radio-group v-model="form.meetingTag">
-                 <el-radio :label="1">业主大会</el-radio>
-                 <el-radio :label="2">招标会议</el-radio>
-                 <el-radio :label="3">选举会议</el-radio>
+                 <el-radio :label="1">议题表决</el-radio>
+                 <el-radio :label="2">物业选续聘</el-radio>
+                 <el-radio :label="3">选举/推举</el-radio>
                </el-radio-group>
              </el-form-item>
           </el-col>
           <el-col :span="12" v-if="form.meetingTag === 2 || form.meetingTag === 3">
             <el-form-item label="选举数">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <el-input-number 
-                  v-model="form.selectionTotal" 
-                  :min="1" 
+                <el-input-number
+                  v-model="form.selectionTotal"
+                  :min="1"
                   :max="99"
                   controls-position="right"
                   placeholder="总数"
                   style="flex: 1"
                 ></el-input-number>
                 <span style="color: #606266;">选</span>
-                <el-input-number 
-                  v-model="form.selectionCount" 
-                  :min="1" 
+                <el-input-number
+                  v-model="form.selectionCount"
+                  :min="1"
                   :max="99"
                   controls-position="right"
                   placeholder="可选数"
@@ -278,6 +279,24 @@
               <image-upload v-model="form.coverImage" :limit="1"/>
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item label="参会房号">
+              <el-tree
+                ref="propertyTree"
+                :data="propertyTreeData"
+                show-checkbox
+                node-key="value"
+                :props="treeProps"
+                :default-checked-keys="selectedPropertyKeys"
+                @check="handlePropertyCheck"
+                style="max-height: 300px; overflow-y: auto; border: 1px solid #DCDFE6; border-radius: 4px; padding: 10px;"
+              >
+              </el-tree>
+              <div style="margin-top: 8px; color: #909399; font-size: 12px;">
+                默认全选,可勾选参与本次会议的房号
+              </div>
+            </el-form-item>
+          </el-col>
         </el-row>
 
         <div class="form-section-title">投票设置</div>
@@ -311,6 +330,93 @@
                 active-value="1"
                 inactive-value="0"
               ></el-switch>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="从多选项">
+              <el-switch
+                v-model="form.congduo"
+                active-text="开启"
+                inactive-text="关闭"
+                active-value="1"
+                inactive-value="0"
+              ></el-switch>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="通过标准">
+              <el-radio-group v-model="form.passStandard">
+                <el-radio label="normal">普通</el-radio>
+                <el-radio label="high">高规格</el-radio>
+              </el-radio-group>
+              <div style="margin-top: 10px; padding: 10px; background-color: #f5f7fa; border-radius: 4px;">
+                <div v-if="form.passStandard === 'normal'" style="color: #606266;">
+                  <div style="margin-bottom: 8px; font-weight: bold;">普通标准:</div>
+                  <el-row :gutter="10">
+                    <el-col :span="12">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="white-space: nowrap;">参与投票率 ≥</span>
+                        <el-input-number
+                          v-model="form.normalParticipationRate"
+                          :min="0"
+                          :max="100"
+                          :precision="2"
+                          controls-position="right"
+                          style="width: 120px;"
+                        ></el-input-number>
+                        <span>%</span>
+                      </div>
+                    </el-col>
+                    <el-col :span="12">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="white-space: nowrap;">投票同意率 ≥</span>
+                        <el-input-number
+                          v-model="form.normalApprovalRate"
+                          :min="0"
+                          :max="100"
+                          :precision="2"
+                          controls-position="right"
+                          style="width: 120px;"
+                        ></el-input-number>
+                        <span>%</span>
+                      </div>
+                    </el-col>
+                  </el-row>
+                </div>
+                <div v-if="form.passStandard === 'high'" style="color: #606266;">
+                  <div style="margin-bottom: 8px; font-weight: bold;">高规格标准:</div>
+                  <el-row :gutter="10">
+                    <el-col :span="12">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="white-space: nowrap;">参与投票率 ≥</span>
+                        <el-input-number
+                          v-model="form.highParticipationRate"
+                          :min="0"
+                          :max="100"
+                          :precision="2"
+                          controls-position="right"
+                          style="width: 120px;"
+                        ></el-input-number>
+                        <span>%</span>
+                      </div>
+                    </el-col>
+                    <el-col :span="12">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="white-space: nowrap;">投票同意率 ≥</span>
+                        <el-input-number
+                          v-model="form.highApprovalRate"
+                          :min="0"
+                          :max="100"
+                          :precision="2"
+                          controls-position="right"
+                          style="width: 120px;"
+                        ></el-input-number>
+                        <span>%</span>
+                      </div>
+                    </el-col>
+                  </el-row>
+                </div>
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -360,9 +466,6 @@
         </el-form-item>
         <el-form-item label="附件">
           <file-upload v-model="topicForm.files"/>
-        </el-form-item>
-        <el-form-item label="从多选项">
-           <el-switch v-model="topicForm.congduo" active-text="开启" inactive-text="关闭" active-value="1" inactive-value="0"></el-switch>
         </el-form-item>
 <!--        <el-row>-->
 <!--          <el-col :span="8">-->
@@ -533,14 +636,64 @@
       </div>
     </el-dialog>
 
+    <!-- 回收站对话框 -->
+    <el-dialog title="回收站" :visible.sync="recycleBinDialogVisible" width="80%" append-to-body>
+      <el-table :data="deletedMeetingList" border v-loading="recycleBinLoading" stripe>
+        <el-table-column label="会议标题" prop="meetingTitle" align="center" show-overflow-tooltip />
+        <el-table-column label="子标题" prop="subTitle" align="center" show-overflow-tooltip />
+        <el-table-column label="所属小区" prop="communityName" align="center" />
+        <el-table-column label="会议时间" prop="meetingTime" align="center" width="180">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.meetingTime, '{y}-{m}-{d} {h}:{i}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="删除时间" prop="updateTime" align="center" width="180">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{i}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="success"
+              icon="el-icon-refresh-left"
+              @click="handleRestore(scope.row)"
+              v-hasPermi="['system:meeting:edit']"
+            >恢复</el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              icon="el-icon-delete"
+              @click="handlePermanentDelete(scope.row)"
+              v-hasPermi="['system:meeting:remove']"
+            >永久删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <pagination
+        v-show="recycleBinTotal>0"
+        :total="recycleBinTotal"
+        :page.sync="recycleBinQueryParams.pageNum"
+        :limit.sync="recycleBinQueryParams.pageSize"
+        @pagination="getDeletedList"
+      />
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="recycleBinDialogVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
+
     <user-select-dialog :visible.sync="userSelectVisible" :community-id="form.communityId" @confirm="handleUserSelectConfirm" />
 
   </div>
 </template>
 
 <script>
-import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, exportBallot, copyMeeting, exportVotingResults, exportVotingDetailsPublic, exportMeetingDocuments, getBuildingStats, getNotificationRecords, sendNotification, stopMeeting } from "@/api/system/meeting"
+import { listMeeting, getMeeting, delMeeting, addMeeting, updateMeeting, exportBallot, copyMeeting, exportVotingResults, exportVotingDetailsPublic, exportMeetingDocuments, getBuildingStats, getNotificationRecords, sendNotification, stopMeeting, listDeletedMeeting, restoreMeeting, permanentlyDeleteMeeting } from "@/api/system/meeting"
 import { exportVoteListExcel, exportVoteReportPdf } from '@/api/system/voteResults'
+import { getPropertyTree } from '@/api/system/property'
 import { mapGetters } from "vuex"
 import UserSelectDialog from "@/components/UserSelectDialog";
 
@@ -653,6 +806,24 @@ export default {
       notificationDialogVisible: false,
       notificationRecords: [],
       notificationLoading: false,
+      // 房产树相关
+      propertyTreeData: [],  // 房产树数据
+      selectedPropertyKeys: [],  // 选中的房产节点key
+      treeProps: {
+        children: 'children',
+        label: 'label'
+      },
+      // 回收站相关
+      recycleBinDialogVisible: false,  // 回收站对话框显示状态
+      recycleBinLoading: false,  // 回收站加载状态
+      deletedMeetingList: [],  // 已删除的会议列表
+      recycleBinTotal: 0,  // 回收站总数
+      recycleBinQueryParams: {  // 回收站查询参数
+        pageNum: 1,
+        pageSize: 10,
+        meetingTitle: null,
+        communityId: null
+      }
     }
   },
   computed: {
@@ -664,17 +835,6 @@ export default {
     /**
      * 判断是否处于“全部小区”模式。
      */
-    isAllCommunitySelected() {
-      const value = this.currentCommunityId
-      if (value === null || value === undefined) {
-        return true
-      }
-      return Number(value) === 0
-    },
-    // 上传URL的计算属性
-    uploadUrl() {
-      return process.env.VUE_APP_BASE_API + '/system/vote/import/single/' + this.currentImportMeetingId;
-    },
     // 动态计算议题标题的标签
     topicTitleLabel() {
       if (this.form.meetingTag === 2) return "投标公司名称";
@@ -809,6 +969,14 @@ export default {
         voteStartTime: null,
         voteEndTime: null,
         showParticipantCount: "1",
+        congduo: "0",
+        // 通过标准相关字段
+        passStandard: "normal", // 默认普通标准
+        normalParticipationRate: 50, // 普通标准-参与投票率
+        normalApprovalRate: 66.67, // 普通标准-投票同意率
+        highParticipationRate: 66.67, // 高规格标准-参与投票率
+        highApprovalRate: 75, // 高规格标准-投票同意率
+        selectedProperties: null,
         totalVoters: null,
         actualVoters: null,
         createBy: null,
@@ -817,6 +985,7 @@ export default {
         updateTime: null,
         topics: []
       }
+      this.selectedPropertyKeys = []  // 清空选中的房产keys
       this.applyCurrentCommunityToForm()
       this.resetForm("form")
     },
@@ -843,6 +1012,7 @@ export default {
         return
       }
       this.reset()
+      this.loadPropertyTree()  // 加载房产树
       this.open = true
       this.title = "添加会议管理"
     },
@@ -861,6 +1031,15 @@ export default {
           ...response.data,
           communityId: numericId,
           communityName: this.resolveCommunityName(numericId)
+        }
+        this.loadPropertyTree()  // 加载房产树
+        // 恢复选中状态
+        if (response.data.selectedProperties) {
+          try {
+            this.selectedPropertyKeys = JSON.parse(response.data.selectedProperties)
+          } catch (e) {
+            this.selectedPropertyKeys = []
+          }
         }
         this.open = true
         this.title = "修改会议管理"
@@ -884,6 +1063,8 @@ export default {
             this.$message.error("当前记录缺少小区信息，请选择具体小区后再提交。")
             return
           }
+          // 收集选中的房产ID
+          this.form.selectedProperties = this.collectPropertyIds()
           if (this.form.meetingId != null) {
             updateMeeting(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
@@ -1326,11 +1507,74 @@ export default {
       this.topicForm.topicTitle = user.userName || '--';
       this.topicForm.candidateId = user.userId;
       // 如果用户有头像，尽量使用（这里假设是相对路径或完整URL）
+      this.topicForm.avatar = user.avatar; // Added this line based on the provided Code Edit
+      this.userSelectVisible = false; // Added this line based on the provided Code Edit
 
       // 可以在内容中自动填充简介模板
       if (!this.topicForm.topicContent) {
           this.topicForm.topicContent = `<p><strong>姓名：</strong>${ user.userName}</p><p><strong>电话：</strong>${user.phonenumber || ''}</p><p><strong>简介：</strong></p>`;
       }
+    },
+    /** 加载房产树数据 */
+    loadPropertyTree() {
+      if (!this.form.communityId) {
+        this.propertyTreeData = []
+        this.selectedPropertyKeys = []
+        return
+      }
+      getPropertyTree(this.form.communityId).then(response => {
+        this.propertyTreeData = response.data || []
+        // 默认全选:收集所有叶子节点的value
+        if (!this.form.meetingId) {  // 只在新增时默认全选
+          this.selectedPropertyKeys = this.getAllLeafKeys(this.propertyTreeData)
+          console.log('默认全选的keys:', this.selectedPropertyKeys)  // 调试日志
+        }
+        // 等待DOM更新后设置选中状态
+        this.$nextTick(() => {
+          this.$nextTick(() => {  // 双重$nextTick确保树组件完全渲染
+            if (this.$refs.propertyTree && this.selectedPropertyKeys.length > 0) {
+              this.$refs.propertyTree.setCheckedKeys(this.selectedPropertyKeys)
+              console.log('已设置选中keys')  // 调试日志
+            }
+          })
+        })
+      }).catch(() => {
+        this.propertyTreeData = []
+        this.selectedPropertyKeys = []
+      })
+    },
+    /** 获取所有叶子节点的key */
+    getAllLeafKeys(nodes) {
+      let keys = []
+      const traverse = (nodeList) => {
+        nodeList.forEach(node => {
+          if (node.children && node.children.length > 0) {
+            traverse(node.children)
+          } else {
+            // 叶子节点
+            keys.push(node.value)
+          }
+        })
+      }
+      traverse(nodes)
+      return keys
+    },
+    /** 处理树节点勾选 */
+    handlePropertyCheck(data, checked) {
+      // 更新选中的keys
+      if (this.$refs.propertyTree) {
+        this.selectedPropertyKeys = this.$refs.propertyTree.getCheckedKeys()
+      }
+    },
+    /** 收集选中的房产ID并转为JSON字符串 */
+    collectPropertyIds() {
+      if (!this.$refs.propertyTree) {
+        return null
+      }
+      // 收集叶子节点(房号)的选中状态,keys就是propertyId
+      const leafKeys = this.$refs.propertyTree.getCheckedKeys(true)  // true表示只获取叶子节点
+      console.log('收集到的propertyIds:', leafKeys)  // 调试日志
+      return leafKeys.length > 0 ? JSON.stringify(leafKeys) : null
     },
     // 议题表单重置
     resetTopic() {
@@ -1343,10 +1587,43 @@ export default {
         candidateId: null,
         agreeCount: 0,
         opposeCount: 0,
-        abstainCount: 0,
-        congduo: "0"
+        abstainCount: 0
       };
       this.resetForm("topicForm");
+    },
+    // 打开回收站
+    handleRecycleBin() {
+      this.recycleBinDialogVisible = true;
+      this.getDeletedList();
+    },
+    // 查询已删除的会议列表
+    getDeletedList() {
+      this.recycleBinLoading = true;
+      this.recycleBinQueryParams.communityId = this.currentCommunityId;
+      listDeletedMeeting(this.recycleBinQueryParams).then(response => {
+        this.deletedMeetingList = response.rows;
+        this.recycleBinTotal = response.total;
+        this.recycleBinLoading = false;
+      });
+    },
+    // 恢复会议
+    handleRestore(row) {
+      this.$modal.confirm('是否确认恢复会议"' + row.meetingTitle + '"?').then(() => {
+        return restoreMeeting(row.meetingId);
+      }).then(() => {
+        this.getDeletedList();
+        this.getList();
+        this.$modal.msgSuccess("恢复成功");
+      }).catch(() => {});
+    },
+    // 永久删除会议
+    handlePermanentDelete(row) {
+      this.$modal.confirm('是否确认永久删除会议"' + row.meetingTitle + '"?此操作不可恢复!').then(() => {
+        return permanentlyDeleteMeeting(row.meetingId);
+      }).then(() => {
+        this.getDeletedList();
+        this.$modal.msgSuccess("永久删除成功");
+      }).catch(() => {});
     },
     // 取消议题按钮
     cancelTopic() {

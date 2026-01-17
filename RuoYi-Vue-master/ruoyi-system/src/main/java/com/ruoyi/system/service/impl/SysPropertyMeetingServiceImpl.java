@@ -307,6 +307,8 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 params.put("@title", meeting.getMeetingTitle());
                 params.put("{title}", meeting.getMeetingTitle());
                 params.put("${title}", meeting.getMeetingTitle());
+                // 替换固定标题文本
+                params.put("业主大会会议表决票", meeting.getMeetingTitle());
 
                 replaceTextInDoc(doc, params);
 
@@ -493,11 +495,10 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                     params.put("代理人", "");
                     params.put("代理人联系号码", "");
 
-
-//                    params.put("@number", numberInfo);
-//                    params.put("{number}", numberInfo);
-//                    params.put("${number}", numberInfo);
-//                    params.put("编号", numberInfo);  // 直接使用中文
+                    // 编号
+                    params.put("@number", voteNo);
+                    params.put("{number}", voteNo);
+                    params.put("${number}", voteNo);
 
                     // 日期
                     String dateInfo = DateUtils.getDate();
@@ -524,11 +525,12 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                     otherParams.put("@title", meeting.getMeetingTitle());
                     otherParams.put("{title}", meeting.getMeetingTitle());
                     otherParams.put("${title}", meeting.getMeetingTitle());
+                    // 替换固定标题文本
+                    otherParams.put("业主大会会议表决票", meeting.getMeetingTitle());
                     // 编号(右上角)
-//                    otherParams.put("@number", numberInfo);
-//                    otherParams.put("{number}", numberInfo);
-//                    otherParams.put("${number}", numberInfo);
-//                    otherParams.put("编号", voteNo);
+                    otherParams.put("@number", voteNo);
+                    otherParams.put("{number}", voteNo);
+                    otherParams.put("${number}", voteNo);
                     // 日期
                     otherParams.put("@date", dateInfo);
                     otherParams.put("{date}", dateInfo);
@@ -617,19 +619,19 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
             summaryTable.setSpacingAfter(20);
 
             if (summary != null) {
-                addCell(summaryTable, "总户数", boldFont);
+                addCell(summaryTable, "本物业管理区域内投票权数", boldFont);
                 addCell(summaryTable, String.valueOf(summary.getTotalOwners()) + " 户", normalFont);
-                addCell(summaryTable, "总建筑面积", boldFont);
+                addCell(summaryTable, "专有部分总建筑面积", boldFont);
                 addCell(summaryTable, summary.getTotalArea() + " m²", normalFont);
 
-                addCell(summaryTable, "参与投票户数", boldFont);
+                addCell(summaryTable, "参与表决人数", boldFont);
                 addCell(summaryTable, String.valueOf(summary.getParticipatedOwners()) + " 户", normalFont);
-                addCell(summaryTable, "参与投票面积", boldFont);
+                addCell(summaryTable, "参与表决专有部分建筑面积", boldFont);
                 addCell(summaryTable, summary.getParticipatedArea() + " m²", normalFont);
 
-                addCell(summaryTable, "户数参与率", boldFont);
+                addCell(summaryTable, "参与表决人数占比", boldFont);
                 addCell(summaryTable, summary.getOwnerParticipationRate() + "%", normalFont);
-                addCell(summaryTable, "面积参与率", boldFont);
+                addCell(summaryTable, "参与表决专有部分建筑面积占比", boldFont);
                 addCell(summaryTable, summary.getAreaParticipationRate() + "%", normalFont);
             } else {
                 com.itextpdf.text.pdf.PdfPCell noDataCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase("暂无统计数据", normalFont));
@@ -679,6 +681,13 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                     addCell(topicTable, "弃权", normalFont);
                     addCell(topicTable, String.valueOf(topic.getAbstainPeople()), normalFont);
                     addCell(topicTable, String.valueOf(topic.getAbstainArea()), normalFont);
+                    addCell(topicTable, "-", normalFont);
+                    addCell(topicTable, "-", normalFont);
+
+                    // 从多
+                    addCell(topicTable, "从多", normalFont);
+                    addCell(topicTable, String.valueOf(topic.getFollowMajorityPeople() != null ? topic.getFollowMajorityPeople() : 0), normalFont);
+                    addCell(topicTable, String.valueOf(topic.getFollowMajorityArea() != null ? topic.getFollowMajorityArea() : "0"), normalFont);
                     addCell(topicTable, "-", normalFont);
                     addCell(topicTable, "-", normalFont);
 
@@ -1245,6 +1254,57 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = p.getRuns();
         if (runs == null || runs.isEmpty()) return;
 
+        // 获取段落文本用于调试
+        String paragraphText = p.getText();
+        if (paragraphText != null && paragraphText.contains("编号")) {
+            log.info("发现包含'编号'的段落: [{}]", paragraphText);
+        }
+
+        // 特殊处理:如果段落包含"编号:"且params中有编号值,则替换占位符或追加编号
+        if (paragraphText != null && paragraphText.contains("编号:") && (params.containsKey("@number") || params.containsKey("{number}") || params.containsKey("${number}"))) {
+            String voteNo = params.get("@number");
+            if (voteNo == null) voteNo = params.get("{number}");
+            if (voteNo == null) voteNo = params.get("${number}");
+            
+            if (voteNo != null && !paragraphText.contains(voteNo)) {
+                String newText = paragraphText;
+                
+                // 优先替换"----"占位符(支持前后有空格的情况)
+                if (paragraphText.contains("编号:----") || paragraphText.contains("编号: ----") || paragraphText.trim().equals("编号:----")) {
+                    // 直接替换,保留原有的空格格式
+                    newText = paragraphText.replace("----", voteNo);
+                    log.info("替换编号占位符: [{}] -> [{}]", paragraphText, newText);
+                }
+                // 如果没有占位符,则在"编号:"后追加
+                else if (!paragraphText.contains(voteNo)) {
+                    newText = paragraphText.replace("编号:", "编号:" + voteNo);
+                    log.info("追加编号值: [{}] -> [{}]", paragraphText, newText);
+                }
+                
+                // 保留第一个 Run 的样式
+                org.apache.poi.xwpf.usermodel.XWPFRun firstRun = runs.get(0);
+                String fontFamily = firstRun.getFontFamily();
+                int fontSize = firstRun.getFontSize();
+                boolean bold = firstRun.isBold();
+                boolean italic = firstRun.isItalic();
+                String color = firstRun.getColor();
+                
+                removeAllRuns(p);
+                
+                org.apache.poi.xwpf.usermodel.XWPFRun newRun = p.createRun();
+                newRun.setText(newText);
+                
+                // 恢复样式
+                if (fontFamily != null) newRun.setFontFamily(fontFamily);
+                if (fontSize != -1) newRun.setFontSize(fontSize);
+                newRun.setBold(bold);
+                newRun.setItalic(italic);
+                if (color != null) newRun.setColor(color);
+                
+                return;
+            }
+        }
+
         // 1. 尝试简单替换（针对未分割的情况）
         boolean hit = false;
         for (org.apache.poi.xwpf.usermodel.XWPFRun r : runs) {
@@ -1263,8 +1323,7 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
         if (hit) return; // 如果简单替换成功了，就不继续处理
 
         // 2. 复杂替换（针对 Key 被 Word 分割成多个 Run 的情况）
-        String paragraphText = p.getText();
-
+        
         // 只有当段落包含任意一个 Key 时才进行处理
         boolean containsKey = false;
         for (String key : params.keySet()) {
@@ -1312,10 +1371,22 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
     }
 
     private void replaceTextInDoc(org.apache.poi.xwpf.usermodel.XWPFDocument doc, Map<String, String> params) {
+        log.info("开始替换文档占位符, 参数: {}", params.keySet());
+        
+        // 1. 处理普通段落
+        int paragraphCount = 0;
         for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
+            String text = p.getText();
+            if (text != null && !text.isEmpty()) {
+                log.debug("处理段落 {}: {}", paragraphCount++, text);
+            }
             replaceInParagraph(p, params);
         }
+        
+        // 2. 处理表格中的段落
+        int tableCount = 0;
         for (org.apache.poi.xwpf.usermodel.XWPFTable tbl : doc.getTables()) {
+            log.debug("处理表格 {}", tableCount++);
             for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : tbl.getRows()) {
                 for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
                     for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
@@ -1324,6 +1395,52 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 }
             }
         }
+        
+        // 3. 处理页眉
+        for (org.apache.poi.xwpf.usermodel.XWPFHeader header : doc.getHeaderList()) {
+            log.debug("处理页眉");
+            for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : header.getParagraphs()) {
+                String text = p.getText();
+                if (text != null && !text.isEmpty()) {
+                    log.debug("页眉段落: {}", text);
+                }
+                replaceInParagraph(p, params);
+            }
+            // 处理页眉中的表格
+            for (org.apache.poi.xwpf.usermodel.XWPFTable tbl : header.getTables()) {
+                for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : tbl.getRows()) {
+                    for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                        for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
+                            replaceInParagraph(p, params);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 4. 处理页脚
+        for (org.apache.poi.xwpf.usermodel.XWPFFooter footer : doc.getFooterList()) {
+            log.debug("处理页脚");
+            for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : footer.getParagraphs()) {
+                String text = p.getText();
+                if (text != null && !text.isEmpty()) {
+                    log.debug("页脚段落: {}", text);
+                }
+                replaceInParagraph(p, params);
+            }
+            // 处理页脚中的表格
+            for (org.apache.poi.xwpf.usermodel.XWPFTable tbl : footer.getTables()) {
+                for (org.apache.poi.xwpf.usermodel.XWPFTableRow row : tbl.getRows()) {
+                    for (org.apache.poi.xwpf.usermodel.XWPFTableCell cell : row.getTableCells()) {
+                        for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
+                            replaceInParagraph(p, params);
+                        }
+                    }
+                }
+            }
+        }
+        
+        log.info("文档占位符替换完成");
     }
 
     /**
@@ -1371,5 +1488,32 @@ public class SysPropertyMeetingServiceImpl implements ISysPropertyMeetingService
                 }
             }
         }
+    }
+
+    @Override
+    public List<SysPropertyMeeting> selectDeletedMeetingList(SysPropertyMeeting sysPropertyMeeting) {
+        return sysPropertyMeetingMapper.selectDeletedMeetingList(sysPropertyMeeting);
+    }
+
+    @Override
+    @Transactional
+    public int restoreMeeting(Long meetingId) {
+        SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        if (meeting != null) {
+            CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+        }
+        return sysPropertyMeetingMapper.restoreMeeting(meetingId);
+    }
+
+    @Override
+    @Transactional
+    public int permanentlyDeleteMeeting(Long meetingId) {
+        SysPropertyMeeting meeting = sysPropertyMeetingMapper.selectSysPropertyMeetingByMeetingId(meetingId);
+        if (meeting != null) {
+            CommunityUtils.checkCommunityPermission(meeting.getCommunityId());
+            // 永久删除时也删除相关的议题
+            sysPropertyMeetingTopicMapper.deleteSysPropertyMeetingTopicByMeetingId(meetingId);
+        }
+        return sysPropertyMeetingMapper.permanentlyDeleteMeeting(meetingId);
     }
 }

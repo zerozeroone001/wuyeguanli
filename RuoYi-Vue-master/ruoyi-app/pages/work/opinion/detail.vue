@@ -163,6 +163,35 @@
               :placeholder="field.placeholder || `请输入${field.label}`"
             />
           </uni-forms-item>
+
+          <!-- 评分控件 -->
+          <uni-forms-item 
+            v-if="field.type === 'rate'" 
+            :name="field.label" 
+            :label="field.label"
+            :required="field.required"
+            class="form-item-full-width"
+          >
+            <view class="rating-container">
+              <view class="rating-stars">
+                <view 
+                  class="star-item" 
+                  v-for="star in 5" 
+                  :key="star"
+                  @click="setRating(field.label, star)"
+                >
+                  <uni-icons 
+                    type="star-filled" 
+                    size="32" 
+                    :color="star <= (formData[field.label] || 0) ? '#FA8C16' : '#D9D9D9'" 
+                  />
+                </view>
+              </view>
+              <text class="rating-value" v-if="formData[field.label]">
+                {{ formData[field.label] }} 分
+              </text>
+            </view>
+          </uni-forms-item>
         </view>
       </uni-forms>
     </view>
@@ -308,8 +337,18 @@ export default {
       
       const data = {}
       this.formSchema.fields.forEach(field => {
+        // 转换选项数据格式:将label转为text,以适配uni-data-checkbox组件
+        if ((field.type === 'radio' || field.type === 'checkbox' || field.type === 'select') && field.options) {
+          field.options = field.options.map(opt => ({
+            value: opt.value,
+            text: opt.text || opt.label || opt.value
+          }))
+        }
+        
         if (field.type === 'checkbox') {
           data[field.label] = []
+        } else if (field.type === 'rate') {
+          data[field.label] = 0
         } else {
           data[field.label] = ''
         }
@@ -458,6 +497,10 @@ export default {
     
     handleDateChange(fieldName, event) {
       this.$set(this.formData, fieldName, event.detail.value)
+    },
+    
+    setRating(fieldName, value) {
+      this.$set(this.formData, fieldName, value)
     },
     
     formatDate(dateString) {
@@ -658,6 +701,29 @@ page {
       font-size: 28rpx;
       color: #262626;
       flex: 1;
+    }
+  }
+  
+  .rating-container {
+    .rating-stars {
+      display: flex;
+      align-items: center;
+      gap: 16rpx;
+      margin-bottom: 12rpx;
+      
+      .star-item {
+        transition: transform 0.2s;
+        
+        &:active {
+          transform: scale(1.2);
+        }
+      }
+    }
+    
+    .rating-value {
+      font-size: 24rpx;
+      color: #FA8C16;
+      font-weight: 500;
     }
   }
 }

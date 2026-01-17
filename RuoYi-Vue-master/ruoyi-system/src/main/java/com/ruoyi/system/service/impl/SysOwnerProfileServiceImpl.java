@@ -141,17 +141,21 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
      */
     /**
      * 安全地绑定房产 - 房产不存在时不抛出异常
-     * @return SUCCESS-成功, PROPERTY_NOT_FOUND-房产不存在, NO_USER-无关联用户, 其他-错误信息
+     * @return SUCCESS-成功, PROPERTY_NOT_FOUND-房产不存在, NO_USER_OR_OWNER_NO-无有效身份信息, 其他-错误信息
      */
     private String bindPropertySafely(Long userId, Long communityId, String buildingNo, String unitName, String roomNo, String ownerNo) {
-        // 如果没有关联用户,不能绑定房产
-        if (userId == null) {
-            log.info("业主档案无关联用户,跳过房产绑定: ownerNo={}", ownerNo);
-            return "NO_USER";
+        // 验证 userId 和 ownerNo 不能同时为空(至少要有一个)
+        if (userId == null && StringUtils.isEmpty(ownerNo)) {
+            log.warn("业主档案无关联用户且无业主编号,无法绑定房产");
+            return "NO_USER_OR_OWNER_NO";
         }
         
-        if (ownerNo == null || communityId == null ||
-            StringUtils.isEmpty(buildingNo) || StringUtils.isEmpty(roomNo)) {
+        // 允许 userId 为 null,只要有 ownerNo 即可绑定
+        if (userId == null && StringUtils.isNotEmpty(ownerNo)) {
+            log.info("业主无关联用户,使用 ownerNo 绑定房产: ownerNo={}", ownerNo);
+        }
+        
+        if (communityId == null || StringUtils.isEmpty(buildingNo) || StringUtils.isEmpty(roomNo)) {
             return "参数异常";
         }
 
@@ -164,15 +168,37 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
             return "PROPERTY_NOT_FOUND";
         }
         
-        // Check for duplicates
-        EstateUserProperty checkQuery = new EstateUserProperty();
-        checkQuery.setUserId(userId);
-        checkQuery.setPropertyId(propertyId);
-        List<EstateUserProperty> exists = estateUserPropertyService.selectEstateUserPropertyList(checkQuery);
-        if (!exists.isEmpty()) {
-            log.info("房产已绑定: userId={}, propertyId={}", userId, propertyId);
-            return "SUCCESS"; // 已存在视为成功
+        // 1. 检查该房产是否已被任何业主绑定(防止重复绑定)
+        EstateUserProperty propertyCheck = new EstateUserProperty();
+        propertyCheck.setPropertyId(propertyId);
+        propertyCheck.setUserType("10"); // 只检查业主类型
+        List<EstateUserProperty> existingBindings = estateUserPropertyService.selectEstateUserPropertyList(propertyCheck);
+        
+        if (!existingBindings.isEmpty()) {
+            // 房产已被绑定,检查是否是当前业主
+            EstateUserProperty existing = existingBindings.get(0);
+            
+            // 如果是同一个业主(通过 userId 或 ownerNo 判断),视为已存在,返回成功
+            boolean isSameOwner = false;
+            if (userId != null && userId.equals(existing.getUserId())) {
+                isSameOwner = true;
+            } else if (StringUtils.isNotEmpty(ownerNo) && ownerNo.equals(existing.getOwnerNo())) {
+                isSameOwner = true;
+            }
+            
+            if (isSameOwner) {
+                log.info("房产已绑定当前业主: userId={}, ownerNo={}, propertyId={}", userId, ownerNo, propertyId);
+                return "SUCCESS"; // 已存在视为成功
+            } else {
+                // 房产已被其他业主绑定
+                String existingOwnerInfo = existing.getOwnerNo() != null ? existing.getOwnerNo() : "用户ID:" + existing.getUserId();
+                log.warn("房产已被其他业主绑定: propertyId={}, 已绑定业主={}, 尝试绑定业主={}", 
+                         propertyId, existingOwnerInfo, ownerNo != null ? ownerNo : "用户ID:" + userId);
+                return "ALREADY_BOUND:该房产已被其他业主绑定";
+            }
         }
+        
+        // 2. 房产未被绑定,可以创建新的绑定关系
 
         EstateUserProperty eup = new EstateUserProperty();
         eup.setUserId(userId);
@@ -180,10 +206,10 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
         eup.setCommunityId(communityId);
         eup.setStatus("1"); // 默认审核通过
         eup.setUserType("10"); // 业主
-        if (StringUtils.isNotEmpty(ownerNo)) {
             eup.setOwnerNo(ownerNo);
-        }
-        
+        System.out.println("==========================");
+
+        System.out.println("==========================");
         try {
             estateUserPropertyService.insertEstateUserProperty(eup);
             return "SUCCESS";
@@ -410,6 +436,8 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
                     newProfile.setCreateBy(operName);
                     newProfile.setCreateTime(DateUtils.getNowDate());
                     sysOwnerProfileMapper.insertSysOwnerProfile(newProfile);
+                    log.info("创建新业主档案成功: ownerNo={}, userId={}, userName={}, communityId={}", 
+                             ownerNo, userId, dto.getUserName(), communityId);
                 }
                 else
                 {
@@ -426,11 +454,20 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
 
 
                 // 6. 绑定房产(如果房产存在且有关联用户)
+                log.info("准备绑定房产: userId={}, ownerNo={}, communityId={}, building={}, unit={}, room={}", 
+                         userId, ownerNo, communityId, dto.getBuildingNo(), dto.getUnitNo(), dto.getRoomNo());
                 String bindResult = bindPropertySafely(userId, communityId, dto.getBuildingNo(), dto.getUnitNo(), dto.getRoomNo(), ownerNo);
+                log.info("房产绑定结果: bindResult={}, userName={}", bindResult, dto.getUserName());
                 if ("SUCCESS".equals(bindResult))
                 {
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、" + dto.getUserName() + " 导入成功");
+                }
+                else if ("NO_USER_OR_OWNER_NO".equals(bindResult))
+                {
+                    // 无用户ID且无业主编号,仅创建档案
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、" + dto.getUserName() + " 导入失败:业主档案无关联用户且无业主编号");
                 }
                 else if ("NO_USER".equals(bindResult))
                 {
@@ -444,11 +481,18 @@ public class SysOwnerProfileServiceImpl implements ISysOwnerProfileService
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、" + dto.getUserName() + " 导入成功(未找到对应房产,仅创建业主档案)");
                 }
+                else if (bindResult != null && bindResult.startsWith("ALREADY_BOUND"))
+                {
+                    // 房产已被其他业主绑定
+                    failureNum++;
+                    String errorMsg = bindResult.contains(":") ? bindResult.substring(bindResult.indexOf(":") + 1) : "该房产已被其他业主绑定";
+                    failureMsg.append("<br/>" + failureNum + "、" + dto.getUserName() + " 导入失败:" + errorMsg);
+                }
                 else
                 {
                     // 其他错误
                     failureNum++;
-                    failureMsg.append("<br/>" + failureNum + "、" + dto.getUserName() + " 房产绑定失败：" + bindResult);
+                    failureMsg.append("<br/>" + failureNum + "、" + dto.getUserName() + " 房产绑定失败:" + bindResult);
                 }
             }
             catch (Exception e)

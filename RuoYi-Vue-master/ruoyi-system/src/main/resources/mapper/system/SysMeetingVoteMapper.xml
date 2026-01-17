@@ -210,6 +210,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="opposeArea" column="oppose_area"/>
         <result property="abstainPeople" column="abstain_people"/>
         <result property="abstainArea" column="abstain_area"/>
+        <result property="followMajorityPeople" column="follow_majority_people"/>
+        <result property="followMajorityArea" column="follow_majority_area"/>
         <result property="notVotedPeople" column="not_voted_people"/>
         <result property="notVotedArea" column="not_voted_area"/>
         <result property="totalPeople" column="total_people"/>
@@ -253,6 +255,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                         WHEN 0 THEN '同意'
                         WHEN 1 THEN '反对'
                         WHEN 2 THEN '弃权'
+                        WHEN 3 THEN '从多'
                         ELSE '未投票'
                     END
                 )
@@ -298,6 +301,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             -- 弃权统计
             COALESCE(abstain_stats.people_count, 0) as abstain_people,
             COALESCE(abstain_stats.area_sum, 0) as abstain_area,
+            -- 从多统计
+            COALESCE(follow_majority_stats.people_count, 0) as follow_majority_people,
+            COALESCE(follow_majority_stats.area_sum, 0) as follow_majority_area,
             -- 总数统计
             total_stats.people_count as total_people,
             total_stats.area_sum as total_area,
@@ -321,12 +327,39 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             CASE WHEN total_stats.area_sum > 0 
                 THEN ROUND(COALESCE(agree_stats.area_sum, 0) * 100.0 / total_stats.area_sum, 2)
                 ELSE 0 END as agree_area_rate,
-            -- 是否通过(双过半:同意人数>50% AND 同意面积>50%)
-            CASE WHEN (COALESCE(agree_stats.people_count, 0) * 100.0 / total_stats.people_count > 50)
-                  AND (COALESCE(agree_stats.area_sum, 0) * 100.0 / total_stats.area_sum > 50)
-                THEN 1 ELSE 0 END as is_passed
+            -- 是否通过(根据会议通过标准动态判断)
+            CASE 
+                -- 普通标准
+                WHEN m.pass_standard = 'normal' THEN
+                    CASE WHEN (
+                        -- 参与率检查
+                        (COALESCE(voted_stats.people_count, 0) * 100.0 / total_stats.people_count >= COALESCE(m.normal_participation_rate, 0))
+                        AND
+                        -- 同意率检查(相对于实际参与人数)
+                        (COALESCE(voted_stats.people_count, 0) > 0 
+                            AND COALESCE(agree_stats.people_count, 0) * 100.0 / voted_stats.people_count >= COALESCE(m.normal_approval_rate, 0))
+                    ) THEN 1 ELSE 0 END
+                -- 高规格标准
+                WHEN m.pass_standard = 'high' THEN
+                    CASE WHEN (
+                        -- 参与率检查
+                        (COALESCE(voted_stats.people_count, 0) * 100.0 / total_stats.people_count >= COALESCE(m.high_participation_rate, 0))
+                        AND
+                        -- 同意率检查(相对于实际参与人数)
+                        (COALESCE(voted_stats.people_count, 0) > 0 
+                            AND COALESCE(agree_stats.people_count, 0) * 100.0 / voted_stats.people_count >= COALESCE(m.high_approval_rate, 0))
+                    ) THEN 1 ELSE 0 END
+                -- 默认使用双过半
+                ELSE
+                    CASE WHEN (
+                        COALESCE(agree_stats.people_count, 0) * 100.0 / total_stats.people_count > 50
+                        AND COALESCE(agree_stats.area_sum, 0) * 100.0 / total_stats.area_sum > 50
+                    ) THEN 1 ELSE 0 END
+            END as is_passed
         FROM 
             sys_property_meeting_topic t
+        -- 关联会议表获取通过标准
+        INNER JOIN sys_property_meeting m ON t.meeting_id = m.meeting_id
         -- 总数统计(该小区所有已审核用户)
         CROSS JOIN (
             SELECT 
@@ -390,6 +423,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
             GROUP BY mv.topic_id
         ) abstain_stats ON t.topic_id = abstain_stats.topic_id
+        -- 从多票统计
+        LEFT JOIN (
+            SELECT 
+                mv.topic_id,
+                COUNT(DISTINCT mv.user_id) as people_count,
+                COALESCE(SUM(ep.area), 0) as area_sum
+            FROM sys_meeting_vote mv
+            INNER JOIN sys_estate_user_property eup ON mv.user_id = eup.user_id
+            INNER JOIN sys_estate_property ep ON eup.property_id = ep.property_id
+            WHERE mv.meeting_id = #{meetingId}
+                AND mv.vote_option = 3
+                AND eup.community_id = #{communityId}
+                AND eup.status = '1'
+                AND (eup.del_flag = '0' OR eup.del_flag IS NULL)
+                AND (ep.del_flag = '0' OR ep.del_flag IS NULL)
+            GROUP BY mv.topic_id
+        ) follow_majority_stats ON t.topic_id = follow_majority_stats.topic_id
         -- 实际投票统计(所有投票选项)
         LEFT JOIN (
             SELECT 

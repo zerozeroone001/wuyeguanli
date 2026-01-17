@@ -50,8 +50,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectSysOwnerProfileList" parameterType="SysOwnerProfile" resultMap="SysOwnerProfileResult">
         SELECT
             MAX(p.owner_id) as owner_id,
-            p.user_id,
-            p.community_id,
+            MAX(p.owner_no) as owner_no,
+            MAX(p.user_id) as user_id,
+            MAX(p.community_id) as community_id,
             
             MAX(u.nick_name) as real_name,
             MAX(p.phonenumber) as phonenumber, 
@@ -61,11 +62,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             (SELECT GROUP_CONCAT(CONCAT(sub_ep.building_name, '号楼', sub_ep.room_number) ORDER BY sub_ep.building_name, sub_ep.room_number SEPARATOR ', ')
              FROM sys_estate_user_property sub_eup 
              JOIN sys_estate_property sub_ep ON sub_eup.property_id = sub_ep.property_id 
-             WHERE sub_eup.owner_no = MAX(p.owner_no) AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)) as merged_properties,
+             WHERE sub_eup.owner_no = p.owner_no AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)) as merged_properties,
             
             (SELECT COUNT(*)
              FROM sys_estate_user_property sub_eup
-             WHERE sub_eup.owner_no = MAX(p.owner_no) AND sub_eup.del_flag = '0') as property_count,
+             WHERE sub_eup.owner_no = p.owner_no AND sub_eup.del_flag = '0') as property_count,
             
             MAX(p.del_flag) as del_flag,
             MAX(p.create_by) as create_by,
@@ -82,7 +83,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             (SELECT COALESCE(SUM(sub_ep.area), 0)
              FROM sys_estate_user_property sub_eup
              JOIN sys_estate_property sub_ep ON sub_eup.property_id = sub_ep.property_id
-             WHERE sub_eup.owner_no = MAX(p.owner_no) AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)) as property_area
+             WHERE sub_eup.owner_no = p.owner_no AND sub_eup.del_flag = '0' AND (sub_ep.del_flag = '0' OR sub_ep.del_flag IS NULL)) as property_area
 
         FROM sys_owner_profile p
         LEFT JOIN sys_user u ON p.user_id = u.user_id
@@ -97,7 +98,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND p.tag_id = #{tagId}
             </if>
         </where>
-        GROUP BY u.nick_name, p.community_id, p.user_id
+        GROUP BY p.owner_no
         <if test="propertyTag != null and propertyTag != ''">
             HAVING 1=1
             <if test="propertyTag == '单套房'">

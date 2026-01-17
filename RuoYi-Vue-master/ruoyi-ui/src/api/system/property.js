@@ -42,3 +42,12 @@ export function delProperty(associationId) {
     method: 'delete'
   })
 }
+
+// 获取房产树形结构(楼栋-单元-房号)
+export function getPropertyTree(communityId) {
+  return request({
+    url: '/system/property/tree',
+    method: 'get',
+    params: { communityId }
+  })
+}

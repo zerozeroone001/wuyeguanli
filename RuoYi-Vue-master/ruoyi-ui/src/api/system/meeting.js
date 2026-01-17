@@ -128,3 +128,28 @@ export function stopMeeting(meetingId) {
     method: 'put'
   })
 }
+
+// 查询已删除的会议列表(回收站)
+export function listDeletedMeeting(query) {
+  return request({
+    url: '/system/meeting/deleted/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 恢复已删除的会议
+export function restoreMeeting(meetingId) {
+  return request({
+    url: '/system/meeting/restore/' + meetingId,
+    method: 'put'
+  })
+}
+
+// 永久删除会议
+export function permanentlyDeleteMeeting(meetingId) {
+  return request({
+    url: '/system/meeting/permanent/' + meetingId,
+    method: 'delete'
+  })
+}

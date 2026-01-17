@@ -217,4 +217,38 @@ public class SysPropertyMeetingController extends BaseController
     {
         return toAjax(sysPropertyMeetingService.stopMeeting(meetingId));
     }
+
+    /**
+     * 查询已删除的会议列表(回收站)
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:list')")
+    @GetMapping("/deleted/list")
+    public TableDataInfo deletedList(SysPropertyMeeting sysPropertyMeeting)
+    {
+        startPage();
+        List<SysPropertyMeeting> list = sysPropertyMeetingService.selectDeletedMeetingList(sysPropertyMeeting);
+        return getDataTable(list);
+    }
+
+    /**
+     * 恢复已删除的会议
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:edit')")
+    @Log(title = "会议管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/restore/{meetingId}")
+    public AjaxResult restore(@PathVariable Long meetingId)
+    {
+        return toAjax(sysPropertyMeetingService.restoreMeeting(meetingId));
+    }
+
+    /**
+     * 永久删除会议
+     */
+    @PreAuthorize("@ss.hasPermi('system:meeting:remove')")
+    @Log(title = "会议管理", businessType = BusinessType.DELETE)
+    @DeleteMapping("/permanent/{meetingId}")
+    public AjaxResult permanentDelete(@PathVariable Long meetingId)
+    {
+        return toAjax(sysPropertyMeetingService.permanentlyDeleteMeeting(meetingId));
+    }
 }

@@ -81,7 +81,7 @@
           </picker>
         </view>
 
-        <view class="form-item">
+       <!-- <view class="form-item">
           <text class="label required">选择产权证类型</text>
           <picker @change="handlePropertyTypeChange" :value="propertyTypeIndex" :range="propertyTypeList" range-key="label">
             <view class="input-wrapper">
@@ -91,10 +91,10 @@
               <uni-icons type="right" size="16" color="#BFBFBF" />
             </view>
           </picker>
-        </view>
+        </view> -->
 
         <view class="form-item upload-item">
-          <text class="label required">上传房产证</text>
+          <text class="label required">上传产权证明材料</text>
           <view class="upload-area">
             <view v-if="!formData.propertyCertImage" class="upload-button" @click="choosePropertyCertImage">
               <uni-icons type="camera" size="40" color="#BFBFBF" />

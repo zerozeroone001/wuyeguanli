@@ -30,7 +30,7 @@
             :key="tag.tagId"
             :label="tag.tagName"
             :value="tag.tagId">
-            <i :class="tag.tagIcon" style="margin-right: 10px;"></i>
+            <img v-if="tag.tagIcon" :src="getImageUrl(tag.tagIcon)" style="width: 20px; height: 20px; object-fit: cover; margin-right: 10px; vertical-align: middle;" />
             <span>{{ tag.tagName }}</span>
           </el-option>
         </el-select>
@@ -110,12 +110,9 @@
 
     <el-table v-loading="loading" :data="ownerList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="业主标签" align="center" prop="tagId" width="120">
+      <el-table-column label="业主标签" align="center" prop="tagId" width="150">
         <template slot-scope="scope">
-          <el-tag v-if="getTagById(scope.row.tagId)" size="small">
-            <i :class="getTagById(scope.row.tagId).tagIcon" style="margin-right: 5px;"></i>
-            {{ getTagById(scope.row.tagId).tagName }}
-          </el-tag>
+          <img v-if="getTagById(scope.row.tagId) && getTagById(scope.row.tagId).tagIcon" :src="getImageUrl(getTagById(scope.row.tagId).tagIcon)" style="width: 30px; height: 30px; object-fit: cover; margin-right: 5px; vertical-align: middle;" />
           <span v-else style="color: #909399;">未设置</span>
         </template>
       </el-table-column>
@@ -128,14 +125,14 @@
           <el-tag :type="scope.row.propertyTag === '多套房' ? 'warning' : 'success'">{{ scope.row.propertyTag }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="房产面积(㎡)" align="center" prop="propertyArea" />
+      <el-table-column label="专有部分面积(㎡)" align="center" prop="propertyArea" />
 
       <el-table-column label="业委会/业主" align="center" prop="isOwner">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_owner_type" :value="scope.row.isOwner"/>
         </template>
       </el-table-column>
-      <el-table-column label="票权状态" align="center" prop="status">
+      <el-table-column label="投票状态" align="center" prop="status">
         <template slot-scope="scope">
           <div>{{scope.row.userId?'正常':'未绑定'}}</div>
         </template>
@@ -363,10 +360,10 @@
 
       <el-table v-loading="tagDialog.loading" :data="tagDialog.tagList" border>
         <el-table-column label="标签名称" align="center" prop="tagName" />
-        <el-table-column label="标签图标" align="center" prop="tagIcon">
+        <el-table-column label="标签图标" align="center" prop="tagIcon" width="150">
           <template slot-scope="scope">
-            <i :class="scope.row.tagIcon" style="font-size: 20px;"></i>
-            <span style="margin-left: 10px;">{{ scope.row.tagIcon }}</span>
+            <img v-if="scope.row.tagIcon" :src="getImageUrl(scope.row.tagIcon)" style="width: 50px; height: 50px; object-fit: cover;" />
+            <span v-else style="color: #909399;">未设置</span>
           </template>
         </el-table-column>
         <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip />
@@ -403,14 +400,7 @@
           <el-input v-model="tagForm.data.tagName" placeholder="请输入标签名称" />
         </el-form-item>
         <el-form-item label="标签图标" prop="tagIcon">
-          <el-input v-model="tagForm.data.tagIcon" placeholder="请输入Element UI图标类名，如：el-icon-star">
-            <i v-if="tagForm.data.tagIcon" slot="prefix" :class="tagForm.data.tagIcon" style="line-height: 32px;"></i>
-            <i v-else slot="prefix" class="el-icon-search" style="line-height: 32px;"></i>
-          </el-input>
-          <div style="margin-top: 5px; font-size: 12px; color: #909399;">
-            常用图标：el-icon-star, el-icon-user, el-icon-setting, el-icon-phone, el-icon-location
-            <a href="https://element.eleme.cn/#/zh-CN/component/icon" target="_blank" style="margin-left: 10px;">查看更多图标</a>
-          </div>
+          <image-upload v-model="tagForm.data.tagIcon" :limit="1" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="tagForm.data.remark" type="textarea" placeholder="请输入内容" />
@@ -435,7 +425,7 @@
               :key="tag.tagId"
               :label="tag.tagName"
               :value="tag.tagId">
-              <i :class="tag.tagIcon" style="margin-right: 10px;"></i>
+              <img v-if="tag.tagIcon" :src="getImageUrl(tag.tagIcon)" style="width: 20px; height: 20px; object-fit: cover; margin-right: 10px; vertical-align: middle;" />
               <span>{{ tag.tagName }}</span>
             </el-option>
           </el-select>
@@ -457,12 +447,14 @@ import { getPropertyTree } from "@/api/system/estateProperty";
 import { listOwnerTag, getOwnerTag, addOwnerTag, updateOwnerTag, delOwnerTag } from "@/api/system/ownerTag";
 import { getToken } from "@/utils/auth";
 import PropertyTransferDialog from "./PropertyTransferDialog";
+import ImageUpload from "@/components/ImageUpload";
 import { mapGetters } from "vuex";
 
 export default {
   name: "Owner",
   components: {
-    PropertyTransferDialog
+    PropertyTransferDialog,
+    ImageUpload
   },
   dicts: ['sys_yes_no', 'sys_auth_status', 'sys_owner_type', 'sys_normal_disable'],
   data() {
@@ -817,7 +809,6 @@ export default {
         const buildingNo = this.newProperty.propertyPath[0];
         const unitNo = this.newProperty.propertyPath[1] === '无单元' ? null : this.newProperty.propertyPath[1];
         const roomNo = this.newProperty.propertyPath[2];
-
         // 构建新增数据
         const data = {
             ownerId: this.formEdit.ownerId,
@@ -852,7 +843,7 @@ export default {
     },
     /** 加载房产树形数据 */
     loadPropertyTree(communityId, excludeOwnerNo) {
-      getPropertyTree({ 
+      getPropertyTree({
         communityId: communityId,
         excludeOwnerNo: excludeOwnerNo || null
       }).then(response => {
@@ -876,12 +867,12 @@ export default {
             this.$message.error("请选择完整的房产信息(楼栋/单元/房号)");
             return;
           }
-          
+
           // 从级联选择器路径中提取楼栋、单元、房号
           this.formAdd.buildingNo = this.formAdd.propertyPath[0];
           this.formAdd.unitNo = this.formAdd.propertyPath[1] === '无单元' ? null : this.formAdd.propertyPath[1];
           this.formAdd.roomNo = this.formAdd.propertyPath[2];
-          
+
           if (this.formAdd.communityId === null || this.formAdd.communityId === undefined) {
             if (!this.isAllCommunitySelected) {
               this.formAdd.communityId = Number(this.currentCommunityId);
@@ -1130,6 +1121,16 @@ export default {
         console.error('设置标签失败:', error);
         this.$message.error('设置标签失败');
       });
+    },
+    /** 获取完整图片URL */
+    getImageUrl(url) {
+      if (!url) return '';
+      // 如果已经是完整URL,直接返回
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+      }
+      // 否则拼接baseUrl
+      return process.env.VUE_APP_BASE_API + url;
     }
   }
 };

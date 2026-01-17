@@ -105,8 +105,40 @@ public class SysPropertyMeeting extends BaseEntity
     @Excel(name = "缩略图")
     private String coverImage;
 
+    /** 是否开启从多选项 */
+    @Excel(name = "是否开启从多选项")
+    private String congduo;
+
+    /** 选中的房产ID列表(JSON格式) */
+    @Excel(name = "选中的房产ID列表")
+    private String selectedProperties;
+
+    /** 通过标准(normal:普通,high:高规格) */
+    @Excel(name = "通过标准")
+    private String passStandard;
+
+    /** 普通标准-参与投票率 */
+    @Excel(name = "普通标准-参与投票率")
+    private BigDecimal normalParticipationRate;
+
+    /** 普通标准-投票同意率 */
+    @Excel(name = "普通标准-投票同意率")
+    private BigDecimal normalApprovalRate;
+
+    /** 高规格标准-参与投票率 */
+    @Excel(name = "高规格标准-参与投票率")
+    private BigDecimal highParticipationRate;
+
+    /** 高规格标准-投票同意率 */
+    @Excel(name = "高规格标准-投票同意率")
+    private BigDecimal highApprovalRate;
+
+
     /** 投票状态 (0:未投票 1:已投票) */
     private String voterStatus;
+
+    /** 删除标志(0代表存在 2代表删除) */
+    private String delFlag;
 
     /** 议题列表 */
     private List<SysPropertyMeetingTopic> topics;
@@ -331,6 +363,77 @@ public class SysPropertyMeeting extends BaseEntity
         return coverImage;
     }
 
+    public void setCongduo(String congduo)
+    {
+        this.congduo = congduo;
+    }
+
+    public String getCongduo()
+    {
+        return congduo;
+    }
+
+    public void setSelectedProperties(String selectedProperties)
+    {
+        this.selectedProperties = selectedProperties;
+    }
+
+    public String getSelectedProperties()
+    {
+        return selectedProperties;
+    }
+
+    public void setPassStandard(String passStandard)
+    {
+        this.passStandard = passStandard;
+    }
+
+    public String getPassStandard()
+    {
+        return passStandard;
+    }
+
+    public void setNormalParticipationRate(BigDecimal normalParticipationRate)
+    {
+        this.normalParticipationRate = normalParticipationRate;
+    }
+
+    public BigDecimal getNormalParticipationRate()
+    {
+        return normalParticipationRate;
+    }
+
+    public void setNormalApprovalRate(BigDecimal normalApprovalRate)
+    {
+        this.normalApprovalRate = normalApprovalRate;
+    }
+
+    public BigDecimal getNormalApprovalRate()
+    {
+        return normalApprovalRate;
+    }
+
+    public void setHighParticipationRate(BigDecimal highParticipationRate)
+    {
+        this.highParticipationRate = highParticipationRate;
+    }
+
+    public BigDecimal getHighParticipationRate()
+    {
+        return highParticipationRate;
+    }
+
+    public void setHighApprovalRate(BigDecimal highApprovalRate)
+    {
+        this.highApprovalRate = highApprovalRate;
+    }
+
+    public BigDecimal getHighApprovalRate()
+    {
+        return highApprovalRate;
+    }
+
+
     public String getVoterStatus() 
     {
         return voterStatus;
@@ -349,6 +452,16 @@ public class SysPropertyMeeting extends BaseEntity
     public void setTopics(List<SysPropertyMeetingTopic> topics)
     {
         this.topics = topics;
+    }
+
+    public String getDelFlag()
+    {
+        return delFlag;
+    }
+
+    public void setDelFlag(String delFlag)
+    {
+        this.delFlag = delFlag;
     }
 
     @Override
@@ -376,6 +489,14 @@ public class SysPropertyMeeting extends BaseEntity
             .append("votingAreaPercentage", getVotingAreaPercentage())
             .append("showParticipantCount", getShowParticipantCount())
             .append("coverImage", getCoverImage())
+            .append("congduo", getCongduo())
+            .append("selectedProperties", getSelectedProperties())
+            .append("passStandard", getPassStandard())
+            .append("normalParticipationRate", getNormalParticipationRate())
+            .append("normalApprovalRate", getNormalApprovalRate())
+            .append("highParticipationRate", getHighParticipationRate())
+            .append("highApprovalRate", getHighApprovalRate())
+            .append("delFlag", getDelFlag())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

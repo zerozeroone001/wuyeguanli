@@ -11,7 +11,8 @@ public class SysMeetingVote extends BaseEntity {
     private Long userId;
     private String userName;
     
-    /** 投票选项（0同意 1反对 2弃权） */
+    
+    /** 投票选项（0同意 1反对 2弃权 3从多） */
     private Integer voteOption;
     
     /** 投票方式（0小程序投票 1纸质投票 2语音投票） */
